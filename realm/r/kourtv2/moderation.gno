@@ -137,7 +137,22 @@ func AddGlobalMod(cur realm, who address) {
 // ONLY THE ADD IS SHARED. Removal is not the mirror of it — RemoveGlobalMod
 // also has to pull purgeM down to the smaller n — and seating cannot put m
 // above n, so there is nothing to clamp on this side.
+//
+// THE VALIDITY CHECK IS FIRST, BEFORE THE ALREADY-A-MEMBER RETURN, because the
+// early return is a skip of the whole body: an invalid address that somehow
+// reached the set once would be waved through every time after. Checking here
+// rather than in the two callers is the same argument the block above makes.
+//
+// It matters most on the transfer path. TransferGlobalAdmin assigns d.admin
+// straight after this call, so without a check `TransferGlobalAdmin(cur, "")`
+// seats a malformed member and hands the seat to an address nobody holds a key
+// for — and since every admin-gated setter compares against d.admin, that is
+// one call, from the admin, that permanently removes the realm's only admin.
+// There is no recovery path: the seat is the thing that would authorise one.
 func seatGlobalMember(d *daoState, who address) {
+	if !who.IsValid() {
+		panic("kourtv2: not a valid address")
+	}
 	if d.members.Has(who.String()) {
 		return
 	}

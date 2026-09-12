@@ -276,3 +276,72 @@ func TestUnhidingTakesAModeratorAndNotMerelyAnAddress(cur realm, t *testing.T) {
 		t.Fatal("the moderator's unhide must land")
 	}
 }
+
+// THE ADMIN SEAT IS THE ONE THING THE REALM CANNOT REISSUE. Every admin-gated
+// setter compares the caller against d.admin, and the only way to move d.admin
+// is to already be it — so an admin who hands the seat to an address nobody
+// holds a key for has not locked themselves out of one function, they have
+// removed the realm's only administrator with no path back.
+//
+// seatGlobalMember validates because both routes to the seat run through it,
+// and this pins that the check is reached on the transfer route specifically:
+// TransferGlobalAdmin assigns d.admin on the line AFTER the seating call, so a
+// check that panicked too late would leave the seat already moved.
+func TestTransferGlobalAdminRefusesAnAddressNobodyHolds(cur realm, t *testing.T) {
+	// A COURT FIRST. ensureGlobalDAO panics outright while directoryAdmin is
+	// empty, and directoryAdmin is set by the first court's creator -- so with a
+	// -run filter that excludes every other test, this one has no admin to be.
+	testCourt(cur, "tga", testutils.TestAddress("tga-boot"), 10_000_000_000)
+	orig := ensureGlobalDAO().admin
+
+	for _, bad := range []address{address(""), address("notanaddress")} {
+		// AbortsContains, not mustPanicWith: a panic raised inside a crossing
+		// function is an ABORT, and the caller cannot recover() it -- the first
+		// version of this test used the recover-based helper and the panic flew
+		// straight through it.
+		testing.SetRealm(testing.NewUserRealm(orig))
+		uassert.AbortsContains(t, cur, "not a valid address", func() {
+			TransferGlobalAdmin(cross(cur), bad)
+		})
+		// THE SEAT MUST NOT HAVE MOVED. A panic that fired after the assignment
+		// would still abort the transaction in production, but this runs in a
+		// test where the realm's globals are shared across cases, and it is the
+		// assignment -- not the panic -- that this is really asserting about.
+		if got := ensureGlobalDAO().admin; got != orig {
+			t.Fatalf("admin moved to %v on a refused transfer; want %v", got, orig)
+		}
+	}
+
+	// AND THE GUARD DOES NOT BLOCK THE REAL THING. Without this the test passes
+	// just as well against a seatGlobalMember that refuses every address.
+	next := testutils.TestAddress("tga-next")
+	testing.SetRealm(testing.NewUserRealm(orig))
+	TransferGlobalAdmin(cross(cur), next)
+	if got := ensureGlobalDAO().admin; got != next {
+		t.Fatalf("a valid transfer did not land: admin is %v, want %v", got, next)
+	}
+
+	// Restore inline, as the new admin -- the only address that can now do it.
+	testing.SetRealm(testing.NewUserRealm(next))
+	TransferGlobalAdmin(cross(cur), orig)
+	if got := ensureGlobalDAO().admin; got != orig {
+		t.Fatalf("failed to restore admin: is %v, want %v", got, orig)
+	}
+}
+
+// The membership route reaches the same check. AddGlobalMod seats without
+// touching d.admin, so a malformed member is not the lockout above -- but it
+// raises n, which is the denominator every m-of-n purge is measured against,
+// and nothing can ever approve as it.
+func TestAddGlobalModRefusesAnAddressNobodyHolds(cur realm, t *testing.T) {
+	testCourt(cur, "agm", testutils.TestAddress("agm-boot"), 10_000_000_000)
+	d := ensureGlobalDAO()
+	before := d.n
+	testing.SetRealm(testing.NewUserRealm(d.admin))
+	uassert.AbortsContains(t, cur, "not a valid address", func() {
+		AddGlobalMod(cross(cur), address(""))
+	})
+	if got := ensureGlobalDAO().n; got != before {
+		t.Fatalf("member count moved to %d on a refused add; want %d", got, before)
+	}
+}
