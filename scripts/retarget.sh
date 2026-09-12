@@ -38,7 +38,11 @@ OUT="${OUT:-$ROOT/build/$NS}"
 # not deployed, so they cost no storage deposit and cannot fail.
 LIBS=(checkpoint curve twap grc20votes governor)
 REALM_SRC="realm/r/kourtv2"
-REALM_DST="kourt"     # the v0 name goes; the path is <ns>/kourt
+# The realm's last path element. Third argument because a path can only ever be
+# deployed once — the chain rejects a second addpkg to the same path with
+# vm.PkgExistError — so retrying a botched deploy on the same chain means
+# choosing a new name, not overwriting the old one.
+REALM_DST="${3:-kourt}"
 
 rm -rf "$OUT"; mkdir -p "$OUT/p" "$OUT/r"
 for l in "${LIBS[@]}"; do cp -R "$ROOT/realm/p/$l" "$OUT/p/$l"; done
@@ -57,10 +61,15 @@ find "$OUT" -type f \( -name '*_test.gno' -o -name '*_filetest.gno' \) -delete
 # are rewritten by the same pass — they feed chain.PackageAddress(), so a path
 # that does not match where the realm actually lives derives an escrow address
 # nobody controls.
+# The patterns are deliberately NOT anchored on "gno.land". Render() emits
+# markdown links as bare "/r/kourt/kourtv2:how-it-works" with no domain, and an
+# anchored rewrite silently leaves every one of them pointing at the old path —
+# the realm deploys and renders fine, and every internal link 404s. Matching the
+# bare form covers the qualified form too, since the domain is just a prefix.
 find "$OUT" -type f \( -name '*.gno' -o -name '*.toml' -o -name '*.md' \) -print0 |
   xargs -0 sed -i '' \
-    -e "s|gno\.land/p/kourt/|gno.land/p/$NS/|g" \
-    -e "s|gno\.land/r/kourt/kourtv2|gno.land/r/$NS/$REALM_DST|g"
+    -e "s|/p/kourt/|/p/$NS/|g" \
+    -e "s|/r/kourt/kourtv2|/r/$NS/$REALM_DST|g"
 
 # AND THE PACKAGE CLAUSE, because gno requires it to match the LAST path element:
 #   package name "kourtv2" does not match path element "kourt"
