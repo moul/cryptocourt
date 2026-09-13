@@ -37,6 +37,19 @@ sys.path.insert(0, str(HERE))
 # Calls a locked chain accepts. Anything not listed is reported, not guessed at:
 # a scenario that grows a new entrypoint should fail loudly here rather than be
 # silently dropped from the plan.
+# CALLS THAT CHANGE REALM POLICY RATHER THAN ADD DATA. On a demo chain these are
+# invisible — the scenario sets them up and nobody notices. On a live realm they
+# are decisions: SetCourtCreationBurn moves the price of starting a court for
+# everyone, SetSiteDomain publishes where this realm claims to live, and the
+# ladder and credit-rate setters retune the economics.
+#
+# They stay in the plan, because a scenario that sets them and a chain that does
+# not would diverge. But they are reported separately, so seeding is not the way
+# somebody discovers that court creation started costing 2 GNOT.
+POLICY = {"SetCourtCreationBurn", "SetSiteDomain", "SetLadderDefault",
+          "SetCreditRatesDefault", "SetAssociationBondDefault", "SetPurgeThreshold",
+          "SetTier"}
+
 ALLOWED = {
     "StartCourt", "StartCourtP",
     "SetCourtDesc", "SetCourtImage", "SetTier", "SetSiteDomain",
@@ -134,6 +147,13 @@ def main():
     sys.stderr.write("  signers needed: %d\n" % len(signers))
     for w, n in sorted(signers.items(), key=lambda kv: -kv[1]):
         sys.stderr.write("    %-20s %d\n" % (w, n))
+    policy = [c for c in kept if c["func"] in POLICY]
+    if policy:
+        sys.stderr.write("\n  THESE CHANGE REALM POLICY, not just its contents:\n")
+        for c in policy:
+            sys.stderr.write("    %-22s %s\n" % (c["func"], " ".join(c["args"])[:54]))
+        sys.stderr.write("  Drop them from the plan if you want the docket without the\n"
+                         "  policy — they are ordinary rows in the JSON.\n\n")
     sys.stderr.write("  dropped (token lock / clock):\n")
     for fn, n in sorted(dropped.items(), key=lambda kv: -kv[1]):
         sys.stderr.write("    %-18s %d\n" % (fn, n))
