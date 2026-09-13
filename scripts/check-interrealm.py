@@ -53,6 +53,16 @@ UNSAFE_PREV = re.compile(r"\bunsafe\.PreviousRealm\s*\(")
 
 CENSUS_FLOOR = 40
 
+# THESE TWO ONLY FIRE ON A VIOLATION THIS TREE DOES NOT HAVE, so blinding either
+# changes nothing and the guard passes regardless -- check-guards-blind caught
+# exactly that once it began blinding every pattern rather than the first.
+# AUTHORITY is exercised by the control arm in selftest; these are not, so they
+# carry the strings they MUST and MUST NOT match, as check-spend-paths does.
+IS_CURRENT_MUST_FIRE = ["if !rlm.IsCurrent() {", "if rlm.IsCurrent() && x {"]
+IS_CURRENT_MUST_NOT_FIRE = ["if rlm.Previous().IsUserCall() {", "// rlm.IsCurrent is not called here"]
+UNSAFE_PREV_MUST_FIRE = ["p := unsafe.PreviousRealm()", "\tif unsafe.PreviousRealm().PkgPath() == x {"]
+UNSAFE_PREV_MUST_NOT_FIRE = ["a := unsafe.OriginCaller()", "s := unsafe.OriginSend()"]
+
 
 def is_test(p):
     return p.name.endswith(("_test.gno", "_filetest.gno"))
@@ -76,6 +86,23 @@ def bodies(text):
 
 
 def main():
+    # The fixtures run FIRST, so a pattern that stopped matching is reported
+    # before the scan it would have made meaningless.
+    for pat, fire, nofire, label in (
+            (IS_CURRENT, IS_CURRENT_MUST_FIRE, IS_CURRENT_MUST_NOT_FIRE, "IS_CURRENT"),
+            (UNSAFE_PREV, UNSAFE_PREV_MUST_FIRE, UNSAFE_PREV_MUST_NOT_FIRE, "UNSAFE_PREV")):
+        rx = pat.pattern % re.escape("rlm") if "%s" in pat.pattern else pat.pattern
+        for line in fire:
+            if not re.search(rx, line):
+                print("check-interrealm: SELFTEST %s no longer reads %r; the guard would "
+                      "stop noticing the thing it exists for." % (label, line), file=sys.stderr)
+                return 1
+        for line in nofire:
+            if re.search(rx, line):
+                print("check-interrealm: SELFTEST %s reads %r, which is not one; a guard "
+                      "that cries wolf gets switched off." % (label, line), file=sys.stderr)
+                return 1
+
     # selftest rewrites these very sources in place; reading them
     # mid-plant invents findings out of somebody else's control.
     repolock.refuse_if_held("check-interrealm")

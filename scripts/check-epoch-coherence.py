@@ -538,6 +538,23 @@ PURGE_VERBS_N = 8  # PurgeClaim, PurgeCourt, PurgeModLogRow, PurgeFolder,
 BOARD_LANE = {"board.gno", "boardlegal.gno", "boardmod.gno", "posting.gno",
               "standing.gno"}
 MONEY_MOVE = re.compile(r"\bcoin\.(Transfer|Mint|Burn)\(")
+# MONEY_MOVE and DOC_MOVABLE both fire only on code this tree does not contain,
+# so blinding either changes nothing -- the same hole the STAKERS_REMOVE note
+# above describes, in a form with no _N constant to make it visible. Fixtures
+# test the pattern rather than the tree, which is what an absence needs.
+MONEY_MOVE_MUST_FIRE = ["\tc.coin.Transfer(a, b, n)", "x := coin.Mint(who, amt)", "coin.Burn(addr, n)"]
+# NOT a comment case: MONEY_MOVE has no comment handling and matches inside one
+# by design -- the arm that uses it filters by file, not by line kind. `mycoin.`
+# fails the \b before "coin", which is the real boundary this pattern relies on.
+MONEY_MOVE_MUST_NOT_FIRE = ["\tc.coin.TotalSupply()", "\tcoin.BalanceOf(who)", "\tmycoin.Transfer(a, b)"]
+DOC_MOVABLE_MUST_FIRE = [
+    "\t// the bar is SpendableOf minus the lock",
+    "// min( SpendableOf, x ) would move under an open vote",
+]
+DOC_MOVABLE_MUST_NOT_FIRE = [
+    "\t// SpendableOf is frozen at the epoch",
+    "\tx := min(a, b)  // no SpendableOf here",
+]
 # Reading any of these from a money path is the violation. The four credit hooks
 # are deliberately absent: they are WRITES, and the permitted direction.
 BOARD_READS = re.compile(
@@ -673,6 +690,22 @@ ENT_NEW_N, TAIL_W_N, JUNIOR_W_N = 1, 1, 1  # all three in emission.gno
 # is zero still counts zero.
 STAKERS_REMOVE = re.compile(r"^(?!\s*//).*\b\w+\.stakers\.Remove\(", re.M)
 STAKERS_REMOVE_N = 0
+# THE ANSWER TO THE PARAGRAPH ABOVE. "Narrowing a pattern whose expected count is
+# zero still counts zero" is exactly right, and it is why check-guards-blind
+# reported this pattern as one that can be blinded with nothing changing. A
+# control arm cannot close it and a census cannot either -- but a fixture can,
+# because it tests the PATTERN rather than the tree. These are the shapes
+# STAKERS_REMOVE must and must not read; narrow it and the first list fails.
+STAKERS_REMOVE_MUST_FIRE = [
+    "\tc.stakers.Remove(key)",
+    "        court.stakers.Remove(addr.String())",
+    "\tif ok := cs.stakers.Remove(k); ok {",
+]
+STAKERS_REMOVE_MUST_NOT_FIRE = [
+    "\t// c.stakers.Remove(key) would drop the position",   # a comment, not a call
+    "\tc.stakers.Set(key, v)",                              # a write, not a removal
+    "\tc.locked.Remove(key)",                               # a different tree
+]
 
 # lock.gno states the second about lockedOf: "This is the ONLY reader of the tree:
 # a second one is a second place for the nil-tree and missing-key branches to
@@ -733,6 +766,33 @@ def funcs_with_epochs(src):
 
 
 def main() -> int:
+    who_seen = whofn_seen = 0
+    for pat, fire, nofire, label in (
+            (MONEY_MOVE, MONEY_MOVE_MUST_FIRE, MONEY_MOVE_MUST_NOT_FIRE, "MONEY_MOVE"),
+            (DOC_MOVABLE, DOC_MOVABLE_MUST_FIRE, DOC_MOVABLE_MUST_NOT_FIRE, "DOC_MOVABLE")):
+        for line in fire:
+            if not pat.search(line):
+                print("check-epoch-coherence: SELFTEST %s no longer reads %r; an absence "
+                      "census cannot notice that." % (label, line.strip()), file=sys.stderr)
+                return 1
+        for line in nofire:
+            if pat.search(line):
+                print("check-epoch-coherence: SELFTEST %s reads %r, which is not one."
+                      % (label, line.strip()), file=sys.stderr)
+                return 1
+    # Fixtures first: a pattern that stopped matching is reported before the
+    # census it would have made meaningless.
+    for line in STAKERS_REMOVE_MUST_FIRE:
+        if not STAKERS_REMOVE.search(line):
+            print("check-epoch-coherence: SELFTEST STAKERS_REMOVE no longer reads %r "
+                  "as a position removal; an absence census cannot notice that."
+                  % line.strip(), file=sys.stderr)
+            return 1
+    for line in STAKERS_REMOVE_MUST_NOT_FIRE:
+        if STAKERS_REMOVE.search(line):
+            print("check-epoch-coherence: SELFTEST STAKERS_REMOVE reads %r as a "
+                  "position removal; it is not one." % line.strip(), file=sys.stderr)
+            return 1
     repolock.refuse_if_held("check-epoch-coherence")
     hits, scanned, sealed_funcs = [], 0, 0
 
@@ -989,6 +1049,7 @@ def main() -> int:
                                     f"created for an address other than the caller "
                                     f"is a griefing weapon")
                 if "lockVote(" in src:
+                    who_seen += len(WHO_BIND.findall(src))
                     for m in WHO_BIND.finditer(src):
                         if m.group(1) != CALLER_DERIVED:
                             hits.append(f"[foreign-lock] {pkg}/{p.name} binds `who` "
@@ -997,6 +1058,7 @@ def main() -> int:
                                         f"{CALLER_DERIVED} or the lock can be "
                                         f"pointed at a third party")
                     helpers = WHO_PARAM_FN.findall(src)
+                    whofn_seen += len(helpers)
                     for i, line in enumerate(lines):
                         if line.startswith("func "):
                             continue
@@ -1012,6 +1074,13 @@ def main() -> int:
 
             # Arm 3
             if p.name == "governor.gno":
+                # A FLOOR, because this arm ENUMERATES. Blinding GOV_METHOD
+                # finds no methods, checks no parameters and passes -- a
+                # census is the only thing that can notice that.
+                if not GOV_METHOD.search(src):
+                    hits.append("[gov-methods] governor.gno matched no "
+                                "`func (g *Governor)` at all; the pattern stopped "
+                                "reading the engine, so arm 3 checked nothing.")
                 for m in GOV_METHOD.finditer(src):
                     name, params = m.group(1), m.group(2)
                     for part in params.split(","):
@@ -1200,6 +1269,19 @@ def main() -> int:
               f"nothing.", file=sys.stderr)
         return 1
 
+    # GLOBAL floors, not per-file. Blinding either pattern enumerates nothing,
+    # so no binding can be judged foreign and no helper judged to take `who`.
+    # Measured across kourtv2+govern: 93 who-bindings, 11 helpers.
+    # PER-FILE WOULD BE WRONG, and was tried: votelock.gno mentions lockVote(
+    # and binds no `who` at all, so a per-file floor fired on a clean tree.
+    if who_seen == 0:
+        print("check-epoch-coherence: WHO_BIND matched no `who` binding in any "
+              "vote-locking file, so none could be judged foreign.", file=sys.stderr)
+        return 1
+    if whofn_seen == 0:
+        print("check-epoch-coherence: WHO_PARAM_FN matched no helper taking "
+              "`who address`, so none could be checked.", file=sys.stderr)
+        return 1
     print(f"check-epoch-coherence: {scanned} files, {sealed_funcs} sealed-epoch "
           f"function(s) each reading one epoch, no live weight in any tally, one "
           f"weight source in the engine, one vote-weight expression, "

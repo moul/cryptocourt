@@ -48,8 +48,34 @@ ALIAS = re.compile(r'^\s*(\w+)\s+"chain/runtime"\s*$', re.M)
 ARMS = re.compile(r'\btcArmed\s*,?[^=\n]*=\s*true')
 DISARMS = re.compile(r'defer\s+resetTestClock')
 
+# FIXTURES RATHER THAN FLOORS, deliberately. Both patterns rest on a SINGLE
+# occurrence in the tree -- one aliased chain/runtime import (testclock.gno) and
+# one test file that arms the clock -- so a census floor would fire the moment
+# either file was edited, and testclock.gno is edited often. A fixture tests the
+# PATTERN and makes no claim about the tree, which is the right trade here.
+ALIAS_MUST_FIRE = ['\truntime "chain/runtime"', '    rt "chain/runtime"']
+ALIAS_MUST_NOT_FIRE = ['\t"chain/runtime"', '\truntime "chain/banker"']
+ARMS_MUST_FIRE = ["\ttcArmed = true", "\ttcArmed, tcSealed = true, false", "\ttcArmed=true"]
+# NOT a comment case: ARMS has no comment handling and matches inside one by
+# design, the way MONEY_MOVE does in check-epoch-coherence.
+ARMS_MUST_NOT_FIRE = ["\ttcArmed = false", "\twasTcArmed = true", "\ttcArmedAt = 5"]
+
 
 def main():
+    for pat, fire, nofire, label in (
+            (ALIAS, ALIAS_MUST_FIRE, ALIAS_MUST_NOT_FIRE, "ALIAS"),
+            (ARMS, ARMS_MUST_FIRE, ARMS_MUST_NOT_FIRE, "ARMS")):
+        for _l in fire:
+            if not pat.search(_l):
+                print("check-height-shim: SELFTEST %s no longer reads %r; the scan it "
+                      "guards would pass having seen nothing." % (label, _l.strip()),
+                      file=sys.stderr)
+                return 1
+        for _l in nofire:
+            if pat.search(_l):
+                print("check-height-shim: SELFTEST %s reads %r, which is not one."
+                      % (label, _l.strip()), file=sys.stderr)
+                return 1
     if not REALM.is_dir():
         print(f"check-height-shim: no realm at {REALM}", file=sys.stderr)
         return 2

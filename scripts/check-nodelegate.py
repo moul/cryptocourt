@@ -61,6 +61,10 @@ CAP_SITES = 1  # dispute.gno
 # A delegation mutator reachable from kourtv2 — either a call into the ledger's
 # own Delegate, or an exported kourtv2 entrypoint that offers it.
 CALLS_DELEGATE = re.compile(r"\.Delegate\(")
+# ZERO IS THE HEALTHY ANSWER: no realm file should call .Delegate( at all, so a
+# census cannot tell a clean tree from a blinded pattern. Only a fixture can.
+CALLS_DELEGATE_MUST_FIRE = ["\tv.Delegate(to)", "x := g.token.Delegate(a)", "if ok := t.Delegate(b); ok {"]
+CALLS_DELEGATE_MUST_NOT_FIRE = ["\tv.Delegated(to)", "\tv.delegate(to)", "\tDelegate(to)"]
 # Capture the name and test it, rather than trying to spell "an exported
 # identifier containing Delegate" as one pattern. The first attempt was
 #     ^func +[A-Z][A-Za-z0-9_]*[Dd]elegate
@@ -78,6 +82,17 @@ def gno_files(d):
 
 
 def main():
+    for _l in CALLS_DELEGATE_MUST_FIRE:
+        if not CALLS_DELEGATE.search(_l):
+            print("check-nodelegate: SELFTEST CALLS_DELEGATE no longer reads %r as a "
+                  "delegation call." % _l.strip(), file=sys.stderr)
+            return 1
+    for _l in CALLS_DELEGATE_MUST_NOT_FIRE:
+        if CALLS_DELEGATE.search(_l):
+            print("check-nodelegate: SELFTEST CALLS_DELEGATE reads %r as a delegation "
+                  "call; it is not one." % _l.strip(), file=sys.stderr)
+            return 1
+    exported_seen = 0
     repolock.refuse_if_held("check-nodelegate")
     hits = []
 
@@ -127,6 +142,11 @@ def main():
             hits.append(f"[delegates] kourtv2/{p.name}:{line} calls Delegate — the "
                         f"vote ceiling is delegation-aware and the floor is not, so "
                         f"every delegatee is docked to their own balance")
+        # A FLOOR, because this ENUMERATES before it filters. Blinding
+        # EXPORTED_FUNC finds no exported functions, so none can be a
+        # delegation entrypoint and the arm passes having looked at nothing.
+        # Measured: 296 exported functions across 45 kourtv2 files.
+        exported_seen += len(EXPORTED_FUNC.findall(src))
         for m in EXPORTED_FUNC.finditer(src):
             if "delegate" not in m.group(1).lower():
                 continue
@@ -153,6 +173,15 @@ def main():
               file=sys.stderr)
         return 1
 
+    # A FLOOR, at function level and AFTER the scan that fills it. Blinding
+    # EXPORTED_FUNC finds no exported function, so none can be judged a
+    # delegation entrypoint and the arm passes having looked at nothing.
+    # Measured: 296 exported functions across 45 kourtv2 files.
+    if exported_seen == 0:
+        print("check-nodelegate: EXPORTED_FUNC matched no exported function at "
+              "all, so nothing could be judged a delegation entrypoint.",
+              file=sys.stderr)
+        return 1
     print(f"check-nodelegate: {len(v2)} kourtv2 files, no delegation reachable, "
           f"{floors} own-balance vote floor(s) + {caps} capped call(s) pinned. "
           f"The ceiling and the floor "

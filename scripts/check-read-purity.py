@@ -137,6 +137,12 @@ POINTER_RETURN_OK = {}
 RING_PTR = re.compile(r"^\s*\w+\s+\*twap\.Ring\b", re.M)
 RING_VAL = re.compile(r"^\s*\w+\s+twap\.Ring\b", re.M)
 RING_VAL_N = 2  # kourtv2/claim.gno: oi and yes, both on the pool
+# RING_PTR ONLY FIRES ON A DECLARATION THIS TREE DOES NOT HAVE, so blinding it
+# changes nothing and the guard passes either way. RING_VAL is safe -- its count
+# is 2, and blinding that breaks the count. A fixture tests the PATTERN, which is
+# the one thing a census over an absent shape cannot.
+RING_PTR_MUST_FIRE = ["\toi *twap.Ring", "    yes  *twap.Ring", "\tr *twap.Ring // pooled"]
+RING_PTR_MUST_NOT_FIRE = ["\toi twap.Ring", "\tp *twap.Pool", "\t// oi *twap.Ring is not used"]
 
 
 def functions(src):
@@ -157,6 +163,17 @@ def functions(src):
 
 
 def main() -> int:
+    for line in RING_PTR_MUST_FIRE:
+        if not RING_PTR.match(line):
+            print("check-read-purity: SELFTEST RING_PTR no longer reads %r as a pointer "
+                  "Ring field; an absent shape cannot be censused." % line.strip(),
+                  file=sys.stderr)
+            return 1
+    for line in RING_PTR_MUST_NOT_FIRE:
+        if RING_PTR.match(line):
+            print("check-read-purity: SELFTEST RING_PTR reads %r as a pointer Ring "
+                  "field; it is not one." % line.strip(), file=sys.stderr)
+            return 1
     repolock.refuse_if_held("check-read-purity")
     files = [p for p in sorted(REALM.glob("*.gno")) if not p.name.endswith("_test.gno")]
     if not files:

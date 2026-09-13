@@ -214,6 +214,7 @@ def initialiser(src, eq):
 
 
 def main():
+    refs_seen = 0
     bad = []
     scanned = 0
     for path in FILES:
@@ -228,6 +229,11 @@ def main():
         for m in DECL.finditer(src):
             name, at = m.group(1), m.start()
             body = initialiser(lazy, m.end())
+            # A FLOOR, because this ENUMERATES. Blinding IDENT finds no
+            # references inside any initialiser, so none can be a
+            # declared-below one and the check passes having read nothing.
+            # Measured: 212,565 IDENT matches in web/index.html.
+            refs_seen += len(IDENT.findall(body))
             for ref in IDENT.finditer(body):
                 r = ref.group(0)
                 if r in SKIP or r == name or r not in decls:
@@ -261,6 +267,15 @@ def main():
               "browser enforces is unverified, not verified.", file=sys.stderr)
         return 1
 
+    # A FLOOR, at function level so a clean run reaches it. Blinding IDENT
+    # finds no reference inside any initialiser, so no declaration can be
+    # found used before it was made and the check passes having read nothing.
+    # Measured: 212,565 IDENT matches in web/index.html.
+    if refs_seen == 0:
+        print("check-tdz: IDENT matched no reference inside any initialiser, "
+              "so no declaration could be found used before it was made.",
+              file=sys.stderr)
+        return 1
     print("check-tdz: %d top-level declaration(s) across %d file(s); every one is "
           "built only from names declared above it." % (scanned, len(FILES)))
     return 0

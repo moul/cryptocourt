@@ -144,6 +144,15 @@ def main():
               "included.", file=sys.stderr)
         return 1
 
+    # A FLOOR, at function level and after the scan. Blinding IMPORT leaves
+    # `reachable` at ALWAYS, so fewer packages count as reachable, fewer
+    # messages are judged, and the check passes having narrowed itself.
+    # Measured: realms import 7 distinct gno.land/p/kourt/*/v0 packages.
+    if not any(IMPORT.search(p.read_text()) for p in realm_files):
+        print("check-abort-assertions: IMPORT matched no gno.land/p/kourt "
+              "import in any realm file, so the reachable set is whatever "
+              "ALWAYS holds and nothing else was considered.", file=sys.stderr)
+        return 1
     print(f"check-abort-assertions: {seen} abort assertion(s), none satisfiable by "
           f"a p/ layer that also has a kourtv2 counterpart "
           f"(reachable: {', '.join(sorted(reachable))}).")

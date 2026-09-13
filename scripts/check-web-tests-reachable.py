@@ -75,8 +75,26 @@ SUMMARY = re.compile(
 # The exit-hook idiom, which makes the ordering question moot.
 HOOK = re.compile(r"""process\.on\(\s*['"]exit['"]""")
 ASSERT = re.compile(r"\bok\(")
+# ZERO IS THE HEALTHY ANSWER HERE: n counts assertions BELOW the verdict, and a
+# harness with none is the passing case. So a census cannot tell a clean tree
+# from a blinded pattern, and only a fixture can -- it tests the pattern, not the
+# tree. Measured before this existed: blinding ASSERT left this check green.
+ASSERT_MUST_FIRE = ["  ok(x === 1, 'x');", "\tok(a);", "if (y) ok(z)"]
+ASSERT_MUST_NOT_FIRE = ["  book(1)", "  notok(1)", "  okay(1)"]
 
 bad, scanned, hooked = [], 0, 0
+
+for _line in ASSERT_MUST_FIRE:
+    if not ASSERT.search(_line):
+        print("check-web-tests-reachable: SELFTEST ASSERT no longer reads %r as an "
+              "assertion; a harness could assert below its verdict unnoticed."
+              % _line.strip(), file=sys.stderr)
+        sys.exit(1)
+for _line in ASSERT_MUST_NOT_FIRE:
+    if ASSERT.search(_line):
+        print("check-web-tests-reachable: SELFTEST ASSERT reads %r as an assertion; "
+              "it is not one." % _line.strip(), file=sys.stderr)
+        sys.exit(1)
 for d in DIRS:
     if not os.path.isdir(d):
         sys.exit("check-web-tests-reachable: %s is missing" % d)

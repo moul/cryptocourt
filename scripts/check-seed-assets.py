@@ -63,8 +63,26 @@ def jpeg_size(b):
 # Independent of LINE on purpose -- see the empty-result branch in main().
 DIGEST = re.compile(r"\|[0-9a-f]{64}")
 
+# DIGEST ONLY RUNS IN THE BRANCH WHERE LINE FOUND NOTHING, so on a healthy seed
+# it never executes and blinding it changes nothing. That is a limit of blinding,
+# not a reason to leave it unchecked: a fixture tests the PATTERN whether or not
+# its branch is reached.
+DIGEST_MUST_FIRE = ["img|756a9d89538b94c4368a33c1bf77d554114867d9135da9742df7b6e17c162ddc|w=1"]
+DIGEST_MUST_NOT_FIRE = ["img|756a9d89|w=1", "|NOTHEXNOTHEXNOTHEXNOTHEXNOTHEXNOTHEXNOTHEXNOTHEXNOTHEXNOTHEXNOTH"]
+
 
 def main():
+    for line in DIGEST_MUST_FIRE:
+        if not DIGEST.search(line):
+            print("check-seed-assets: SELFTEST DIGEST no longer reads %r as a media "
+                  "address, so an empty scan could not be told from a broken LINE."
+                  % line, file=sys.stderr)
+            return 1
+    for line in DIGEST_MUST_NOT_FIRE:
+        if DIGEST.search(line):
+            print("check-seed-assets: SELFTEST DIGEST reads %r as a media address; it "
+                  "is not one." % line, file=sys.stderr)
+            return 1
     if not SEED.exists():
         # TRACKED, therefore not optional -- see check-bell-strike for the same
         # reasoning. This guard is the only thing holding a media line's digest
