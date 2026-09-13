@@ -51,7 +51,13 @@ SKIP = {
     "check-guards-blind": "this file",
 }
 
-PATTERN = re.compile(r"^([A-Z][A-Z_0-9]*)\s*=\s*re\.compile\((r['\"])", re.M)
+# Split from its compile so a control arm can blind it with a plain-ASCII
+# anchor. The regex contains both quote characters and several backslashes,
+# and an arm quoting all of that inside a Python string got one escape wrong
+# and planted nothing — check-control-anchors caught it, which is what that
+# guard is for.
+PATTERN_SRC = r"^([A-Z][A-Z_0-9]*)\s*=\s*re\.compile\((r['\"])"
+PATTERN = re.compile(PATTERN_SRC, re.M)
 TIMEOUT = 180
 
 

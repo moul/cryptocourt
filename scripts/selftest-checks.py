@@ -2446,8 +2446,8 @@ control("a guard that reports success while blinded", TDZ,
 # pattern that finds `NAME = re.compile(...)` stops matching, every guard lands
 # in "no single named pattern" and the run is vacuous.
 control("a sweep that can no longer blind anything", GBLIND,
-        'PATTERN = re.compile(r"^([A-Z][A-Z_0-9]*)\\s*=\\s*re\\.compile\\((r[\'\"])", re.M)',
-        'PATTERN = re.compile(r"ZZNOSUCHZZ", re.M)',
+        "PATTERN = re.compile(PATTERN_SRC, re.M)",
+        'PATTERN = re.compile("ZZNOSUCHZZ", re.M)',
         "blinded no guard at all", argv=["python3", GBLIND])
 
 print("\ncheck-guards-run")
