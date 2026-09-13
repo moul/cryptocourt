@@ -69,7 +69,7 @@ def blind(src, sym):
 
 
 def main():
-    quiet, loud, skipped, nopat, slow = [], [], [], [], []
+    quiet, loud, skipped, nopat, slow, broken = [], [], [], [], [], []
     work = tempfile.mkdtemp(prefix="kourt-blind-")
     try:
         for p in sorted(SCRIPTS.glob("check-*.py")):
@@ -90,17 +90,69 @@ def main():
             # paths still resolve, but the file it runs is the blinded copy in
             # the temp dir — the tree is never modified, so a timeout here
             # cannot leave a guard disarmed behind us.
-            tmp = os.path.join(work, name + ".py")
+            # A SHADOW REPO OF SYMLINKS, not a loose file in a temp dir. Every
+            # guard finds the tree with ROOT = Path(__file__).parent.parent, so a
+            # copy sitting anywhere else looks for realm/ beside itself, finds
+            # nothing, and exits non-zero for a reason that has nothing to do
+            # with blinding. Measured: ALL 24 guards died that way, and every one
+            # was being counted as proof the check worked.
+            #
+            # shadow/ mirrors the repo with symlinks and shadow/scripts holds
+            # links to the real scripts -- so repolock, gnosource and mutate
+            # import -- with ONE file replaced by the blinded copy. The tree
+            # itself is still never written to.
+            shadow = os.path.join(work, name)
+            os.makedirs(os.path.join(shadow, "scripts"), exist_ok=True)
+            for entry in os.listdir(ROOT):
+                if entry == "scripts":
+                    continue
+                link = os.path.join(shadow, entry)
+                if not os.path.lexists(link):
+                    os.symlink(os.path.join(ROOT, entry), link)
+            for entry in os.listdir(SCRIPTS):
+                link = os.path.join(shadow, "scripts", entry)
+                if not os.path.lexists(link):
+                    os.symlink(os.path.join(SCRIPTS, entry), link)
+            tmp = os.path.join(shadow, "scripts", name + ".py")
+            os.remove(tmp)
             io.open(tmp, "w", encoding="utf-8").write(out)
+            ctlpath = os.path.join(shadow, "scripts", "_control_" + name + ".py")
+            io.open(ctlpath, "w", encoding="utf-8").write(src)
+            # scripts/ ON THE PATH, because a guard that cannot import is not a
+            # guard that noticed anything. Measured before this line existed: 14
+            # of the 24 guards counted as "fails when blinded" were dying on
+            # `import repolock`, `import mutate` or `import gnosource` in the
+            # temp dir, and their ImportError exit was being read as detection.
+            env = dict(os.environ, PYTHONPATH=os.path.join(shadow, "scripts"))
             try:
+                # THE CONTROL, and this check had none. Run the UNBLINDED copy
+                # first: if it does not pass from the temp dir, then whatever the
+                # blinded copy does afterwards says nothing about blinding. A
+                # meta-guard that cannot tell a crash from a catch is the exact
+                # failure it exists to find.
+                ctl = subprocess.run([sys.executable, ctlpath], cwd=str(ROOT),
+                                     capture_output=True, timeout=TIMEOUT, env=env)
+                if ctl.returncode != 0:
+                    broken.append((name, ctl.stderr.decode("utf-8", "replace")
+                                   .strip().split("\n")[-1][:60]))
+                    continue
                 rc = subprocess.run([sys.executable, tmp], cwd=str(ROOT),
-                                    capture_output=True, timeout=TIMEOUT).returncode
+                                    capture_output=True, timeout=TIMEOUT,
+                                    env=env).returncode
             except subprocess.TimeoutExpired:
                 slow.append(name)
                 continue
             (quiet if rc == 0 else loud).append("%s (%s)" % (name, m.group(1)))
     finally:
         shutil.rmtree(work, ignore_errors=True)
+
+    if broken:
+        print("check-guards-blind: %d guard(s) cannot even RUN from a copy, so "
+              "blinding them proves nothing.\n" % len(broken), file=sys.stderr)
+        for n, why in broken:
+            print("  %-34s %s" % (n, why), file=sys.stderr)
+        print("\nThey are reported, not counted. Until the copy runs, a non-zero exit "
+              "is\na crash and not a catch.", file=sys.stderr)
 
     for name in slow:
         print("  %-34s timed out at %ds; blinding it proves nothing"
@@ -116,8 +168,9 @@ def main():
               "the tree is clean.", file=sys.stderr)
         return 1
 
-    print("check-guards-blind: %d guard(s) fail when blinded, %d have no single named "
-          "pattern to blind, %d skipped." % (len(loud), len(nopat), len(skipped)))
+    print("check-guards-blind: %d guard(s) fail when blinded, %d could not run from a "
+          "copy, %d have no single named pattern to blind, %d skipped."
+          % (len(loud), len(broken), len(nopat), len(skipped)))
     if not loud:
         print("check-guards-blind: blinded no guard at all, so this check is scanning "
               "for a shape scripts/ no longer has.", file=sys.stderr)

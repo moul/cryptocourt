@@ -34,6 +34,8 @@ import pathlib
 import re
 import sys
 
+from gnosource import strip_comments
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REALM = ROOT / "realm"
 
@@ -44,48 +46,36 @@ BANNED = re.compile(r"\bGetCoins\s*\(")
 SAFE = re.compile(r"\bGetCoin\s*\(")
 CENSUS_FLOOR = 1
 
-
-def strip_comments(src):
-    """Comment text out, code left in place, string literals respected.
-
-    buy.gno documents the rule in a comment that NAMES GetCoins. Without this the
-    guard would flag the sentence explaining why the code does not do the thing.
-    """
-    out, i, n = [], 0, len(src)
-    while i < n:
-        c = src[i]
-        if c in "\"'`":
-            q = c
-            out.append(c)
-            i += 1
-            while i < n:
-                if src[i] == "\\" and q != "`":
-                    out.append("  ")
-                    i += 2
-                    continue
-                out.append(src[i])
-                if src[i] == q:
-                    i += 1
-                    break
-                i += 1
-            continue
-        if c == "/" and i + 1 < n and src[i + 1] == "/":
-            while i < n and src[i] != "\n":
-                i += 1
-            continue
-        if c == "/" and i + 1 < n and src[i + 1] == "*":
-            j = src.find("*/", i + 2)
-            j = n if j < 0 else j + 2
-            out.append("\n" * src[i:j].count("\n"))
-            i = j
-            continue
-        out.append(c)
-        i += 1
-    return "".join(out)
+# THE CENSUS ALONE CANNOT SEE A BROKEN `BANNED`. It counts the SAFE form, so
+# blinding BANNED leaves the count untouched: the guard flags nothing, reports a
+# clean tree and exits 0. check-guards-blind caught exactly that here once it was
+# able to run a guard at all. A forbidding guard needs a string its pattern MUST
+# match, the way check-spend-paths keeps MOVE_MUST_FIRE.
+BANNED_MUST_FIRE = [
+    "\treturn b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)",
+    "x := banker.NewReadonlyBanker().GetCoins(who)",
+]
+BANNED_MUST_NOT_FIRE = [
+    "\treturn b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)",
+    "total := GetCoinCount(addr)",
+]
 
 
 def main():
     safe_seen, bad = 0, []
+
+    # The fixtures run FIRST, so a pattern that stopped matching is reported
+    # before the census it would have made meaningless.
+    for line in BANNED_MUST_FIRE:
+        if not BANNED.search(line):
+            bad.append(("check-getcoins.py", 0,
+                        "SELFTEST: BANNED no longer reads %r as a GetCoins call"
+                        % line.strip()))
+    for line in BANNED_MUST_NOT_FIRE:
+        if BANNED.search(line):
+            bad.append(("check-getcoins.py", 0,
+                        "SELFTEST: BANNED reads %r as a GetCoins call; it is not one, "
+                        "and a guard that cries wolf gets switched off" % line.strip()))
     for p in sorted(REALM.rglob("*.gno")):
         if p.name.endswith(("_test.gno", "_filetest.gno")):
             continue
