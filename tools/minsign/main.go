@@ -196,7 +196,8 @@ type actor struct {
 // A file per call, not one bundle, because the chain takes them one at a time
 // and a failure part-way has to leave the rest broadcastable.
 
-// keyFromStdin reads the mnemonic and derives the key. Shared by both modes so
+// keyFromStdin is the addpkg mode's one-key path: read the phrase, derive
+// index 0. The plan modes read the phrase once and derive many, so
 // there is one place the path 44'/118'/0'/0/0 is written down -- a different
 // path derives a different address in silence, and the only thing standing
 // between that and a wasted batch is the address printed here.
@@ -256,6 +257,31 @@ func parseUgnot(s string) std.Coins {
 		die("send %q has no amount", s)
 	}
 	return std.Coins{std.Coin{Denom: "ugnot", Amount: n}}
+}
+
+// signAndEncode is the whole of what this program does: rebuild the bytes the
+// chain's ante handler will rebuild, sign them, and hand back the amino JSON.
+//
+// ONE COPY, because the ORDER is the correctness. GetSignBytes must see the tx
+// WITHOUT its signature, and Signatures must be attached before marshalling —
+// swap those and the result encodes fine and verifies against nothing. It was
+// written out twice, once per mode, which is two places for that to drift.
+func signAndEncode(tx std.Tx, priv secp256k1.PrivKeySecp256k1,
+	chainID string, accNum, seq int64, what string) []byte {
+	signBytes, err := tx.GetSignBytes(chainID, uint64(accNum), uint64(seq))
+	if err != nil {
+		die("sign bytes for %s: %v", what, err)
+	}
+	sig, err := priv.Sign(signBytes)
+	if err != nil {
+		die("signing %s: %v", what, err)
+	}
+	tx.Signatures = []std.Signature{{PubKey: priv.PubKey(), Signature: sig}}
+	out, err := amino.MarshalJSON(tx)
+	if err != nil {
+		die("encoding %s: %v", what, err)
+	}
+	return out
 }
 
 func signPlan(mnemonic, planPath, actorsPath, pkgPath, chainID, outDir string,
@@ -341,19 +367,8 @@ func signPlan(mnemonic, planPath, actorsPath, pkgPath, chainID, outDir string,
 			Fee: std.Fee{GasWanted: gasWanted,
 				GasFee: std.Coin{Denom: "ugnot", Amount: gasFee}},
 		}
-		signBytes, err := tx.GetSignBytes(chainID, uint64(accNum), uint64(seq))
-		if err != nil {
-			die("sign bytes for step %d (%s): %v", i, st.Func, err)
-		}
-		sig, err := priv.Sign(signBytes)
-		if err != nil {
-			die("signing step %d: %v", i, err)
-		}
-		tx.Signatures = []std.Signature{{PubKey: priv.PubKey(), Signature: sig}}
-		out, err := amino.MarshalJSON(tx)
-		if err != nil {
-			die("encoding step %d: %v", i, err)
-		}
+		out := signAndEncode(tx, priv, chainID, accNum, seq,
+			fmt.Sprintf("step %d (%s)", i+1, st.Func))
 		name := fmt.Sprintf("%s/call-%03d-%s-%s.tx", outDir, i+1, st.Who, st.Func)
 		if err := os.WriteFile(name, out, 0o600); err != nil {
 			die("writing %s: %v", name, err)
@@ -491,20 +506,5 @@ func main() {
 		},
 	}
 
-	// The same call the chain's ante handler makes to rebuild what it verifies.
-	signBytes, err := tx.GetSignBytes(chainID, uint64(accNum), uint64(seq))
-	if err != nil {
-		die("sign bytes: %v", err)
-	}
-	sig, err := priv.Sign(signBytes)
-	if err != nil {
-		die("signing: %v", err)
-	}
-	tx.Signatures = []std.Signature{{PubKey: priv.PubKey(), Signature: sig}}
-
-	out, err := amino.MarshalJSON(tx)
-	if err != nil {
-		die("encoding: %v", err)
-	}
-	os.Stdout.Write(out)
+	os.Stdout.Write(signAndEncode(tx, priv, chainID, accNum, seq, "this package"))
 }
