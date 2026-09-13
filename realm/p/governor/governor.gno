@@ -1505,22 +1505,7 @@ func (g *Governor) State(id int64) string {
 	p := g.mustProposal(id)
 	// The pure form: asking what a proposal's state is must not change it.
 	st, _ := g.wouldBe(p, g.voters.Height())
-	switch st {
-	case stateActive:
-		return "active"
-	case stateDefeated:
-		return "defeated"
-	case stateSucceeded:
-		return "succeeded"
-	case stateExecuted:
-		return "executed"
-	case stateFailed:
-		return "failed"
-	case stateCanceled:
-		return "canceled"
-	default:
-		return "expired"
-	}
+	return stateName(st)
 }
 
 // Preview renders what a payload would say, before anybody proposes it — so an
