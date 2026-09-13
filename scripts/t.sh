@@ -9,14 +9,19 @@
 #
 #   t.sh kourtv2 TestQualityWeightIsFlooredByWhatIsStillHeld
 #   t.sh kourtv2                # the whole realm
-set -e
+# -u as well as -e: this script interpolates paths into rm -f and cd, and the
+# other seven scripts here already set it. An unset variable should stop it,
+# not expand to nothing and act on the wrong path.
+set -eu
 # The repo root is derived from THIS SCRIPT'S location, not hardcoded: the
 # corpus runs from a --depth 1 clone in a scratchpad, and a hardcoded path
 # silently measured the wrong tree from there.
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 REALM="${1:-kourtv2}"
-FILTER="$2"
+# ${2:-} rather than $2, so `set -u` below does not abort the no-filter case —
+# running the whole realm is the common invocation, not the exceptional one.
+FILTER="${2:-}"
 root=$(python3 scripts/gnoroot.py build --label onetest --pid $$)
 # Absolute: the trap fires after a cd, so a relative script path cannot resolve
 # and the GNOROOT leaks silently.
