@@ -44,6 +44,26 @@ REALM_SRC="realm/r/kourtv2"
 # choosing a new name, not overwriting the old one.
 REALM_DST="${3:-kourt}"
 
+# WHAT THIS COPIES IS THE WORKING TREE, NOT A COMMIT — and that already put an
+# uncommitted edit on mainnet. The realm deployed to gno.land carries a
+# testclock.gno that differs from HEAD in two ways nobody chose: the arming gate
+# reads `CourtCount() > 2` instead of `> 1`, and `tcEverArmed = true` is absent,
+# so TestClockFabricated() would answer false on a chain whose dates had been
+# fabricated. Both were a second session's work-in-progress, sitting in the tree
+# at the moment the bundle was built, and a package path can never be redeployed.
+#
+# So a dirty source tree now stops the build. ALLOW_DIRTY=1 proceeds, because
+# deploying a deliberate local change is legitimate — it just must be deliberate.
+DIRTY="$(cd "$ROOT" && git status --porcelain -- "$REALM_SRC" $(printf 'realm/p/%s ' "${LIBS[@]}") 2>/dev/null)"
+if [ -n "$DIRTY" ] && [ "${ALLOW_DIRTY:-}" != "1" ]; then
+  echo "refusing: the source this would copy has uncommitted changes." >&2
+  echo "$DIRTY" | sed 's/^/  /' >&2
+  echo >&2
+  echo "A package path can only be deployed once, so what ships here is permanent." >&2
+  echo "Commit them, stash them, or re-run with ALLOW_DIRTY=1 to ship them anyway." >&2
+  exit 1
+fi
+
 rm -rf "$OUT"; mkdir -p "$OUT/p" "$OUT/r"
 for l in "${LIBS[@]}"; do cp -R "$ROOT/realm/p/$l" "$OUT/p/$l"; done
 cp -R "$ROOT/$REALM_SRC" "$OUT/r/$REALM_DST"
