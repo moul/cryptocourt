@@ -199,6 +199,9 @@ SEEDPY = "scenarios/covid_demo.py"
 MEDIAHOSTS = "scripts/check-media-hosts.py"
 MEDIAGNO = "realm/r/kourtv2/media.gno"
 BLOCKTIME = "scripts/check-block-time.py"
+DEADFIELDS = "scripts/check-dead-fields.py"
+INTERREALM = "scripts/check-interrealm.py"
+MINTERGNO = "realm/r/govern/minter.gno"
 MUTSCOPE = "scripts/check-mutation-scope.py"
 CLAIMGNO = "realm/r/kourtv2/claim.gno"
 MUTATEPY = "scripts/mutate.py"
@@ -1581,6 +1584,39 @@ control("the class stops naming the embedded face", WEBPAGE,
         '.foldsel .eyeshut{font-family:system-ui,sans-serif}',
         "no class on it is one the stylesheet gives the embedded face to",
         argv=["python3", MARKFONT])
+
+print("\ncheck-interrealm")
+# A crossing function's FIRST `cur realm` is runtime-current by construction --
+# the VM sets it and the caller cannot forge it. A realm value in ANY OTHER
+# position is just an argument the caller chose, and asking it who called you
+# executes somebody else's authority. It does not look wrong: rlm.Previous()
+# reads identically whether rlm is parameter one or parameter four.
+# PLANTED IN minterKind.Do, which already carries `rlm realm` in second position
+# and today never touches it -- the exact shape the next person will reach for
+# when they need the caller's address and find it sitting in the signature.
+# ANCHORED ON `minter = address(payload)`, which is unique to Do. The obvious
+# anchor, `if payload == noMinter {`, appears in BOTH Check and Do; planting on
+# it lands in Check, which takes no realm parameter, so the guard correctly
+# ignores it and the arm proves nothing. Measured -- that is how it first failed.
+control("a Do that trusts its secondary rlm without proving it", MINTERGNO,
+        "\tminter = address(payload)\n",
+        '\tif address(payload) == rlm.Previous().Address() {\n'
+        '\t\treturn govErr("self")\n\t}\n\tminter = address(payload)\n',
+        "derives authority from", argv=["python3", INTERREALM])
+
+print("\ncheck-dead-fields")
+# THESE STRUCTS PERSIST, so a field nothing reads is a storage deposit paid at
+# every write for a value no caller can observe — and a line in the source
+# claiming the realm tracks something it does not.
+# PLANTED IN Court, the deployed realm's central struct, rather than in kourtv1
+# where the two known-dead fields live: kourtv1 is behaviourally frozen and its
+# pair sit in the guard's ALLOWED set, so an arm planted there would be waved
+# through and prove the opposite of what it claims.
+control("a Court field nothing reads or writes", COURT,
+        "type Court struct {\n",
+        "type Court struct {\n\tzzzSelftestDead int64\n",
+        "nothing reads or writes",
+        argv=["python3", DEADFIELDS])
 # AND THE CASE OF THE HEX, which was a live blind spot and not a hypothetical:
 # the pattern read `7C` only, and the page spells one of its two eyes
 # `\\u{1307c}`. A mark was invisible to the whole scanner over a letter's case.
@@ -1699,9 +1735,15 @@ print("\ncheck-web-constants")
 # The realm side carries three corpus rows; the overlay's copy carried nothing,
 # and check-live-reads is the only other thing that mentions it and is
 # deliberately outside `make check`.
+# THE GUARD'S SENTENCE MOVED AND THIS ARM DID NOT. check-web-constants used to
+# say "queries the wrong window"; it was generalised deliberately, because that
+# was true of the three window constants and misleading for MAX_COMMENT_CHARS,
+# CURVE_D and the rest. The arm went on expecting the old wording, so the plant
+# fired the guard and the arm scored it FIRED, WRONG COMPLAINT -- a control that
+# could never pass again no matter how well the guard worked.
 control("the overlay's mirrored constant drifts", WEBPAGE,
         "const WEEK = 120960;", "const WEEK = 120961;",
-        "queries the wrong window", argv=["python3", WEBCONST])
+        "restates this number", argv=["python3", WEBCONST])
 # THE ROUNDING, NOT ONLY THE CONSTANT. CURVE_D was mirrored and the ceil was not,
 # so a purchase quote could round down while the chain rounded up — a receipt
 # promising a unit the chain will not give, silently, and only on the amounts
@@ -1806,9 +1848,16 @@ print("\ncheck-addr-shapes")
 # knows is a form the other mishandles in silence.
 ADDRSHAPES = "scripts/check-addr-shapes.py"
 CHATBOT = "internal/chat/bot.go"
+# THE PLANT MUST SURVIVE THE VACUITY CHECKS TO REACH THE DRIFT CHECK. This arm
+# used to widen {38} to {39}; a gno address is g1 plus exactly 38 characters, so
+# that pattern matched NOTHING and the guard stopped at its own "catches nothing"
+# rule several checks earlier -- it fired, but about vacuity, never about drift.
+# [a-z0-9] is the same language as [0-9a-z] and different text: it still matches
+# a real address, still rejects the lookalike, and differs from its pair, which
+# is exactly and only the drift this arm claims to test.
 control("the two address patterns drift apart", CHATBOT,
         'botReplyGnoAddr = regexp.MustCompile(`\\bg1[0-9a-z]{38}\\b`)',
-        'botReplyGnoAddr = regexp.MustCompile(`\\bg1[0-9a-z]{39}\\b`)',
+        'botReplyGnoAddr = regexp.MustCompile(`\\bg1[a-z0-9]{38}\\b`)',
         "no longer agree", argv=["python3", ADDRSHAPES])
 # AND THE VACUITY ARMS, which is why the guard checks each file's pattern before
 # comparing them: a pattern that catches nothing, and one that catches anything.

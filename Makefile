@@ -106,6 +106,17 @@ guards:
 	@# mutate.py's exclusion of cshares and tickbook rests on it. The graph is
 	@# edited far from that map, so the premise could expire silently. Static.
 	python3 scripts/check-mutation-scope.py
+	@# These structs persist, so a field nothing reads is a deposit paid at every
+	@# write for a value no caller can observe. Its own three bugs are worth the
+	@# header: every one of them made it report FEWER dead fields than there were,
+	@# and the last had it skipping every DOCUMENTED field: it examined 285 of the
+	@# 504 there are, and printed a clean tree. Static, no toolchain, under a second.
+	python3 scripts/check-dead-fields.py
+	@# A realm value in any position but the FIRST is one the caller chose, so
+	@# asking it who called you and believing the answer executes somebody else's
+	@# authority. Eleven Do(_ int, rlm realm, ...) implementations carry exactly
+	@# that shape and none touch rlm today -- this is what keeps it that way.
+	python3 scripts/check-interrealm.py
 
 # The other half of that check. `guards` asks whether each guard is REGISTERED in
 # selftest-checks.py; this asks whether each control arm's PLANT still applies. A
