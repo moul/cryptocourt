@@ -34,6 +34,24 @@ func TestMediaHostSettersAreAdminOnly(cur realm, t *testing.T) {
 	// ensureGlobalDAO().admin is the field both guards compare against, and a
 	// literal address would pass or fail depending on which test file created
 	// the first court.
+	// A COURT MUST EXIST FIRST, for the reason courtburn_test.gno records against
+	// the same panic: ensureGlobalDAO builds from directoryAdmin, which the FIRST
+	// StartCourt in the package sets. Without this the test passes only when some
+	// other file happened to run before it, and `make isolation-test` -- which
+	// runs every test ALONE -- is exactly what finds that out. Measured: run under
+	// -run on its own it panicked "no court exists yet; the global DAO has no
+	// admin".
+	prevBurn := courtCreationBurn
+	defer func() { courtCreationBurn = prevBurn }()
+	courtCreationBurn = 0
+
+	maker := testutils.TestAddress("mediahost-maker")
+	testing.SetOriginSend(nil)
+	testing.SetRealm(testing.NewUserRealm(maker))
+	if !Exists("mh0") {
+		StartCourt(cross(cur), "mh0", "Media Host Fixture Court")
+	}
+
 	admin := ensureGlobalDAO().admin
 	stranger := testutils.TestAddress("mediahost-stranger")
 	if stranger == admin {
