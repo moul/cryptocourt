@@ -126,6 +126,19 @@ FUNC = re.compile(r"^func (?:\([^)]*\) )?([A-Za-z_]\w*)\(")
 # The two spend guards. Both take (c, who, amount) and both panic.
 GUARD = re.compile(r"\bmust(?:Spendable|Stakable)\(")
 
+# A SPEND IS A TRANSFER WHOSE SOURCE IS A HOLDER. The guard above only sees
+# functions that already call mustSpendable, so it catches a registered path
+# dropping its guard and a new path that adds one — but NOT a new path that
+# takes CC and never asks. That is the likely way this rule breaks: somebody
+# writes a Transfer and does not know the guard exists.
+#
+# The source argument separates the two cases exactly, measured across all
+# nineteen coin.Transfer call sites in the realm: every spend reads
+# `Transfer(who, ...)` or `Transfer(from, ...)`, every payout reads
+# `Transfer(c.escrow, ...)`. Escrow paying out is not a holder being debited.
+MOVE = re.compile(r"\bcoin\.Transfer\(\s*([A-Za-z_][\w.]*)")
+ESCROW = re.compile(r"(^|\.)escrow$")
+
 
 
 
@@ -173,6 +186,23 @@ def main():
             bad.append((f, 0, f"func {fn}",
                         f"its covering test {want} does not exist; a census "
                         f"pointing at nothing is worse than no census"))
+    # The arm the guard was missing: a debit of a holder with no guard at all.
+    for p in files:
+        fn = None
+        for line in p.read_text().splitlines():
+            m = FUNC.match(line)
+            if m:
+                fn = m.group(1)
+            mv = MOVE.search(line)
+            if not mv or ESCROW.search(mv.group(1)):
+                continue
+            if (p.name, fn) not in SPEND_PATHS:
+                bad.append((p.name, 0, f"func {fn}",
+                            f"moves CC out of `{mv.group(1)}` — a holder, not escrow — "
+                            "without calling a spend guard, and is not in SPEND_PATHS. "
+                            "Size it against what that holder has committed, or it can "
+                            "spend capital a live stake depends on"))
+
     for f, fn in sorted(callers):
         if (f, fn) not in SPEND_PATHS:
             bad.append((f, 0, f"func {fn}",
