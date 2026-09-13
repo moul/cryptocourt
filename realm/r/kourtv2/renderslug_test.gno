@@ -36,6 +36,11 @@ func TestEveryRouteRefusesAnUnknownCourt(cur realm, t *testing.T) {
 		ghost + "/1",
 		ghost + "/folder/1",
 		ghost + "/me/" + testutils.TestAddress("rs-probe").String(),
+		// The board arms take parts[0] raw, same as the rest.
+		ghost + "/1/board",
+		ghost + "/1/board/top",
+		ghost + "/1/board/hidden",
+		ghost + "/1/board/7",
 	} {
 		got := Render(p)
 		if !strings.Contains(got, "Not found") {

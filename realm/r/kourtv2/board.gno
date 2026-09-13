@@ -731,6 +731,12 @@ func renderBoardTop(slug string, claimID uint64) string {
 // determination — reprinting either would be the realm undoing its own act in a
 // tidier format, so those get the reason alone.
 func renderBoardHidden(slug string, claimID uint64) string {
+	// render() hands these arms parts[0] raw, so an unknown slug reaches
+	// mustCourt unless each one refuses first. renderCourt, renderModLog,
+	// renderElection and renderFolderPage all do; these did not.
+	if !Exists(slug) {
+		return "## Not found\nNo court by that slug."
+	}
 	c := mustCourt(slug)
 	cs := mustClaim(c, claimID)
 	base := "/r/kourt/kourtv2:" + slug + "/" + strconv.FormatUint(claimID, 10)
@@ -817,6 +823,12 @@ func boardPostLink(slug string, claimID, parentRow uint64) string {
 }
 
 func renderBoardIn(slug string, claimID uint64, ranked bool) string {
+	// render() hands these arms parts[0] raw, so an unknown slug reaches
+	// mustCourt unless each one refuses first. renderCourt, renderModLog,
+	// renderElection and renderFolderPage all do; these did not.
+	if !Exists(slug) {
+		return "## Not found\nNo court by that slug."
+	}
 	c := mustCourt(slug)
 	cs := mustClaim(c, claimID)
 	var b strings.Builder
@@ -999,6 +1011,12 @@ func boardPartyRows(cs *claimState) []*boardRow {
 // bit removing text from a deep link. A hidden row is listed as hidden and still
 // reads here.
 func renderBoardRow(slug string, claimID uint64, rowArg string) string {
+	// render() hands these arms parts[0] raw, so an unknown slug reaches
+	// mustCourt unless each one refuses first. renderCourt, renderModLog,
+	// renderElection and renderFolderPage all do; these did not.
+	if !Exists(slug) {
+		return "## Not found\nNo court by that slug."
+	}
 	id, err := strconv.ParseUint(rowArg, 10, 64)
 	if err != nil {
 		return "## Not found\nA comment id must be a number."
