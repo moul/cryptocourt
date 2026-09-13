@@ -124,6 +124,30 @@ BODY_CALLERS = {
 # is the WIRE gate: it returns raw text to a client that sanitises for its own
 # context, exactly as claimBodyVisible does, so it is listed as a raw reader
 # rather than required to escape.
+# A FOLDER'S NAME IS USER TEXT TOO, and it was the one category this file
+# documented without enforcing. New(courtSlug, name) takes it from the caller and
+# stores it, three render sites write it to the page, and nothing said those
+# three had to keep sanitizing — measured by deleting one InlineText call and
+# watching this guard pass.
+#
+# Same shape as BOARD_TEXT_READERS: a value names the helper the function must
+# apply, None means the read is raw by contract.
+FOLDER_TEXT_READERS = {
+    ("render.gno", "writeFolderIndex"): "sanitize.InlineText",
+    ("render.gno", "renderFolderPage"): "sanitize.InlineText",
+
+    # folders.gno's four reads never reach a page:
+    #   folderNameTaken  compares, to refuse a duplicate
+    #   RenameFolder     writes the new name
+    #   PurgeFolder      destroys it, the way PurgeBoardRow destroys a comment
+    #   FolderName       the wire read — raw by contract, like boardTextFor;
+    #                    a client that displays it sanitises for its own context
+    ("folders.gno", "folderNameTaken"): None,
+    ("folders.gno", "RenameFolder"): None,
+    ("folders.gno", "PurgeFolder"): None,
+    ("folders.gno", "FolderName"): None,
+}
+
 BOARD_TEXT_READERS = {
     ("board.gno", "boardTextVisible"): "sanitize.Block",
     ("board.gno", "boardTextFor"): None,   # the wire read: raw by contract
@@ -203,7 +227,7 @@ def main():
     repolock.refuse_if_held("check-render-text")
 
     bad, seen_title, seen_body, seen_court = [], set(), set(), set()
-    seen_board = set()
+    seen_board, seen_folder = set(), set()
     for path in sorted(REALM.glob("*.gno")):
         if path.name.endswith("_test.gno"):
             continue
@@ -222,6 +246,19 @@ def main():
                     bad.append("%s/%s reads the court's raw name or description and is "
                                "not in COURT_TEXT_READERS. If it DISPLAYS the field it "
                                "must go through courtNameFor or courtDescFor." % key)
+            if re.search(r"\b(?:f|pf|fo|fld)\.name\b", body):
+                seen_folder.add(key)
+                if key not in FOLDER_TEXT_READERS:
+                    bad.append("%s/%s reads a folder's raw name and is not in "
+                               "FOLDER_TEXT_READERS. If it DISPLAYS the name it must "
+                               "apply sanitize.InlineText; if it compares, writes or "
+                               "destroys it, add it here with that reason." % key)
+                else:
+                    want = FOLDER_TEXT_READERS[key]
+                    if want is not None and want not in body:
+                        bad.append("%s/%s displays a folder name but does not apply "
+                                   "%s — raw folder text reaches the page"
+                                   % (key + (want,)))
             if re.search(r"\br\.text\b", body):
                 seen_board.add(key)
                 if key not in BOARD_TEXT_READERS:
