@@ -738,6 +738,13 @@ func renderBoardHidden(slug string, claimID uint64) string {
 		return "## Not found\nNo court by that slug."
 	}
 	c := mustCourt(slug)
+	// AND THE CLAIM ID, for the same reason and from the same idiom as
+	// renderClaim: a valid court with an id past nextID reached mustClaim and
+	// threw. `meta/999999` said "Not found" while `meta/999999/board` panicked,
+	// which is the same arm-somebody-missed shape one layer down.
+	if claimID == 0 || claimID > c.nextID {
+		return "## Not found\nNo claim by that id."
+	}
 	cs := mustClaim(c, claimID)
 	base := "/r/kourt/kourtv2:" + slug + "/" + strconv.FormatUint(claimID, 10)
 	var b strings.Builder
@@ -830,6 +837,13 @@ func renderBoardIn(slug string, claimID uint64, ranked bool) string {
 		return "## Not found\nNo court by that slug."
 	}
 	c := mustCourt(slug)
+	// AND THE CLAIM ID, for the same reason and from the same idiom as
+	// renderClaim: a valid court with an id past nextID reached mustClaim and
+	// threw. `meta/999999` said "Not found" while `meta/999999/board` panicked,
+	// which is the same arm-somebody-missed shape one layer down.
+	if claimID == 0 || claimID > c.nextID {
+		return "## Not found\nNo claim by that id."
+	}
 	cs := mustClaim(c, claimID)
 	var b strings.Builder
 	b.WriteString("# Comments on claim " + strconv.FormatUint(claimID, 10) + "\n\n")
@@ -1022,6 +1036,12 @@ func renderBoardRow(slug string, claimID uint64, rowArg string) string {
 		return "## Not found\nA comment id must be a number."
 	}
 	c := mustCourt(slug)
+	// AND THE CLAIM ID, same idiom as renderClaim. This arm parses the ROW id
+	// first, so the shape differs from its two siblings and a single pattern did
+	// not reach it -- the table test did.
+	if claimID == 0 || claimID > c.nextID {
+		return "## Not found\nNo claim by that id."
+	}
 	cs := mustClaim(c, claimID)
 	if cs.board == nil || cs.board.Get(beClaimKey(id)) == nil {
 		return "## Not found\nNo comment by that id on this claim."
