@@ -10,6 +10,12 @@ const NOWm = src.match(/const NOW\s*=\s*([0-9_]+)/); global.NOW = Number(NOWm[1]
 global.BLOCK_SECS = 5;
 
 let code = 'var QP={};\n';
+
+// The page derives PKG_GWPATH from PKG; the sliced functions below use it,
+
+// so the harness has to provide it the same way rather than a literal.
+
+code = "var PKG='gno.land/r/kourt/kourtv2';\n" + "var PKG_GWPATH=PKG.slice(PKG.indexOf('/'));\n" + code;
 code += slice('function esc(', '\n');
 code += 'function unesc(x){ return String(x); }\n';
 code += slice('function fmtN(', 'function ugnot(');

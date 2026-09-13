@@ -156,7 +156,7 @@ ok("seeded span keeps the realm sentence + punctuation", src.includes("seeded by
 ok("D6-critic: seeded read fails CLOSED", src.includes(') !== false; // unread = never offer the draw'));
 ok("D6-critic: hidden claims get no map link", src.includes("mHidden!==true && (!isLive()"));
 ok("D6-critic: demo raw claims carry the chain banner", src.includes("**Hidden by this court's moderators.**"));
-ok("D6-critic: demo raw court links its mod log", src.includes("[Moderation log](/r/kourt/kourtv2:${parts[0]}/mod)"));
+ok("D6-critic: demo raw court links its mod log", src.includes("[Moderation log](${PKG_GWPATH}:${parts[0]}/mod)"));
 ok("D6-critic: demo totals count the whole court", src.includes("demoCourt(slug)? demoCourt(slug).claims.length"));
 ok("banner reads are claim-route only, null-safe", src.includes("mHidden=null, mRedacted=null, mPurged=null, mSeeded=null"));
 ok("me rider: seeded read guards the author row", src.includes("d.seeded = (await one(`ClaimSeeded(") );

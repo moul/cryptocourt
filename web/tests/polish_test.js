@@ -24,6 +24,7 @@ code += slice('function tx(', 'function btn(');
 // button is a decision btn() makes from an argument stakeTicket() computes, and
 // asserting on either alone would miss the wiring between them.
 code += "const PKG='gno.land/r/kourt/kourtv2';\n";
+  code += "const PKG_GWPATH=PKG.slice(PKG.indexOf('/'));\n";
 code += slice('const ICN_CHEST =', 'const ICN_COURT =');
 // the gas pair the wallet and the printed command share — sliced, never retyped
 code += slice('const GAS_WANTED', 'const CFG_DEFAULTS');

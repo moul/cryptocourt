@@ -13,6 +13,9 @@ const { slice } = require("./srcslice");
 // `const` inside eval is block-scoped to the eval; `function` is not.
 const V = s => s.replace(/^const /gm, 'var ');
 
+// The page derives PKG_GWPATH from PKG, and the sliced functions below use it.
+global.PKG = 'gno.land/r/kourt/kourtv2';
+global.PKG_GWPATH = global.PKG.slice(global.PKG.indexOf('/'));
 eval(slice('function esc(s){', '\n/* undo the realm'));
 eval(slice('function unesc(', '\n'));
 eval(slice('function safeInline(', "\n/* THE CLAIM'S OWN"));

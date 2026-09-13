@@ -5,6 +5,8 @@ const { slice } = require("./srcslice");
 global.document = { addEventListener: ()=>{}, getElementById: ()=>null };
 global.CFG = { mode:'demo', gnoweb:'https://gno.land', rpc:'http://x', chainid:'dev' };
 global.PKG = 'gno.land/r/kourt/kourtv2';
+// Derived exactly as index.html does, so the harness cannot drift from the page.
+global.PKG_GWPATH = global.PKG.slice(global.PKG.indexOf('/'));
 global.isLive = ()=> CFG.mode==='live';
 const NOWm = src.match(/const NOW\s*=\s*([0-9_]+)/); global.NOW = NOWm? Number(NOWm[1].replace(/_/g,'')) : 4800000;
 const BSm = src.match(/const BLOCK_SECS\s*=\s*([0-9_]+)/); global.BLOCK_SECS = BSm? Number(BSm[1].replace(/_/g,'')) : 5;

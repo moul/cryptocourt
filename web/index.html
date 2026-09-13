@@ -3328,6 +3328,14 @@ if(location.protocol !== "file:" && location.pathname !== "/"
 "use strict";
 /* ============================ configuration ============================== */
 const PKG = "gno.land/r/kourt/kourtv2";
+// The realm's gnoweb path, derived from PKG so the two cannot drift. Declared
+// HERE rather than beside its first user: deploy stamps PKG, and ten call sites
+// used to spell "/r/kourt/kourtv2" out by hand -- which meant a deploy could
+// point the page at one realm while every action button signed against another.
+// No regex literal here on purpose: check-tdz.py mis-lexes the slashes inside
+// /^[^/]*\// and then reads the block comment below as part of this
+// initializer, reporting a dependency on a constant declared further down.
+const PKG_GWPATH = PKG.slice(PKG.indexOf("/"));
 /* GAS: THE CEILING IS NOT THE PRICE, and one number has to serve both the wallet
    and the printed command.
 
@@ -5874,7 +5882,7 @@ document.addEventListener("error", (e) => {
    the links carry only the ordinary arguments. */
 function tx(func, args){
   const q = Object.entries(args||{}).map(([k,v])=>"&"+k+"="+encodeURIComponent(v)).join("");
-  return CFG.gnoweb.replace(/\/$/,"")+"/r/kourt/kourtv2$help&func="+func+q;
+  return CFG.gnoweb.replace(/\/$/,"")+PKG_GWPATH + "$help&func="+func+q;
 }
 /* `edit` marks the buttons whose ARGUMENTS ARE PLACEHOLDERS — text the reader
    has to replace before it means anything. Two do: StartCourt and StartCourtP
@@ -16274,7 +16282,7 @@ function boardText(s, slug){
 const boardVisible = rows => (rows || []).filter(r => r.mark === ".");
 
 const gnowebRow = (slug, id, row) =>
-  String(CFG.gnoweb || "").replace(/\/$/, "") + "/r/kourt/kourtv2:" + slug + "/" + id + "/board/" + row;
+  String(CFG.gnoweb || "").replace(/\/$/, "") + PKG_GWPATH + ":" + slug + "/" + id + "/board/" + row;
 
 /* One row. `meta` is what the ORDERING knows about it — a reply count on Newest,
    a score on Top — rendered as the thing it is rather than as a bare number. */
@@ -19162,7 +19170,6 @@ function mdInline(t){
    a second, unvetted way for a stranger's URL to reach the reader's browser, on
    the one page that promises to add nothing. The alt text is the label, which is
    what the realm put there for a reader who cannot see the picture anyway. */
-const PKG_GWPATH = "/" + PKG.replace(/^[^/]*\//, "");
 function mdLink(isImg, text, dest){
   const local = dest.startsWith(PKG_GWPATH + ":")
     ? "#/raw/" + dest.slice(PKG_GWPATH.length + 1) : null;
@@ -20755,9 +20762,9 @@ function demoRender(path){
   const parts = path.split("/");
   if(path===""||path==="/"){
     let o="# Kourt\n\nLet Truth be told.\n\n## Featured\n\n";
-    for(const [slug,c] of Object.entries(DEMO.courts)) if(c.tier===2) o+=`- [${c.name}](/r/kourt/kourtv2:${slug}) · ${slug.toUpperCase()} — ${c.claims.length} claims\n`;
+    for(const [slug,c] of Object.entries(DEMO.courts)) if(c.tier===2) o+=`- [${c.name}](${PKG_GWPATH}:${slug}) · ${slug.toUpperCase()} — ${c.claims.length} claims\n`;
     o+="\n## Courts\n\n";
-    for(const [slug,c] of Object.entries(DEMO.courts)) if(c.tier===1) o+=`- [${c.name}](/r/kourt/kourtv2:${slug}) · ${slug.toUpperCase()} — ${c.claims.length} claims\n`;
+    for(const [slug,c] of Object.entries(DEMO.courts)) if(c.tier===1) o+=`- [${c.name}](${PKG_GWPATH}:${slug}) · ${slug.toUpperCase()} — ${c.claims.length} claims\n`;
     return o;
   }
   const c=demoCourt(parts[0]); if(!c) return "## Not found\nNo court by that slug.";
@@ -20765,18 +20772,18 @@ function demoRender(path){
     let o=`# ${c.name}\n\n- coin: ${parts[0].toUpperCase()} — this court's own coin, not interchangeable with any other court's\n- coin price: ${c.price} ugnot per unit (one-way; the GNOT is burned)\n- supply: ${c.supply} · emitted: ${c.emitted}\n- reward reservoir: ${c.reservoir} · senior queue owed: ${c.seniorOwed}\n\n## Claims\n\n`;
     // mirror the realm's render: newest 50 by descending id, then the footer
     const ids=[...c.claims].sort((a,b)=>b-a).filter(id=>!(DEMO.claims[parts[0]+"/"+id]||{}).hidden);
-    for(const id of ids.slice(0,50)){ const d=DEMO.claims[parts[0]+"/"+id]; o+=`- [${d.title}](/r/kourt/kourtv2:${parts[0]}/${id}) — ${statusText(d)}\n`; }
+    for(const id of ids.slice(0,50)){ const d=DEMO.claims[parts[0]+"/"+id]; o+=`- [${d.title}](${PKG_GWPATH}:${parts[0]}/${id}) — ${statusText(d)}\n`; }
     if(ids.length>50) o+=`\n…and ${ids.length-50} older; open any by id\n`;
     const dsp = demoStrips(parts[0]);
     if(dsp.strip.length){
       o+=`\n## Still flaggable\n\nAnswered claims that can still be flagged as spam — nearest deadline first. A claim leaves this list when its rewards are opened, not when it settles, so a settled claim stays here while it can still be flagged. This list ignores moderation: a claim hidden from the lists above still appears here.\n\n`;
-      for(const r of dsp.strip) o+=`- [${r.title}](/r/kourt/kourtv2:${parts[0]}/${r.id})${r.deadline!=null?` — settles at block ${r.deadline}`:""}\n`;
+      for(const r of dsp.strip) o+=`- [${r.title}](${PKG_GWPATH}:${parts[0]}/${r.id})${r.deadline!=null?` — settles at block ${r.deadline}`:""}\n`;
     }
     if(dsp.pending.length){
       o+=`\n## Awaiting an answer\n\nSeeded and appeal claims that no one has answered yet.\n\n`;
-      for(const r of dsp.pending) o+=`- [${r.title}](/r/kourt/kourtv2:${parts[0]}/${r.id}) — seeded by a moderator\n`;
+      for(const r of dsp.pending) o+=`- [${r.title}](${PKG_GWPATH}:${parts[0]}/${r.id}) — seeded by a moderator\n`;
     }
-    o+=`\n[Moderation log](/r/kourt/kourtv2:${parts[0]}/mod)\n`;
+    o+=`\n[Moderation log](${PKG_GWPATH}:${parts[0]}/mod)\n`;
     return o;
   }
   if(parts[1]==="mod"){
@@ -20870,7 +20877,7 @@ function initControls(){
     dot.className="dot "+(live?"live":"demo"); lab.textContent= live?"Live node":"Demo data";
     const gw=document.getElementById("gwrealm");
     if(gw){ gw.style.display = live? "inline-block":"none";
-      gw.href = String(CFG.gnoweb||"").replace(/\/$/,"") + "/r/kourt/kourtv2"; } };
+      gw.href = String(CFG.gnoweb||"").replace(/\/$/,"") + PKG_GWPATH; } };
   modesel.onchange=()=>{ CFG.mode=modesel.value; saveCfg(); reflect(); render(); };
   rpc.onchange=()=>{ CFG.rpc=rpc.value.trim(); saveCfg(); rpc.value=CFG.rpc; if(CFG.mode==="live") render(); };
   gnoweb.onchange=()=>{ CFG.gnoweb=gnoweb.value.trim()||"https://gno.land"; saveCfg(); gnoweb.value=CFG.gnoweb; if(CFG.mode==="live") render(); };

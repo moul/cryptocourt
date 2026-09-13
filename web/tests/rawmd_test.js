@@ -32,7 +32,7 @@ global.PKG = slice('const PKG = "', '";').replace('const PKG = "', "");
 // slice() is inclusive of its start anchor, so the `const` keyword comes with
 // it — eval'ing that returns undefined, and every link assertion below then
 // fails for a reason that has nothing to do with the renderer.
-const GWDECL = slice("const PKG_GWPATH = ", "\nfunction mdLink")
+const GWDECL = slice("const PKG_GWPATH = ", "\n/* GAS")
   .replace("const PKG_GWPATH = ", "").trim().replace(/;$/, "");
 global.PKG_GWPATH = eval(GWDECL);
 /* DERIVED, NOT RETYPED. index.html hardcodes "/r/kourt/kourtv2:" in two older

@@ -11,6 +11,9 @@ const src = fs.readFileSync(require('path').join(__dirname, '..', 'index.html'),
 const { slice } = require("./srcslice");
 // The helpers the renderers lean on, taken from the file rather than restated —
 // a local copy of esc() that is kinder than the real one would prove nothing.
+// The page derives PKG_GWPATH from PKG, and the sliced functions below use it.
+global.PKG = 'gno.land/r/kourt/kourtv2';
+global.PKG_GWPATH = global.PKG.slice(global.PKG.indexOf('/'));
 eval(slice('function esc(s){', '\n/* undo the realm'));
 eval(slice('function shortAddr(', '\nfunction wall('));
 eval(slice('function fmtN(', '\n').replace(/^function /, 'function '));

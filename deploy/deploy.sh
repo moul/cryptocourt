@@ -278,10 +278,17 @@ SITE_CHAINID="${SITE_CHAINID:-kourt-1}"
 # so the honest default is the repo's — and that points at gno.land, which does
 # NOT carry this realm. Say so rather than stamping a link that 404s quietly.
 SITE_GNOWEB="${SITE_GNOWEB:-https://gnoweb.kourt.xyz}"
+# THE REALM PATH IS CHAIN CONFIG, not source. The same overlay serves whichever
+# chain it is pointed at, and the realm sits at a different path on each --
+# gno.land/r/kourt/kourtv2 locally, gno.land/r/<namespace>/kourt elsewhere.
+# Stamping rpc and chainid but NOT this pointed the page at one chain while
+# every action button signed against another.
+SITE_PKG="${SITE_PKG:-gno.land/r/kourt/kourtv2}"
 python3 - "$STAMPED" <<PYEOF
 import re, sys
 src = open("web/index.html", encoding="utf-8").read()
 cfg = {"mode": "$SITE_MODE", "rpc": "$SITE_RPC", "chainid": "$SITE_CHAINID"}
+pkg = "$SITE_PKG"
 gnoweb = "$SITE_GNOWEB"
 pat = re.compile(r'const CFG_DEFAULTS = \{[^}]*\};')
 if len(pat.findall(src)) != 1:
@@ -291,6 +298,13 @@ keep = re.search(r'gnoweb:"([^"]*)"', old).group(1)
 line = ('const CFG_DEFAULTS = {mode:"%s", rpc:"%s", gnoweb:"%s", chainid:"%s"};'
         % (cfg["mode"], cfg["rpc"], gnoweb or keep, cfg["chainid"]))
 out = pat.sub(lambda _: line, src, count=1)
+
+# PKG feeds PKG_GWPATH, which every gnoweb link and signing URL is built from,
+# so this one substitution moves all of them.
+pkgpat = re.compile(r'^const PKG = "[^"]*";$', re.M)
+if len(pkgpat.findall(out)) != 1:
+    sys.exit("deploy: expected exactly one PKG line to stamp")
+out = pkgpat.sub(lambda _: 'const PKG = "%s";' % pkg, out, count=1)
 
 # The source panel is not shown on a deployed site. It offers mode, RPC, gnoweb,
 # chain id and chat — a way to point this page at another node and then read the
