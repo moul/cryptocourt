@@ -190,18 +190,27 @@ def main():
                         "MOVE reads %r as a holder debit; it is a payout or a mint, and "
                         "a guard that cries wolf gets switched off" % line.strip()))
 
-    callers = set()
+    # ONE WALK, INDEXED. Both passes below want the same thing -- every line
+    # paired with the function it sits in -- and each used to derive it for
+    # itself, reading every file twice and keeping two copies of the fn-tracking.
+    # Two copies is two places for it to drift, and a drifted copy does not fail
+    # loudly: it files a real finding against the wrong function name.
+    indexed = []
     for p in files:
         fn = None
         for line in p.read_text().splitlines():
             m = FUNC.match(line)
             if m:
                 fn = m.group(1)
-            hits = len(GUARD.findall(line))
-            # The declarations themselves are not call sites.
-            if hits and not line.startswith("func must"):
-                guards += hits
-                callers.add((p.name, fn))
+            indexed.append((p, fn, line))
+
+    callers = set()
+    for p, fn, line in indexed:
+        hits = len(GUARD.findall(line))
+        # The declarations themselves are not call sites.
+        if hits and not line.startswith("func must"):
+            guards += hits
+            callers.add((p.name, fn))
 
     if not guards:
         print("check-spend-paths: found no spend guards at all, so this check is "
@@ -220,21 +229,16 @@ def main():
                         f"its covering test {want} does not exist; a census "
                         f"pointing at nothing is worse than no census"))
     # The arm the guard was missing: a debit of a holder with no guard at all.
-    for p in files:
-        fn = None
-        for line in p.read_text().splitlines():
-            m = FUNC.match(line)
-            if m:
-                fn = m.group(1)
-            mv = MOVE.search(line)
-            if not mv or ESCROW.search(mv.group(1)):
-                continue
-            if (p.name, fn) not in SPEND_PATHS:
-                bad.append((p.name, 0, f"func {fn}",
-                            f"moves CC out of `{mv.group(1)}` — a holder, not escrow — "
-                            "without calling a spend guard, and is not in SPEND_PATHS. "
-                            "Size it against what that holder has committed, or it can "
-                            "spend capital a live stake depends on"))
+    for p, fn, line in indexed:
+        mv = MOVE.search(line)
+        if not mv or ESCROW.search(mv.group(1)):
+            continue
+        if (p.name, fn) not in SPEND_PATHS:
+            bad.append((p.name, 0, f"func {fn}",
+                        f"moves CC out of `{mv.group(1)}` — a holder, not escrow — "
+                        "without calling a spend guard, and is not in SPEND_PATHS. "
+                        "Size it against what that holder has committed, or it can "
+                        "spend capital a live stake depends on"))
 
     for f, fn in sorted(callers):
         if (f, fn) not in SPEND_PATHS:
