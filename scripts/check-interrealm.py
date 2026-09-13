@@ -35,6 +35,8 @@ import pathlib
 import re
 import sys
 
+from gnosource import strip_comments
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REALM = ROOT / "realm"
 
@@ -47,51 +49,6 @@ IS_CURRENT = re.compile(r"\b%s\.IsCurrent\s*\(")
 UNSAFE_PREV = re.compile(r"\bunsafe\.PreviousRealm\s*\(")
 
 CENSUS_FLOOR = 40
-
-
-def strip_comments(src):
-    """Comment text out, code left in place.
-
-    WITHOUT THIS THE GUARD READS PROSE AS CODE. kourtv1/buy.gno carries the
-    sentence "flags is unsafe.PreviousRealm (which skips frame verification) --
-    NOT this", which is a comment saying the code does NOT do the thing, and a
-    naive scan reported it as doing the thing.
-
-    String literals are tracked, not merely skipped: a `//` inside a quoted URL
-    would otherwise swallow the rest of the line, which hides real code and
-    fails SILENTLY -- the direction a guard must never fail in.
-    """
-    out, i, n = [], 0, len(src)
-    while i < n:
-        c = src[i]
-        if c in '"\'`':
-            q = c
-            out.append(c)
-            i += 1
-            while i < n:
-                if src[i] == "\\" and q != "`":
-                    out.append("  ")
-                    i += 2
-                    continue
-                out.append(src[i])
-                if src[i] == q:
-                    i += 1
-                    break
-                i += 1
-            continue
-        if c == "/" and i + 1 < n and src[i + 1] == "/":
-            while i < n and src[i] != "\n":
-                i += 1
-            continue
-        if c == "/" and i + 1 < n and src[i + 1] == "*":
-            j = src.find("*/", i + 2)
-            j = n if j < 0 else j + 2
-            out.append("\n" * src[i:j].count("\n"))
-            i = j
-            continue
-        out.append(c)
-        i += 1
-    return "".join(out)
 
 
 def is_test(p):

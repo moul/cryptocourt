@@ -28,6 +28,8 @@ import pathlib
 import re
 import sys
 
+from gnosource import strip_comments
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REALM = ROOT / "realm"
 
@@ -36,41 +38,6 @@ REALM = ROOT / "realm"
 # failure rather than a clean run.
 DECL = re.compile(r"^\t*(?:var\s+)?(\w+)\s+bool\s*$", re.M)
 CENSUS_FLOOR = 20
-
-
-def strip_comments(src):
-    """Comment text out, code left in place, string literals respected."""
-    out, i, n = [], 0, len(src)
-    while i < n:
-        c = src[i]
-        if c in "\"'`":
-            q = c
-            out.append(c)
-            i += 1
-            while i < n:
-                if src[i] == "\\" and q != "`":
-                    out.append("  ")
-                    i += 2
-                    continue
-                out.append(src[i])
-                if src[i] == q:
-                    i += 1
-                    break
-                i += 1
-            continue
-        if c == "/" and i + 1 < n and src[i + 1] == "/":
-            while i < n and src[i] != "\n":
-                i += 1
-            continue
-        if c == "/" and i + 1 < n and src[i + 1] == "*":
-            j = src.find("*/", i + 2)
-            j = n if j < 0 else j + 2
-            out.append("\n" * src[i:j].count("\n"))
-            i = j
-            continue
-        out.append(c)
-        i += 1
-    return "".join(out)
 
 
 def bool_names(text):
