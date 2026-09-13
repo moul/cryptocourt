@@ -33,10 +33,17 @@ tools/bundle/2-broadcast-ONLINE.sh
 can be deployed exactly once, and an uncommitted edit has already reached
 mainnet this way.
 
-`stripcomments` is not optional. 903,832 bytes of realm source become 1,205,109
-base64 on the wire, against a 1,000,000-byte RPC body limit — a deploy is over
-before it starts. It tokenises rather than pattern-matching, and asserts the
-non-comment token streams are unchanged.
+`stripcomments` is not optional. The tx is base64 on the wire, which inflates by
+a third against a 1,000,000-byte RPC body limit — so the realm's source has to
+stay under about 750KB, and it has been over 900KB since well before the first
+deploy. Stripping comments takes roughly two thirds off and it fits with room.
+
+(Those are measurements, not invariants: the realm grew 2KB in the day after
+this file was written. Run the stripper and read what it prints — it reports the
+base64 size and the limit on every run, so the check is never out of date.)
+
+It tokenises rather than pattern-matching, and asserts the non-comment token
+streams are unchanged.
 
 **Run `verify.sh` before trusting a `minsign` binary.** It is the only reason to
 trust one: these signatures are RFC6979-deterministic, so byte-identical output
@@ -60,6 +67,12 @@ tools/bundle/2-broadcast-ONLINE.sh
 refuses `OpenClaimSeeded` even though that call would work: it writes the claim
 body EMPTY and only the title can be amended afterwards, so it would put bodyless
 claims on a path that can never be redeployed.
+
+It also separates the calls that change **policy** from the ones that add data.
+The covid scenario sets the site domain and puts court creation at 2 GNOT — both
+ordinary steps on a demo chain, both decisions on a live realm, and both easy to
+miss inside what reads like a data load. They stay in the plan; they are just
+reported where you cannot walk past them.
 
 `actors.json` must come from **the plan you are signing**. Indices are assigned
 by first appearance, so the same name gets a different index — and a different
