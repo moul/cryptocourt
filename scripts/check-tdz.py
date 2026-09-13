@@ -251,6 +251,16 @@ def main():
         print("  cannot test. Move the declaration, or read the name inside a")
         print("  function body where it is evaluated after everything has run.")
         return 1
+    # A FLOOR, because zero is not a clean bill of health. If DECL stops matching
+    # — a reformat, a different declaration style — this scans nothing, finds
+    # nothing, and reports success. Measured: blinding DECL leaves this at exit 0.
+    # check-spend-paths.py guards its own census the same way.
+    if scanned == 0:
+        print("check-tdz: found no top-level declarations at all, so this check is "
+              "scanning for a shape the overlay no longer has. The ordering the "
+              "browser enforces is unverified, not verified.", file=sys.stderr)
+        return 1
+
     print("check-tdz: %d top-level declaration(s) across %d file(s); every one is "
           "built only from names declared above it." % (scanned, len(FILES)))
     return 0

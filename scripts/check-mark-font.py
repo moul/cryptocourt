@@ -248,6 +248,14 @@ def main():
 
     if bad:
         return 1
+    # A FLOOR, for the reason check-tdz carries one: zero drawn marks means the
+    # pattern that finds them stopped matching, not that every mark is dressed
+    # correctly. Blinding OPEN leaves this at exit 0 without it.
+    if drawn == 0:
+        print("check-mark-font: found no mark-drawing elements at all, so this check "
+              "is scanning for a shape the overlay no longer has.", file=sys.stderr)
+        return 1
+
     print("check-mark-font: %d mark-drawing element(s) across %d file(s), every one "
           "wearing one of the classes the stylesheet fonts (%s), which still name "
           "the embedded %s."
