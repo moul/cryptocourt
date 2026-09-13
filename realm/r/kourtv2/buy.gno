@@ -111,9 +111,16 @@ func CurvePosition(slug string) int64 { return mustCourt(slug).minted }
 func BurnSink() address { return chain.PackageAddress(burnSinkPath) }
 
 // BurnedGNOT is the sink's live balance — the audit read for the burn.
+//
+// GetCoin, NOT GetCoins(...).AmountOf. GetCoins reads EVERY denom the address
+// holds and its iterator walk is charged for all of them, so its cost is set by
+// whoever last sent that address a coin. The sink is keyless and published, so
+// that is anybody: a stranger can make this read arbitrarily expensive by
+// sending it junk denoms, and nothing here consents to it. GetCoin reads the
+// one denom asked for and cannot be inflated from outside.
 func BurnedGNOT() int64 {
 	b := banker.NewReadonlyBanker()
-	return b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)
+	return b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)
 }
 
 // CoinBalanceOf is who's court-coin balance (a value read).
