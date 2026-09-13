@@ -201,6 +201,7 @@ MEDIAGNO = "realm/r/kourtv2/media.gno"
 BLOCKTIME = "scripts/check-block-time.py"
 DEADFIELDS = "scripts/check-dead-fields.py"
 INTERREALM = "scripts/check-interrealm.py"
+GETCOINS = "scripts/check-getcoins.py"
 MINTERGNO = "realm/r/govern/minter.gno"
 MUTSCOPE = "scripts/check-mutation-scope.py"
 CLAIMGNO = "realm/r/kourtv2/claim.gno"
@@ -1584,6 +1585,19 @@ control("the class stops naming the embedded face", WEBPAGE,
         '.foldsel .eyeshut{font-family:system-ui,sans-serif}',
         "no class on it is one the stylesheet gives the embedded face to",
         argv=["python3", MARKFONT])
+
+print("\ncheck-getcoins")
+# THE PLANT IS NOT INVENTED -- it is a verbatim copy of what gnoland-1 runs
+# today. BurnedGNOT() reads the burn sink with GetCoins(...).AmountOf, Render
+# reaches it through renderAdminParams for the `admin-params` page, and
+# BurnSink() publishes that address on purpose so the burn can be reconciled --
+# which also tells anyone exactly where to send junk denoms to make the page
+# cost more every time. The repo was fixed to GetCoin; a package deploys once,
+# so mainnet keeps the old read and this arm keeps the new one honest.
+control("a balance read whose cost a stranger sets", BUY,
+        "\treturn b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)",
+        "\treturn b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)",
+        "cost a third party sets", argv=["python3", GETCOINS])
 
 print("\ncheck-interrealm")
 # A crossing function's FIRST `cur realm` is runtime-current by construction --

@@ -117,6 +117,12 @@ guards:
 	@# authority. Eleven Do(_ int, rlm realm, ...) implementations carry exactly
 	@# that shape and none touch rlm today -- this is what keeps it that way.
 	python3 scripts/check-interrealm.py
+	@# GetCoins walks every denom an address holds, and anyone can give an address
+	@# a denom it never asked for -- so a stranger sets the cost of the read. This
+	@# is live on gnoland-1: the deployed buy.gno does it on the PUBLISHED burn
+	@# sink, reached from Render via renderAdminParams. The repo is fixed; a
+	@# package deploys once, so this keeps the fixable copy fixed.
+	python3 scripts/check-getcoins.py
 
 # The other half of that check. `guards` asks whether each guard is REGISTERED in
 # selftest-checks.py; this asks whether each control arm's PLANT still applies. A
