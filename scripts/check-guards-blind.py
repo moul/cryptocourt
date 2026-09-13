@@ -56,14 +56,21 @@ SKIP = {
 # and an arm quoting all of that inside a Python string got one escape wrong
 # and planted nothing — check-control-anchors caught it, which is what that
 # guard is for.
-PATTERN_SRC = r"^([A-Z][A-Z_0-9]*)\s*=\s*re\.compile\((r['\"])"
+# `\s*` rather than nothing between the paren and the quote, because a pattern
+# long enough to wrap is still a named pattern. Measured: check-seed-assets and
+# check-block-time were skipped as "no single named pattern" purely because
+# re.compile( ended their line -- and check-seed-assets is the only unverified
+# guard that DISCOVERS its work (LINE.finditer) rather than walking a declared
+# table, so it is the only one that can go quiet by drift instead of by somebody
+# emptying a list on purpose.
+PATTERN_SRC = r"^([A-Z][A-Z_0-9]*)\s*=\s*re\.compile\(\s*(r['\"])"
 PATTERN = re.compile(PATTERN_SRC, re.M)
 TIMEOUT = 180
 
 
 def blind(src, sym):
     """Replace one named pattern's regex with one that cannot match."""
-    return re.sub(r"^(%s\s*=\s*re\.compile\()r(['\"]).*?\2" % re.escape(sym),
+    return re.sub(r"^(%s\s*=\s*re\.compile\(\s*)r(['\"]).*?\2" % re.escape(sym),
                   lambda m: m.group(1) + 'r"ZZ_BLINDED_NEVER_MATCHES_ZZ"',
                   src, count=1, flags=re.M | re.S)
 

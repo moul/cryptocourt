@@ -34,7 +34,10 @@ import pathlib
 import re
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from gnosource import strip_comments
+import repolock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REALM = ROOT / "realm"
@@ -62,6 +65,10 @@ BANNED_MUST_NOT_FIRE = [
 
 
 def main():
+    # selftest rewrites these very sources in place; reading them
+    # mid-plant invents findings out of somebody else's control.
+    repolock.refuse_if_held("check-getcoins")
+
     safe_seen, bad = 0, []
 
     # The fixtures run FIRST, so a pattern that stopped matching is reported

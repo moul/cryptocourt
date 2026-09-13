@@ -119,9 +119,39 @@ SINK_DEST = re.compile(r"burnSinkPath")
 ALLOWED = {"TransferGlobalAdmin", "ApproveCandidate", "ApproveRetain"}
 
 
+# SUSPECT MATCHES NOTHING IN A HEALTHY TREE -- that is the point of it -- so
+# blinding it changes nothing and the guard passes either way. It cannot tell
+# "no reputation-transfer entrypoint exists" from "my pattern stopped working",
+# and check-guards-blind caught exactly that once it could see a wrapped
+# re.compile(. A forbidding pattern needs strings it MUST and MUST NOT match,
+# the way check-spend-paths keeps MOVE_MUST_FIRE.
+SUSPECT_MUST_FIRE = [
+    "func AssignRecord(cur realm, from, to address) {",
+    "func TransferStanding(cur realm, to address) {",
+    "func GiftReputationTo(cur realm, who address) {",
+]
+SUSPECT_MUST_NOT_FIRE = [
+    "func AssignRecord(from, to address) {",          # not a crossing entrypoint
+    "func TransferCC(cur realm, to address, n int64) {",  # coin, deliberately transferable
+    "func RecordAnswer(cur realm, id uint64) {",      # records an answer, moves no standing
+]
+
+
 def main() -> int:
     repolock.refuse_if_held("check-nontransferable")
     scanned, hits = 0, []
+
+    # The fixtures run FIRST, so a pattern that stopped matching is reported
+    # before the scan it would have made meaningless.
+    for line in SUSPECT_MUST_FIRE:
+        if not SUSPECT.search(line):
+            hits.append(("SELFTEST", "-", "check-nontransferable.py", 0,
+                         "SUSPECT no longer reads %r as a standing transfer" % line.strip()))
+    for line in SUSPECT_MUST_NOT_FIRE:
+        if SUSPECT.search(line):
+            hits.append(("SELFTEST", "-", "check-nontransferable.py", 0,
+                         "SUSPECT reads %r as a standing transfer; it is not one, and a "
+                         "guard that cries wolf gets switched off" % line.strip()))
     for realm in REALMS:
         d = ROOT / "realm" / "r" / realm
         files = [p for p in sorted(d.glob("*.gno")) if not p.name.endswith("_test.gno")]
