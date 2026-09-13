@@ -733,3 +733,18 @@ func TestACourtNameTooLongToWrapIsRefusedHere(cur realm, t *testing.T) {
 	Enable(cross(cur), "wrapfit")
 	uassert.True(t, Enabled("wrapfit"))
 }
+
+/* Render takes attacker-controlled input, so a path naming no wrapped court is
+   a page that says so. It called mustWrapped directly and threw -- the same rule
+   eight of kourtv2's render arms were missing, found by enumerating every render
+   function that reaches a must* helper.
+
+   mustWrapped stays as it is: it is the right shape for a caller that has
+   already checked, and every other caller has. */
+func TestRenderRefusesAnUnwrappedCourt(cur realm, t *testing.T) {
+	for _, p := range []string{"nosuchcourt", "0", "../etc", "meta"} {
+		if got := Render(p); !strings.Contains(got, "Not found") {
+			t.Fatalf("Render(%q) did not say Not found: %q", p, got)
+		}
+	}
+}

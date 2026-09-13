@@ -421,6 +421,14 @@ func mustWrapped(slug string) *wrapped {
 
 func Render(path string) string {
 	if path != "" {
+		// Render takes attacker-controlled input, so a path naming no wrapped
+		// court is a page that says so -- not a panic. mustWrapped is the right
+		// shape for a caller that has already checked; Render has not.
+		// kourtv2's render arms learned the same rule: eight of them called
+		// must* on a raw path segment and threw where their siblings answered.
+		if wraps.Get(path) == nil {
+			return "## Not found\nNo wrapped coin for that court."
+		}
 		w := mustWrapped(path)
 		// The token's name carries the court's own, which is user text validated
 		// for LENGTH ONLY at the door. Sanitised HERE and not at Enable: the stored
