@@ -1,3 +1,11 @@
+//go:build ignore
+
+// NOT PART OF THIS MODULE. Its imports (minsign/internal/...) exist only in
+// the module build.sh assembles, so `go vet ./...` here would type-check it
+// against packages that are not present and fail. The ignore tag keeps it a
+// .go file for editors and out of this module for the toolchain; build.sh
+// strips these two lines when it copies the file.
+
 // Package wiregno declares the one gnovm type that appears on the addpkg wire,
 // so the signer does not have to import gnovm/pkg/gnolang (which reaches the
 // whole VM, and through it crypto/x509).

@@ -60,8 +60,12 @@ for d in tmhash bip39 hd secp256k1 ed25519 multisig multisig/bitarray; do
   mkdir -p "$OUT/internal/crypto/$d"
   cp "$GNO/tm2/pkg/crypto/$d"/*.go "$OUT/internal/crypto/$d/" 2>/dev/null || true
 done
-cp "$HERE/main.go" "$OUT/"
-mkdir -p "$OUT/wiregno" && cp "$HERE/wiregno/gno.go" "$OUT/wiregno/"
+# STRIP THE IGNORE TAG. In this repo these carry `//go:build ignore` so that
+# `go vet ./...` does not type-check them against imports that only exist
+# once assembled. Here they become the real package, so the tag comes off.
+strip_tag() { perl -0pe 's{\A//go:build ignore\n\n(?://[^\n]*\n)*\n}{}' "$1"; }
+strip_tag "$HERE/main.go" > "$OUT/main.go"
+mkdir -p "$OUT/wiregno" && strip_tag "$HERE/wiregno/gno.go" > "$OUT/wiregno/gno.go"
 
 find "$OUT" -name '*_test.go' -delete
 find "$OUT" -name '*.go' -print0 | xargs -0 perl -pi -e \

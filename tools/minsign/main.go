@@ -1,3 +1,11 @@
+//go:build ignore
+
+// NOT PART OF THIS MODULE. Its imports (minsign/internal/...) exist only in
+// the module build.sh assembles, so `go vet ./...` here would type-check it
+// against packages that are not present and fail. The ignore tag keeps it a
+// .go file for editors and out of this module for the toolchain; build.sh
+// strips these two lines when it copies the file.
+
 // minsign composes and signs a gno addpkg transaction, and does nothing else.
 //
 // WHY THIS EXISTS. gnokey links an RPC client, which pulls net/http ->
@@ -80,7 +88,6 @@ var vmPackage = amino.RegisterPackage(amino.NewPackage(
 	MsgCall{}, "m_call",
 ))
 
-
 // MsgCall is the seeding message: StartCourt, OpenClaim, folder moves. Declared
 // beside MsgAddPackage for the same reason and registered in the same amino
 // package, so both encode with the "/vm." prefix the chain expects.
@@ -162,7 +169,6 @@ func readMemPackage(dir, pkgPath string) *std.MemPackage {
 	return mp
 }
 
-
 // planStep is one row of scripts/mainnet-plan.py's output. That script decides
 // WHICH calls a locked chain can take; this one only signs what it is given.
 type planStep struct {
@@ -234,7 +240,6 @@ func keyFromStdin() secp256k1.PrivKeySecp256k1 {
 	fmt.Fprintf(os.Stderr, "  signer  %s\n", priv.PubKey().Address())
 	return priv
 }
-
 
 // parseUgnot turns the scenario's "123ugnot" into coins. Empty means no send,
 // which is every call the locked chain can take; after the unlock Buy carries
