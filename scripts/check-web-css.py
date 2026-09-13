@@ -160,5 +160,13 @@ if bad:
     sys.exit(1)
 
 rules = stripped.count("{")
+# A FLOOR. This guard DISCOVERS its work rather than walking a declared table,
+# so it can go quiet by drift: find no rules, judge none, report success. It
+# has no single named pattern for check-guards-blind to blind, which makes the
+# census the only thing that can notice. Measured: 917 rules, 263,391 bytes.
+if rules == 0:
+    print("check-web-css: parsed no CSS rule at all, so nothing was checked for "
+          "balance or orphaned declarations.", file=sys.stderr)
+    sys.exit(1)
 print("check-web-css: %d bytes of CSS, %d rule(s) — comments and braces balance, "
       "no orphaned declarations." % (len(css), rules))

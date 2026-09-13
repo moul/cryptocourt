@@ -450,6 +450,17 @@ def main():
         sys.exit(1)
 
     note = f"; {len(skipped)} claim(s) state no timeline, so their conviction is unconstrained" if skipped else ""
+    # A FLOOR, same reason as check-web-css: discovered work, no named pattern
+    # to blind, so only the census can notice the scan going quiet.
+    # Measured: 20 conviction values checked.
+    if checked == 0:
+        print("check-demo-physics: checked no conviction value at all, so none "
+              "could be found outside the realm's ceiling.", file=sys.stderr)
+        # sys.exit, not `return 1`: this file ends with `main()` rather than
+        # `sys.exit(main())`, so a returned code is discarded. The existing
+        # failure path above sidesteps it the same way, which is why nothing
+        # ever noticed. Caught by forcing the census to zero, not by reading.
+        sys.exit(1)
     print(f"check-demo-physics: {checked} conviction value(s) within the realm's ceiling{note}. "
           f"Burn curve, senior-queue sum, series/pool agreement, settle deadlines, "
           f"quorum floors and cross-references all hold.")
