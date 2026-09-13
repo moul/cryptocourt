@@ -54,7 +54,8 @@ NEEDS_CC = {"Stake", "Unstake", "OpenClaimP", "OpenClaim", "OpenClaimIn",
             "SettleUndisputed", "CloseDeadClaim", "ClaimMetaFranchise",
             "AddToFolder", "HideBoardRow", "HideOwnComment"}
 
-BLOCKED = {"Buy"}
+BLOCKED_BY_LOCK = {"Buy"}
+BLOCKED = set(BLOCKED_BY_LOCK)
 
 # WOULD SUCCEED, AND MUST NOT BE USED. OpenClaimSeeded waives the CC deposit,
 # so a moderator CAN open claims on a locked chain -- but it calls
@@ -83,7 +84,13 @@ def load(path):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("usage: mainnet-plan.py <scenarios/name.py>")
+        sys.exit("usage: mainnet-plan.py <scenarios/name.py> [--after-unlock]")
+    # --after-unlock emits the WHOLE docket, for the day restricted_denoms is
+    # empty and Buy works. The clock steps stay dropped either way: arming the
+    # test clock sets TestClockFabricated() true on the realm's record forever,
+    # and no unlock changes that. Refuse it if the lock is still on, so the flag
+    # cannot be used by accident against a chain that will reject every Buy.
+    after = "--after-unlock" in sys.argv[2:]
     scn = load(sys.argv[1])
 
     kept, dropped, unknown = [], {}, {}
@@ -91,10 +98,10 @@ def main():
         if st.get("kind") != "call":
             continue
         fn = st["func"]
-        if fn in ALLOWED:
+        if fn in ALLOWED or (after and (fn in NEEDS_CC or fn in BLOCKED_BY_LOCK)):
             # `send` must be absent: a send is the one thing the lock refuses,
             # and an allowed function carrying one would fail at broadcast.
-            if st.get("send"):
+            if st.get("send") and not after:
                 sys.exit("%s carries send=%s, which a locked chain refuses" % (fn, st["send"]))
             kept.append({"who": str(st["who"]), "func": fn,
                          "args": [str(a) for a in st["args"]],
