@@ -956,8 +956,8 @@ a.card:hover{border-color:var(--line-2)}
 /* The mark drawn in place of the codepoint, in a claim title. Sized to the text
    it opens rather than to a control, and tinted so it reads as a mark on the
    sentence rather than as the first letter of it. */
-.setmark{display:inline-flex; color:var(--accent); margin-right:.35em; vertical-align:-.1em}
-.setmark .eye{font-size:1em}
+
+
 /* THE SUBSET ROWS on a set page are still rows, and still need their own grid:
    .docket .crow reserves four columns and these have three, so the unused 124px
    squeezed the title into a second line. Same fix as the chips replaced. */
@@ -1852,8 +1852,7 @@ html.embed .main{grid-column:1; grid-row:1; max-width:none; padding:0;
 .ticket.clockbare .clockrows>*:nth-child(-n+2){border-top:1px dashed var(--line)}
 /* The ladder's own name, inside the panel. Quieter than a section heading —
    it labels a block, it does not open one. */
-.subh{font:600 11px/1 var(--sans); letter-spacing:.14em; text-transform:uppercase;
-  color:var(--muted); margin:16px 0 2px}
+
 .ticket.clocknarrow .clockrows{grid-template-columns:minmax(0,1fr) minmax(0,auto); column-gap:12px}
 .ticket.clocknarrow .clockrows>*{font-size:13px; padding:7px 0}
 .ticket.clocknarrow .clockrows .dt{white-space:normal; text-align:right}
@@ -1960,12 +1959,11 @@ p.sub{font-size:13.5px; color:var(--ink-2); max-width:54ch; margin-top:6px}
    impossible to skim past: a reader who misses it is worse off than one who
    never opened the exhibit at all. */
 .lbox-v{margin-top:8px; font-size:12.5px; color:var(--muted)}
-.lbox-matches{color:var(--good)}
-.lbox-altered{color:#fff; background:#a1201e; padding:8px 12px; border-radius:3px;
-  font-size:14px; font-weight:600; letter-spacing:.02em}
+
+
 /* sample joins the muted set, NOT the green one: it is the absence of a check,
    and styling it like a passed check is the confusion it exists to prevent. */
-.lbox-unavailable,.lbox-unverifiable,.lbox-sample{color:var(--muted); font-style:italic}
+
 /* ---- THE COMPOSER --------------------------------------------------------
    Eighteen classes, and until this was rendered and looked at, not one of them
    had a rule. §2 opens by saying media "requires the page's first real input
@@ -2883,8 +2881,8 @@ table.data td.num{text-align:right; font-variant-numeric:tabular-nums; font-fami
 .boardrow p:last-child{margin-bottom:0}
 /* A tombstone is quieter than text and must not be invisible: it is the reason a
    row a reader can see the count of has nothing under it. */
-.board-tomb{color:var(--muted); font-style:italic}
-.board-tomb a{color:var(--ink-2)}
+
+
 .board-more{color:var(--muted); font-size:.92em; margin:12px 0 0}
 .boardkids{margin:11px 0 0 4px; padding-left:15px;
   border-left:2px solid var(--line-2)}
