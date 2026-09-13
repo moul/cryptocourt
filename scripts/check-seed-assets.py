@@ -60,13 +60,32 @@ def jpeg_size(b):
     return None
 
 
+# Independent of LINE on purpose -- see the empty-result branch in main().
+DIGEST = re.compile(r"\|[0-9a-f]{64}")
+
+
 def main():
     if not SEED.exists():
-        print("check-seed-assets: no seed to check")
-        return 0
+        # TRACKED, therefore not optional -- see check-bell-strike for the same
+        # reasoning. This guard is the only thing holding a media line's digest
+        # against the bytes committed beside it.
+        print("check-seed-assets: %s is committed and missing from this checkout, "
+              "so no digest was held against anything." % SEED.name, file=sys.stderr)
+        return 1
     src = SEED.read_text(encoding="utf8")
     lines = list(LINE.finditer(src))
     if not lines:
+        # AN EMPTY SEED AND A BROKEN PATTERN LOOK IDENTICAL FROM HERE, and only
+        # one of them is fine. DIGEST is deliberately not LINE and shares nothing
+        # with it: a media item is addressed BY its digest, so a pipe and 64 hex
+        # characters survive any change to the rest of the line's shape. If those
+        # are there and LINE found nothing, the pattern broke.
+        if DIGEST.search(src):
+            print("check-seed-assets: the seed carries digests that look like media "
+                  "addresses, and LINE matched none of them — the pattern stopped "
+                  "reading the line, the seed did not stop having media.",
+                  file=sys.stderr)
+            return 1
         print("check-seed-assets: the seed files no media line; nothing to hold "
               "against the committed bytes.")
         return 0

@@ -93,8 +93,11 @@ def doubled(x):
 
 def main():
     if not MP3.exists():
-        print("check-bell-strike: no bell to check")
-        return 0
+        # TRACKED, therefore not optional. Deleting it used to silence this
+        # check AND check-bell-version, which share this condition.
+        print("check-bell-strike: web/bell.mp3 is committed and missing from this "
+              "checkout, so nothing here measured anything.", file=sys.stderr)
+        return 1
     if not shutil.which("ffmpeg"):
         # The same bargain realm-test makes with a missing gno toolchain: say so
         # rather than pass quietly, and let the caller demand it.

@@ -28,8 +28,14 @@ JS = ROOT / "web" / "chat.js"
 
 def main():
     if not MP3.exists() or not JS.exists():
-        print("check-bell-version: no bell to check")
-        return 0
+        # BOTH ARE TRACKED. This condition and check-bell-strike's are the same
+        # silence: one deleted bell stopped the strike being measured AND stopped
+        # the file being compared to what the page expects, with `make check`
+        # green throughout.
+        print("check-bell-version: web/bell.mp3 or the overlay that names it is "
+              "committed and missing from this checkout, so nothing was compared.",
+              file=sys.stderr)
+        return 1
     src = JS.read_text(encoding="utf8")
     m = re.search(r'CHATBELLSRC = "bell\.mp3\?v=([0-9a-f]+)"', src)
     if not m:
