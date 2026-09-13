@@ -142,6 +142,23 @@ ESCROW = re.compile(r"(^|\.)escrow$")
 
 
 
+# SELF-TEST FIXTURES, in the shape check-paths.py uses. The arm below was added
+# because the census could not see an unguarded debit — a hole that existed
+# silently for as long as the guard did. These lines are what stop the same
+# thing happening to the fix: if MOVE or ESCROW is loosened until the arm stops
+# firing, the run fails here rather than passing quietly.
+MOVE_MUST_FIRE = [
+    "\tc.coin.Transfer(who, c.escrow, amt)",       # the debit this arm exists for
+    "\t\tc.coin.Transfer(from, to, amount)",        # a holder named anything
+    "  c.coin.Transfer(buyer, c.escrow, dep+fee)",
+]
+MOVE_MUST_NOT_FIRE = [
+    "\tc.coin.Transfer(c.escrow, who, amt)",        # escrow paying out
+    "\tc.coin.Transfer(cs.escrow, winner, share)",  # a claim's escrow paying out
+    "\tc.coin.Mint(buyer, delta)",                  # minting is not a debit
+    "\tc.coin.Burn(c.escrow, amt)",                 # burning from escrow
+]
+
 def sources():
     return sorted(p for p in REALM.glob("*.gno")
                   if not p.name.endswith("_test.gno") and "filetest" not in p.name)
@@ -157,6 +174,22 @@ def main():
         return 1
 
     guards, bad = 0, []
+
+    # The fixtures run FIRST, so a loosened pattern is reported before the census
+    # it would have made meaningless.
+    for line in MOVE_MUST_FIRE:
+        mv = MOVE.search(line)
+        if not mv or ESCROW.search(mv.group(1)):
+            bad.append(("check-spend-paths.py", 0, "SELFTEST",
+                        "MOVE no longer reads a holder debit out of %r — the arm that "
+                        "catches an unguarded spend would pass it" % line.strip()))
+    for line in MOVE_MUST_NOT_FIRE:
+        mv = MOVE.search(line)
+        if mv and not ESCROW.search(mv.group(1)):
+            bad.append(("check-spend-paths.py", 0, "SELFTEST",
+                        "MOVE reads %r as a holder debit; it is a payout or a mint, and "
+                        "a guard that cries wolf gets switched off" % line.strip()))
+
     callers = set()
     for p in files:
         fn = None

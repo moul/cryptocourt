@@ -293,6 +293,15 @@ def main():
     for key in sorted(set(BOARD_TEXT_READERS) - seen_board):
         bad.append("%s/%s is in BOARD_TEXT_READERS but no longer reads a comment's raw "
                    "text — the gate moved or the entry is stale" % key)
+    # The staleness arm every other category has, and which the folder category
+    # was added without. Without it a broken f.name pattern does not fail — it
+    # simply stops seeing folders, and the guard reports success while checking
+    # nothing. That is the failure this whole file exists to prevent, one level up.
+    for key in sorted(set(FOLDER_TEXT_READERS) - seen_folder):
+        bad.append("%s/%s is in FOLDER_TEXT_READERS but no longer reads a folder's "
+                   "raw name — either it stopped, or the pattern that finds these "
+                   "reads is broken and this category is checking nothing" % key)
+
     for key in sorted(set(BODY_CALLERS) - seen_body):
         bad.append("%s/%s is in BODY_CALLERS but no longer calls claimBodyVisible — "
                    "the gate moved or the entry is stale" % key)
