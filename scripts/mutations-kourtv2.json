@@ -2728,7 +2728,7 @@
   "pkg": "governor",
   "file": "governor.gno",
   "label": "castVote: a vote may be cast from inside an execution",
-  "find": "\tif g.executing {\n\t\tpanic(\"govern: cannot vote from inside an execution\")\n\t}",
+  "find": "\tif g.executing {\n\t\tpanic(\"govern: cannot vote from inside an execution or another vote\")\n\t}",
   "replace": ""
  },
  {
@@ -2952,7 +2952,7 @@
   "pkg": "governor",
   "file": "governor.gno",
   "label": "Execute: execution may re-enter itself",
-  "find": "\tif g.executing {\n\t\tpanic(\"govern: re-entrant execution\")\n\t}",
+  "find": "\tif g.executing {\n\t\tpanic(\"govern: re-entrant execution or vote\")\n\t}",
   "replace": ""
  },
  {
@@ -2987,7 +2987,7 @@
   "pkg": "governor",
   "file": "governor.gno",
   "label": "Execute: the re-entrancy latch is never set",
-  "find": "\tg.executing = true\n\tdefer func() { g.executing = false }()",
+  "find": "\t// governor permanently unable to run anything again.\n\tg.executing = true\n\tdefer func() { g.executing = false }()",
   "replace": ""
  },
  {
@@ -3036,7 +3036,7 @@
   "pkg": "governor",
   "file": "governor.gno",
   "label": "propose: a proposal may be opened from inside an execution",
-  "find": "\tif g.executing {\n\t\tpanic(\"govern: cannot propose from inside an execution\")\n\t}",
+  "find": "\tif g.executing {\n\t\tpanic(\"govern: cannot propose from inside an execution or a vote\")\n\t}",
   "replace": ""
  },
  {
