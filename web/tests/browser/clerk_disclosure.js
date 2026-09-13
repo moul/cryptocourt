@@ -98,6 +98,10 @@ const {PAGE, demoPage} = require('./harness');
      checked it are in this file's history. */
   await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1400));
+  // check-web-selectors: gone chatwarn — the names notice, removed in 736accc
+  // The selector is named here precisely BECAUSE the class should not exist:
+  // the assertion below is that the panel carries no notice. If chatwarn ever
+  // comes back, this declaration is what reads false and the guard fires.
   const panelNotice = await page.evaluate(() => ({
     warn: !!document.querySelector('.chatwarn'),
     anyAboutLink: !!document.querySelector('#chatview a[href="#/about"]'),

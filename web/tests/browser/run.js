@@ -110,7 +110,6 @@ const ALL = ["embed_layout.js", "tagrow_layout.js", "route_crawl.js",
              "map_mobile.js",
              "map_glide.js",
              "clean_path.js",
-             "chat_warn.js",
              // what the clerk IS, on a page the notice actually links to
              "clerk_disclosure.js",
              "chat_bell.js",
