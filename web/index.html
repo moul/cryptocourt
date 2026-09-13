@@ -11465,6 +11465,15 @@ const MAPK = {
    document to make a canvas from. That path keeps charW's meaning as the
    conservative fit budget it always was, so the source harnesses go on pinning
    the same layout they always pinned. */
+/* WEIGHT IS PART OF THE WIDTH. Measuring the court's name at the default 400
+   when .mcourt-t draws it at 700 makes the measurement 6% narrow, and a
+   textLength 6% under natural pulls the letters INTO each other — the first
+   run of browser/map_type.js failed exactly there, at 0.937, which is the
+   check doing its job on the first thing it was ever pointed at.
+   This table mirrors the CSS rather than reading it, because at this point
+   the labels do not exist yet to be read. That duplication can drift, and the
+   drift is not silent: a wrong weight or face here shows up as a ratio away
+   from 1.00 in map_type.js, per class, by name. */
 const MAPW = {ctx: undefined, face: {}, w: {}};
 function mapFace(cls){
   const k = String(cls||"").split(/\s+/)[0];
@@ -12658,29 +12667,6 @@ function mapSvg(L, data, slug){
      neither check subsumes the other. */
   const mctx = (()=>{ try{ return document.createElement("canvas").getContext("2d"); }
                       catch(e){ return null; } })();
-  /* WEIGHT IS PART OF THE WIDTH. Measuring the court's name at the default 400
-     when .mcourt-t draws it at 700 makes the measurement 6% narrow, and a
-     textLength 6% under natural pulls the letters INTO each other — the first
-     run of browser/map_type.js failed exactly there, at 0.937, which is the
-     check doing its job on the first thing it was ever pointed at.
-     This table mirrors the CSS rather than reading it, because at this point
-     the labels do not exist yet to be read. That duplication can drift, and the
-     drift is not silent: a wrong weight or face here shows up as a ratio away
-     from 1.00 in map_type.js, per class, by name. */
-  const faceCache = {};
-  const faceOfUnused=(cls)=>{
-    const k=String(cls||"").split(/\s+/)[0];
-    if(faceCache[k]!==undefined) return faceCache[k];
-    // The token, not a copy of the token: --serif here and --serif in .mtitle's
-    // rule are the same string by construction, so the measurement cannot drift
-    // from what is drawn.
-    const tok = (k==="mtitle"||k==="mcourt-t") ? "--serif" : k==="mid" ? "--mono" : "--sans";
-    const wt  = k==="mcourt-t" ? "700"
-              : (k==="mid"||k==="mverdict"||k==="mhdr-t"||k==="mvt") ? "600" : "400";
-    let fam="";
-    try{ fam=getComputedStyle(document.documentElement).getPropertyValue(tok).trim(); }catch(e){}
-    return (faceCache[k]= wt+" "+(fam||"sans-serif"));
-  };
   // Both delegate to the hoisted measurer, so the width that decided where a
   // line BREAKS is the width that draws it. Two caches measuring the same string
   // is how they came to disagree in the first place.

@@ -31,7 +31,7 @@
 //   forcing mctx=null, i.e. the old charW estimate   ratio 1.14, undeformed fails
 //   lengthAdjust back to spacingAndGlyphs            ONLY the spacing arm fails
 //   deleting the .mtitle/.mcourt-t serif rule        ratio 0.927, undeformed fails
-//   faceOf measuring mcourt-t at 400, not 700        ratio 0.937, undeformed fails
+//   mapFace measuring mcourt-t at 400, not 700        ratio 0.937, undeformed fails
 //
 // The second is why the lengthAdjust assertion has to exist separately: with a
 // measured width the two modes render identically, so the ratios stay at 1.00
