@@ -85,29 +85,25 @@ def main():
                 skipped.append(name)
                 continue
             src = io.open(p, encoding="utf-8").read()
-            m = PATTERN.search(src)
-            if not m:
+            # EVERY named pattern, not just the first. A guard's first pattern is
+            # usually what it ENUMERATES -- functions, structs, files -- so
+            # blinding it empties the census and the floor fires. The patterns
+            # that DETECT the violation come later, and blinding one of those
+            # leaves the census healthy and finds nothing. Blind AUTHORITY in
+            # check-interrealm and it still reports "175 function(s) take a realm
+            # parameter"; it just never notices one that trusts a realm value it
+            # never proved. 21 guards hold more than one pattern.
+            syms = [m.group(1) for m in PATTERN.finditer(src)]
+            if not syms:
                 nopat.append(name)
                 continue
-            out = blind(src, m.group(1))
-            if out == src:
-                nopat.append(name)
-                continue
-            # A COPY, ALWAYS. The guard is run from the repo so its relative
-            # paths still resolve, but the file it runs is the blinded copy in
-            # the temp dir — the tree is never modified, so a timeout here
-            # cannot leave a guard disarmed behind us.
             # A SHADOW REPO OF SYMLINKS, not a loose file in a temp dir. Every
             # guard finds the tree with ROOT = Path(__file__).parent.parent, so a
             # copy sitting anywhere else looks for realm/ beside itself, finds
             # nothing, and exits non-zero for a reason that has nothing to do
             # with blinding. Measured: ALL 24 guards died that way, and every one
-            # was being counted as proof the check worked.
-            #
-            # shadow/ mirrors the repo with symlinks and shadow/scripts holds
-            # links to the real scripts -- so repolock, gnosource and mutate
-            # import -- with ONE file replaced by the blinded copy. The tree
-            # itself is still never written to.
+            # was being counted as proof the check worked. The tree itself is
+            # still never written to.
             shadow = os.path.join(work, name)
             os.makedirs(os.path.join(shadow, "scripts"), exist_ok=True)
             for entry in os.listdir(ROOT):
@@ -121,35 +117,40 @@ def main():
                 if not os.path.lexists(link):
                     os.symlink(os.path.join(SCRIPTS, entry), link)
             tmp = os.path.join(shadow, "scripts", name + ".py")
-            os.remove(tmp)
-            io.open(tmp, "w", encoding="utf-8").write(out)
+            os.remove(tmp)                      # drop the symlink; a real file replaces it
             ctlpath = os.path.join(shadow, "scripts", "_control_" + name + ".py")
             io.open(ctlpath, "w", encoding="utf-8").write(src)
             # scripts/ ON THE PATH, because a guard that cannot import is not a
-            # guard that noticed anything. Measured before this line existed: 14
-            # of the 24 guards counted as "fails when blinded" were dying on
-            # `import repolock`, `import mutate` or `import gnosource` in the
-            # temp dir, and their ImportError exit was being read as detection.
+            # guard that noticed anything. Measured: 14 of 24 were dying on
+            # `import repolock`/`mutate`/`gnosource`, read as detection.
             env = dict(os.environ, PYTHONPATH=os.path.join(shadow, "scripts"))
+            # THE CONTROL, once per guard: if the UNBLINDED copy does not pass
+            # from here, nothing the blinded copies do afterwards says anything
+            # about blinding.
             try:
-                # THE CONTROL, and this check had none. Run the UNBLINDED copy
-                # first: if it does not pass from the temp dir, then whatever the
-                # blinded copy does afterwards says nothing about blinding. A
-                # meta-guard that cannot tell a crash from a catch is the exact
-                # failure it exists to find.
                 ctl = subprocess.run([sys.executable, ctlpath], cwd=str(ROOT),
                                      capture_output=True, timeout=TIMEOUT, env=env)
-                if ctl.returncode != 0:
-                    broken.append((name, ctl.stderr.decode("utf-8", "replace")
-                                   .strip().split("\n")[-1][:60]))
-                    continue
-                rc = subprocess.run([sys.executable, tmp], cwd=str(ROOT),
-                                    capture_output=True, timeout=TIMEOUT,
-                                    env=env).returncode
             except subprocess.TimeoutExpired:
                 slow.append(name)
                 continue
-            (quiet if rc == 0 else loud).append("%s (%s)" % (name, m.group(1)))
+            if ctl.returncode != 0:
+                broken.append((name, ctl.stderr.decode("utf-8", "replace")
+                               .strip().split("\n")[-1][:60]))
+                continue
+            for sym in syms:
+                out = blind(src, sym)
+                if out == src:
+                    nopat.append("%s (%s)" % (name, sym))
+                    continue
+                io.open(tmp, "w", encoding="utf-8").write(out)
+                try:
+                    rc = subprocess.run([sys.executable, tmp], cwd=str(ROOT),
+                                        capture_output=True, timeout=TIMEOUT,
+                                        env=env).returncode
+                except subprocess.TimeoutExpired:
+                    slow.append("%s (%s)" % (name, sym))
+                    continue
+                (quiet if rc == 0 else loud).append("%s (%s)" % (name, sym))
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
