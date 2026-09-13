@@ -96,7 +96,9 @@ def main():
             # and an allowed function carrying one would fail at broadcast.
             if st.get("send"):
                 sys.exit("%s carries send=%s, which a locked chain refuses" % (fn, st["send"]))
-            kept.append({"func": fn, "args": [str(a) for a in st["args"]]})
+            kept.append({"who": str(st["who"]), "func": fn,
+                         "args": [str(a) for a in st["args"]],
+                         "send": st.get("send") or ""})
         elif fn in REFUSED:
             dropped.setdefault("REFUSED " + fn, 0)
             dropped["REFUSED " + fn] += 1
@@ -119,6 +121,12 @@ def main():
         byfn[c["func"]] = byfn.get(c["func"], 0) + 1
     for fn, n in sorted(byfn.items(), key=lambda kv: -kv[1]):
         sys.stderr.write("    %-18s %d\n" % (fn, n))
+    signers = {}
+    for c in kept:
+        signers[c["who"]] = signers.get(c["who"], 0) + 1
+    sys.stderr.write("  signers needed: %d\n" % len(signers))
+    for w, n in sorted(signers.items(), key=lambda kv: -kv[1]):
+        sys.stderr.write("    %-20s %d\n" % (w, n))
     sys.stderr.write("  dropped (token lock / clock):\n")
     for fn, n in sorted(dropped.items(), key=lambda kv: -kv[1]):
         sys.stderr.write("    %-18s %d\n" % (fn, n))
