@@ -120,7 +120,20 @@ func BurnSink() address { return chain.PackageAddress(burnSinkPath) }
 // one denom asked for and cannot be inflated from outside.
 func BurnedGNOT() int64 {
 	b := banker.NewReadonlyBanker()
-	return b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)
+	// COULD HAVE, and cannot: this line is what gnoland-1 runs, and a package
+	// deploys exactly once. The fix is one word --
+	//
+	//     return b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)
+	//
+	// -- because GetCoins reads EVERY denom the address holds and is charged
+	// for all of them, so a stranger sets the cost by sending junk denoms to a
+	// sink that BurnSink() publishes on purpose. Render reaches this through
+	// renderAdminParams, so the admin-params page is the thing that degrades.
+	//
+	// LEFT AS DEPLOYED DELIBERATELY (owner decision): the repo mirrors what is
+	// live rather than a fix that can never reach it, because a reader who sees
+	// GetCoin here would reason about mainnet wrongly. Carry it into a v2.
+	return b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)
 }
 
 // CoinBalanceOf is who's court-coin balance (a value read).

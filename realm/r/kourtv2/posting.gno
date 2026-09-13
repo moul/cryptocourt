@@ -537,13 +537,18 @@ func PostsAvailable(courtSlug string, who address) int64 {
 // The only user text here is an address, which still goes through the gate: a
 // bare string type carries no length invariant and IsValid() is not an escaping.
 func renderStanding(slug, addrArg string) string {
-	// Same reason as renderStandingIndex below: render() dispatches on shape
-	// before anything knows the court exists, so each arm says "Not found"
-	// itself. A table test over every route is what found this one — a single
-	// probe with a real court hid it.
-	if !Exists(slug) {
-		return "## Not found\nNo court by that slug."
-	}
+	// COULD HAVE (v2), and cannot now: this is what gnoland-1 runs and a package
+	// deploys exactly once. render() hands this arm its path segment RAW, so an
+	// unknown court or claim reaches must* and panics -- the reader gets a gnoweb
+	// error instead of a page. renderCourt, renderModLog, renderElection and
+	// renderFolderPage all refuse first; this one never did. The fix is:
+	//
+	//     if !Exists(slug) {
+	//         return "## Not found\nNo court by that slug."
+	//     }
+	//
+	// Left as deployed deliberately: the repo mirrors what is live, because a
+	// reader who saw the guard here would reason about mainnet wrongly.
 	c := mustCourt(slug)
 	who := address(addrArg)
 	if !who.IsValid() {
@@ -681,18 +686,18 @@ func renderStanding(slug, addrArg string) string {
 // renderStandingIndex is /<slug>/me with no address: the rules, and nothing
 // about anybody.
 func renderStandingIndex(slug string) string {
-	// Render takes attacker-controlled input, so an unknown slug is a page
-	// that says so -- not a panic. Every other arm of render() already does
-	// this: renderCourt guards with Exists, renderFolderPage parses its id,
-	// renderElection checks its arity. This one did not, so `<anything>/me`
-	// threw where `<anything>`, `<anything>/1` and `<anything>/folder/1` all
-	// returned "Not found". Found by asking the live chain, not by reading.
-	// BOTH halves of this feature were missing it, not just this one: the
-	// three-segment renderStanding only LOOKED right when probed with an
-	// existing court, because the bad address was caught downstream.
-	if !Exists(slug) {
-		return "## Not found\nNo court by that slug."
-	}
+	// COULD HAVE (v2), and cannot now: this is what gnoland-1 runs and a package
+	// deploys exactly once. render() hands this arm its path segment RAW, so an
+	// unknown court or claim reaches must* and panics -- the reader gets a gnoweb
+	// error instead of a page. renderCourt, renderModLog, renderElection and
+	// renderFolderPage all refuse first; this one never did. The fix is:
+	//
+	//     if !Exists(slug) {
+	//         return "## Not found\nNo court by that slug."
+	//     }
+	//
+	// Left as deployed deliberately: the repo mirrors what is live, because a
+	// reader who saw the guard here would reason about mainnet wrongly.
 	c := mustCourt(slug)
 	l := ladderFor(c)
 	var b strings.Builder

@@ -1616,10 +1616,15 @@ print("\ncheck-getcoins")
 # which also tells anyone exactly where to send junk denoms to make the page
 # cost more every time. The repo was fixed to GetCoin; a package deploys once,
 # so mainnet keeps the old read and this arm keeps the new one honest.
-control("a balance read whose cost a stranger sets", BUY,
-        "\treturn b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)",
+# INVERTED WITH THE GUARD. This used to plant the GetCoins line and expect the
+# guard to object. buy.gno now CARRIES that line -- it is what gnoland-1 runs and
+# a package deploys once -- so the old plant was a no-op and check-control-anchors
+# said so. The arm plants the FIX instead: changing buy.gno to GetCoin diverges
+# the repo from production, which is a deploy decision, and the guard now says so.
+control("the deployed burn-sink read is quietly 'fixed'", BUY,
         "\treturn b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)",
-        "cost a third party sets", argv=["python3", GETCOINS])
+        "\treturn b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)",
+        "diverges the repo from", argv=["python3", GETCOINS])
 
 print("\ncheck-interrealm")
 # A crossing function's FIRST `cur realm` is runtime-current by construction --

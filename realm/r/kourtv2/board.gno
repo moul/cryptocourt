@@ -731,20 +731,22 @@ func renderBoardTop(slug string, claimID uint64) string {
 // determination — reprinting either would be the realm undoing its own act in a
 // tidier format, so those get the reason alone.
 func renderBoardHidden(slug string, claimID uint64) string {
-	// render() hands these arms parts[0] raw, so an unknown slug reaches
-	// mustCourt unless each one refuses first. renderCourt, renderModLog,
-	// renderElection and renderFolderPage all do; these did not.
-	if !Exists(slug) {
-		return "## Not found\nNo court by that slug."
-	}
+	// COULD HAVE (v2), and cannot now: this is what gnoland-1 runs and a package
+	// deploys exactly once. render() hands this arm its path segment RAW, so an
+	// unknown court or claim reaches must* and panics -- the reader gets a gnoweb
+	// error instead of a page. renderCourt, renderModLog, renderElection and
+	// renderFolderPage all refuse first; this one never did. The fix is:
+	//
+	//     if !Exists(slug) {
+	//         return "## Not found\nNo court by that slug."
+	//     }
+	//     if claimID == 0 || claimID > c.nextID {
+	//         return "## Not found\nNo claim by that id."
+	//     }
+	//
+	// Left as deployed deliberately: the repo mirrors what is live, because a
+	// reader who saw the guard here would reason about mainnet wrongly.
 	c := mustCourt(slug)
-	// AND THE CLAIM ID, for the same reason and from the same idiom as
-	// renderClaim: a valid court with an id past nextID reached mustClaim and
-	// threw. `meta/999999` said "Not found" while `meta/999999/board` panicked,
-	// which is the same arm-somebody-missed shape one layer down.
-	if claimID == 0 || claimID > c.nextID {
-		return "## Not found\nNo claim by that id."
-	}
 	cs := mustClaim(c, claimID)
 	base := "/r/kourt/kourtv2:" + slug + "/" + strconv.FormatUint(claimID, 10)
 	var b strings.Builder
@@ -830,20 +832,22 @@ func boardPostLink(slug string, claimID, parentRow uint64) string {
 }
 
 func renderBoardIn(slug string, claimID uint64, ranked bool) string {
-	// render() hands these arms parts[0] raw, so an unknown slug reaches
-	// mustCourt unless each one refuses first. renderCourt, renderModLog,
-	// renderElection and renderFolderPage all do; these did not.
-	if !Exists(slug) {
-		return "## Not found\nNo court by that slug."
-	}
+	// COULD HAVE (v2), and cannot now: this is what gnoland-1 runs and a package
+	// deploys exactly once. render() hands this arm its path segment RAW, so an
+	// unknown court or claim reaches must* and panics -- the reader gets a gnoweb
+	// error instead of a page. renderCourt, renderModLog, renderElection and
+	// renderFolderPage all refuse first; this one never did. The fix is:
+	//
+	//     if !Exists(slug) {
+	//         return "## Not found\nNo court by that slug."
+	//     }
+	//     if claimID == 0 || claimID > c.nextID {
+	//         return "## Not found\nNo claim by that id."
+	//     }
+	//
+	// Left as deployed deliberately: the repo mirrors what is live, because a
+	// reader who saw the guard here would reason about mainnet wrongly.
 	c := mustCourt(slug)
-	// AND THE CLAIM ID, for the same reason and from the same idiom as
-	// renderClaim: a valid court with an id past nextID reached mustClaim and
-	// threw. `meta/999999` said "Not found" while `meta/999999/board` panicked,
-	// which is the same arm-somebody-missed shape one layer down.
-	if claimID == 0 || claimID > c.nextID {
-		return "## Not found\nNo claim by that id."
-	}
 	cs := mustClaim(c, claimID)
 	var b strings.Builder
 	b.WriteString("# Comments on claim " + strconv.FormatUint(claimID, 10) + "\n\n")
@@ -1025,23 +1029,26 @@ func boardPartyRows(cs *claimState) []*boardRow {
 // bit removing text from a deep link. A hidden row is listed as hidden and still
 // reads here.
 func renderBoardRow(slug string, claimID uint64, rowArg string) string {
-	// render() hands these arms parts[0] raw, so an unknown slug reaches
-	// mustCourt unless each one refuses first. renderCourt, renderModLog,
-	// renderElection and renderFolderPage all do; these did not.
-	if !Exists(slug) {
-		return "## Not found\nNo court by that slug."
-	}
+	// COULD HAVE (v2), and cannot now: this is what gnoland-1 runs and a package
+	// deploys exactly once. render() hands this arm its path segment RAW, so an
+	// unknown court or claim reaches must* and panics -- the reader gets a gnoweb
+	// error instead of a page. renderCourt, renderModLog, renderElection and
+	// renderFolderPage all refuse first; this one never did. The fix is:
+	//
+	//     if !Exists(slug) {
+	//         return "## Not found\nNo court by that slug."
+	//     }
+	//     if claimID == 0 || claimID > c.nextID {
+	//         return "## Not found\nNo claim by that id."
+	//     }
+	//
+	// Left as deployed deliberately: the repo mirrors what is live, because a
+	// reader who saw the guard here would reason about mainnet wrongly.
 	id, err := strconv.ParseUint(rowArg, 10, 64)
 	if err != nil {
 		return "## Not found\nA comment id must be a number."
 	}
 	c := mustCourt(slug)
-	// AND THE CLAIM ID, same idiom as renderClaim. This arm parses the ROW id
-	// first, so the shape differs from its two siblings and a single pattern did
-	// not reach it -- the table test did.
-	if claimID == 0 || claimID > c.nextID {
-		return "## Not found\nNo claim by that id."
-	}
 	cs := mustClaim(c, claimID)
 	if cs.board == nil || cs.board.Get(beClaimKey(id)) == nil {
 		return "## Not found\nNo comment by that id on this claim."

@@ -42,6 +42,17 @@ REALM = ROOT / "realm"
 DECL = re.compile(r"^\t*(?:var\s+)?(\w+)\s+bool\s*$", re.M)
 CENSUS_FLOOR = 20
 
+# KNOWN AND DEPLOYED, so mirrored rather than fixed. gnoland-1 declares
+# tcEverArmed, returns it from TestClockFabricated(), and assigns it NOWHERE --
+# so that function answers false there forever, including after the clock has
+# been armed and time fabricated. kourt-1 answers TRUE to the identical function,
+# because the copy deployed there does assign it.
+#
+# A package deploys exactly once, so the fix cannot reach gnoland-1 and the repo
+# now mirrors what runs. Listed here with the reason, the way check-getcoins
+# carries the burn-sink read, so the guard still fires on any OTHER inert flag.
+DEPLOYED_INERT = {("r/kourtv2/testclock.gno", "tcEverArmed")}
+
 
 def bool_names(text):
     """Every bool declared in this file: package-level vars AND struct fields.
@@ -85,7 +96,10 @@ def main():
             read = re.search(r"\breturn\s+!?%s\b|\bif\s+!?%s\b|%s\s*(?:&&|\|\|)"
                              % (q, q, q), pkg)
             if read and not written:
-                inert.append((str(p.relative_to(REALM)), name))
+                rel = str(p.relative_to(REALM))
+                if (rel, name) in DEPLOYED_INERT:
+                    continue
+                inert.append((rel, name))
 
     if inert:
         print("check-inert-flags: %d flag(s) read but never set.\n" % len(inert),

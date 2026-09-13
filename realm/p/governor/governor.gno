@@ -1505,7 +1505,27 @@ func (g *Governor) State(id int64) string {
 	p := g.mustProposal(id)
 	// The pure form: asking what a proposal's state is must not change it.
 	st, _ := g.wouldBe(p, g.voters.Height())
-	return stateName(st)
+	// COULD HAVE (v2): `return stateName(st)`. This switch is character-identical
+	// to stateName six hundred lines below, and an exhaustive switch written
+	// twice is a trap -- add an eighth state and whichever copy you forget
+	// renders it as "expired", since both reach that string through the default
+	// arm. Left as deployed: p/governor is on gnoland-1 and deploys once.
+	switch st {
+	case stateActive:
+		return "active"
+	case stateDefeated:
+		return "defeated"
+	case stateSucceeded:
+		return "succeeded"
+	case stateExecuted:
+		return "executed"
+	case stateFailed:
+		return "failed"
+	case stateCanceled:
+		return "canceled"
+	default:
+		return "expired"
+	}
 }
 
 // Preview renders what a payload would say, before anybody proposes it — so an

@@ -5,65 +5,79 @@ import (
 	"testing"
 
 	testutils "gno.land/p/nt/testutils/v0"
+	uassert "gno.land/p/nt/uassert/v0"
 )
 
-/* EVERY ROUTE MUST SURVIVE INPUT THAT NAMES NOTHING.
+/* WHAT THE DEPLOYED REALM DOES WITH A PATH THAT NAMES NOTHING.
 
-   Render(path) takes attacker-controlled input, and render() dispatches on the
-   path's SHAPE before anything knows whether the court or the claim exists. Each
-   arm is therefore responsible for saying "Not found" itself.
+   render() dispatches on the path's SHAPE before anything knows whether the
+   court or claim exists, so each arm must refuse for itself. SIX DO and FIVE DO
+   NOT, and this pins both halves as they are on gnoland-1 — not as they ought to
+   be. A package deploys exactly once, so the arms that panic will go on panicking
+   for the life of this deployment, and a repo that quietly "fixed" them would
+   have a reader reasoning about mainnet wrongly.
 
-   FIVE ARMS WERE MISSING IT, not one: renderStanding and renderStandingIndex
-   (posting.gno), and renderBoardIn, renderBoardHidden and renderBoardRow
-   (board.gno). Six others already had it — renderCourt, renderModLog,
-   renderElection, renderFolderPage, renderClaim, renderPositions — so this was
-   not one arm overlooked but two whole features written without a rule the rest
-   of render() keeps.
+   COULD HAVE (v2): give the five panicking arms the same three lines the other
+   six already have — `if !Exists(slug)` in renderStanding, renderStandingIndex,
+   renderBoardIn, renderBoardHidden and renderBoardRow, plus
+   `if claimID == 0 || claimID > c.nextID` in the board three. Each function
+   carries the exact block in a comment.
 
-   A TABLE, NOT A CASE. The defect was an arm somebody missed while writing the
-   others, so a single case reproduces the original mistake: one case pins one
-   arm, a table pins the rule. The table earned that twice — it caught the second
-   standing arm after a live probe had convinced me only one was wrong, and then
-   the board arms after enumeration found three more.
+   THE PANIC IS NOT A VULNERABILITY: Render is a read path, it costs the caller a
+   query and yields a gnoweb error rather than data, and nothing is corrupted. It
+   is a consistency wart on an immutable deployment, recorded here rather than
+   hidden.
 
-   BOTH AXES, because the slug guard short-circuits the ghost paths before a
-   claim id is ever read. Found on gnoland-1: `meta/999999` answered politely
-   while `meta/999999/board` threw. */
-func TestEveryRouteRefusesAnUnknownCourt(cur realm, t *testing.T) {
+   MEASURED AGAINST gnoland-1, not inferred: eight attacker-shaped paths, then a
+   real court with an id that is not a claim. */
+func TestRenderRefusesOrPanicsExactlyAsDeployed(cur realm, t *testing.T) {
 	const ghost = "nosuchcourt"
 	if Exists(ghost) {
 		t.Fatal("the fixture needs a slug no court uses")
 	}
 	probe := testutils.TestAddress("rs-probe").String()
 
-	paths := []string{
+	// The six arms that refuse: renderCourt, renderClaim, renderModLog,
+	// renderElection, renderFolderPage, renderPositions.
+	for _, p := range []string{
 		ghost,
-		ghost + "/me",
 		ghost + "/mod",
 		ghost + "/election",
 		ghost + "/1",
 		ghost + "/folder/1",
+		metaSlug + "/999999",
+		metaSlug + "/folder/999999",
+	} {
+		if got := Render(p); !strings.Contains(got, "Not found") {
+			t.Fatalf("%q no longer says Not found: %q", p, got)
+		}
+	}
+
+	// The five that do not. If one of these ever stops panicking, somebody has
+	// changed the realm — which is a DEPLOY decision, not a cleanup, and this
+	// test is where that shows up.
+	for _, p := range []string{
+		ghost + "/me",
 		ghost + "/me/" + probe,
 		ghost + "/1/board",
 		ghost + "/1/board/top",
 		ghost + "/1/board/hidden",
 		ghost + "/1/board/7",
-		// A real court, an id that is not a claim.
-		metaSlug + "/999999",
+	} {
+		path := p
+		uassert.PanicsContains(t, cur, "no such court", func() { Render(path) })
+	}
+
+	// A REAL court with an id that is not a claim reaches mustClaim instead, so
+	// the panic names the claim. Same missing guard, one layer down: the board
+	// arms check neither the slug nor the id.
+	for _, p := range []string{
+		metaSlug + "/0/board",
 		metaSlug + "/999999/board",
 		metaSlug + "/999999/board/top",
 		metaSlug + "/999999/board/hidden",
-		metaSlug + "/999999/board/7",
-		// Zero is not an id either. Found on gnoland-1: `meta/0/board` and
-		// `meta/1/board/0` both threw while `meta/0` answered politely.
-		metaSlug + "/0",
-		metaSlug + "/0/board",
-		metaSlug + "/0/board/top",
-		metaSlug + "/0/board/7",
-	}
-	for _, p := range paths {
-		if got := Render(p); !strings.Contains(got, "Not found") {
-			t.Fatalf("%q did not say Not found: %q", p, got)
-		}
+	} {
+		path := p
+		uassert.PanicsContains(t, cur, "no such claim", func() { Render(path) })
 	}
 }

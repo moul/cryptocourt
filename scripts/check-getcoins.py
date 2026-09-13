@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""A balance read whose cost a stranger chooses is a bomb with someone else's timer.
+"""The burn-sink read is GetCoins on gnoland-1, and this keeps it that way.
 
     python3 scripts/check-getcoins.py
 
-THE RULE. Reading one balance is `banker.GetCoin(addr, denom)`. `GetCoins(addr)`
+INVERTED BY OWNER DECISION. This guard used to FORBID GetCoins, which is the
+right rule for code that can still be deployed. buy.gno cannot: it is live on
+gnoland-1 and a package deploys exactly once, so the repo now mirrors what runs
+rather than a fix that can never reach it. Changing that line here would create a
+divergence from production -- a DEPLOY decision, not a cleanup -- and this is
+where that shows up.
+
+THE RULE IT STILL ENFORCES, for everything else. Reading one balance is
+`banker.GetCoin(addr, denom)`. `GetCoins(addr)`
 reads EVERY denom the address holds, and anyone may send any address a new denom
 without its consent -- so the cost of the read is set by a third party, not by
 this realm. On any address an outsider can reach, that is a permanent
@@ -58,6 +66,16 @@ BANNED_MUST_FIRE = [
     "\treturn b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)",
     "x := banker.NewReadonlyBanker().GetCoins(who)",
 ]
+# SAFE NOW MATCHES NOTHING IN THE TREE. buy.gno was the only GetCoin and it is
+# reverted to the deployed GetCoins, so blinding SAFE changes no count and the
+# guard passes either way -- check-guards-blind caught it the moment the revert
+# landed. A fixture tests the pattern rather than the tree, which is the only
+# thing that works for a form the realm does not currently use.
+SAFE_MUST_FIRE = [
+    "\treturn b.GetCoin(addr, denom)",
+    "x := banker.NewReadonlyBanker().GetCoin(a, d)",
+]
+SAFE_MUST_NOT_FIRE = ["\tb.GetCoins(addr)", "\tGetCoinCount(addr)"]
 BANNED_MUST_NOT_FIRE = [
     "\treturn b.GetCoin(chain.PackageAddress(burnSinkPath), gnotDenom)",
     "total := GetCoinCount(addr)",
@@ -78,6 +96,16 @@ def main():
             bad.append(("check-getcoins.py", 0,
                         "SELFTEST: BANNED no longer reads %r as a GetCoins call"
                         % line.strip()))
+    for line in SAFE_MUST_FIRE:
+        if not SAFE.search(line):
+            bad.append(("check-getcoins.py", 0,
+                        "SELFTEST: SAFE no longer reads %r as a single-denom read"
+                        % line.strip()))
+    for line in SAFE_MUST_NOT_FIRE:
+        if SAFE.search(line) and not BANNED.search(line):
+            bad.append(("check-getcoins.py", 0,
+                        "SELFTEST: SAFE reads %r as a single-denom read; it is not one"
+                        % line.strip()))
     for line in BANNED_MUST_NOT_FIRE:
         if BANNED.search(line):
             bad.append(("check-getcoins.py", 0,
@@ -91,9 +119,33 @@ def main():
         for lineno, line in enumerate(text.split("\n"), 1):
             if BANNED.search(line):
                 bad.append((rel, lineno, line.strip()[:90]))
-            # GetCoins also matches GetCoin, so count only what is not banned
-            elif SAFE.search(line):
+            # EITHER FORM COUNTS TOWARD THE CENSUS. It used to count only GetCoin,
+            # which was right while GetCoin was the rule; with buy.gno reverted to
+            # the deployed GetCoins there is no GetCoin left in the realm and the
+            # floor fired on a healthy tree. What the floor is for is proving the
+            # scan looked at something -- a balance read of either shape does that.
+            if BANNED.search(line) or SAFE.search(line):
                 safe_seen += 1
+
+    # The one site that is live on gnoland-1 and cannot be changed without a
+    # redeploy. Keyed on the LINE'S TEXT, not its number: a line number rots the
+    # moment anything above it moves, and adding the comment that explains this
+    # already shifted it from 123 to 136. check-citations makes the same argument
+    # about file:line and uses an anchor for the same reason.
+    DEPLOYED = "return b.GetCoins(chain.PackageAddress(burnSinkPath)).AmountOf(gnotDenom)"
+    bad = [b for b in bad if not (b[0] == "r/kourtv2/buy.gno" and b[2].strip() == DEPLOYED)]
+    # STRIPPED, not raw. buy.gno's own comment says "GetCoin, NOT
+    # GetCoins(...).AmountOf" -- which matches BANNED -- so a raw read reports the
+    # deployed form present no matter what the code says, and this check passed
+    # while the line was "fixed". That is the fourth time this session a comment
+    # has been read as code; strip_comments exists for it.
+    if not any(BANNED.search(l) for l in strip_comments(
+               io.open(REALM / "r/kourtv2/buy.gno", encoding="utf-8").read()).split("\n")):
+        print("check-getcoins: buy.gno no longer reads the burn sink with GetCoins. "
+              "That is the DEPLOYED form; changing it here diverges the repo from "
+              "gnoland-1, which is a deploy decision rather than a cleanup.",
+              file=sys.stderr)
+        return 1
 
     if bad:
         print("check-getcoins: %d balance read(s) whose cost a third party sets.\n"
@@ -112,7 +164,8 @@ def main():
               "zero GetCoin means the scan never looked.", file=sys.stderr)
         return 1
 
-    print("check-getcoins: %d balance read(s), every one naming its denom." % safe_seen)
+    print("check-getcoins: %d balance read(s). The burn-sink read is still the "
+          "GetCoins form gnoland-1 runs; nothing else uses it." % safe_seen)
     return 0
 
 
