@@ -2523,8 +2523,15 @@ print("\ncheck-guards-blind")
 #
 # The arm removes the floor that fix added. Verified to SURVIVE before this
 # guard existed: nothing in the tree noticed a guard that had gone quiet.
+# RETARGETED. This used to disable check-tdz's `scanned == 0` floor, which was
+# its only one. check-tdz now has two -- `scanned` catches a blinded DECL, and
+# `refs_seen` catches a blinded IDENT -- and refs_seen only increments inside the
+# DECL loop, so it catches BOTH. Removing one left the other standing and the arm
+# went SILENT: the guard stayed honest, so there was nothing to report. Disabling
+# refs_seen instead leaves IDENT unprotected, which is the shape this arm exists
+# to prove check-guards-blind still notices.
 control("a guard that reports success while blinded", TDZ,
-        "    if scanned == 0:", "    if False:",
+        "    if refs_seen == 0:", "    if False:",
         "report success with their own detection blinded",
         argv=["python3", GBLIND])
 # AND THE OTHER DIRECTION: a sweep that blinds nothing proves nothing. If the
