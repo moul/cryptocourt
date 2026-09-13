@@ -65,7 +65,25 @@ func Buy(cur realm, slug string) int64 {
 }
 
 // refundGNOT sends GNOT from the realm's own account back to `to`.
+//
+// THE GUARD IS NOT REDUNDANT WITH Buy's, and that is the whole reason it is
+// here. This function is unexported, so it is NOT a crossing entrypoint and the
+// runtime makes no promise that its `cur` is current — by the time a realm value
+// arrives as an ordinary argument it is a SECONDARY realm parameter, and a stale
+// one names a different realm. Both of its uses below are capability uses rather
+// than reads: `cur` mints the banker, and `cur.Address()` is the account the
+// coins leave from.
+//
+// Its only caller today is Buy, which checks IsCurrent at its own top, so
+// nothing reaches this with a stale value. That is a fact about the call graph,
+// not about this function — a second caller is all it takes, and the check costs
+// one comparison on a path that is already sending coins. kourtv2 reached the
+// same conclusion independently: takeCourtCreationBurn opens with exactly this
+// guard and says so in the same words.
 func refundGNOT(cur realm, to address, amount int64) {
+	if !cur.IsCurrent() {
+		panic(errStaleRealm)
+	}
 	b := banker.NewBanker(banker.BankerTypeRealmSend, cur)
 	b.SendCoins(cur.Address(), to, chain.Coins{chain.NewCoin(gnotDenom, amount)})
 }

@@ -18,6 +18,7 @@ package kourtv2
 import (
 	"chain"
 	"strconv"
+	"strings"
 
 	bptree "gno.land/p/nt/bptree/v0"
 )
@@ -1148,13 +1149,29 @@ func suspendSet(c *Court, by address) {
 // only compare them together — which let a judged set loosen its own threshold
 // and walk out of its suspension. installModSet weighs the two separately now,
 // and both callers of this function (suspendSet, installModSet) are that rule.
+// A BUILDER RATHER THAN `s += k`, which removes the quadratic instead of living
+// with it. Each `+=` allocates a fresh string and copies everything accumulated
+// so far, so n keys of ~41 bytes copy about 41·n²/2 in total.
+//
+// THE SIZE WAS NEVER THE PROBLEM, and this comment would be a false alarm if it
+// implied otherwise: maxModSetSize caps a set at 32, so the old form copied
+// ~21KB at worst — nothing, and deliberately so. That cap exists FOR this
+// function (see its declaration) and the pairing was already sound.
+//
+// Worth changing anyway, for one reason: the cap is currently load-bearing for a
+// cost it no longer has to be. With a builder the concatenation is linear, so
+// maxModSetSize is free to be chosen for what a working m-of-n committee should
+// be rather than for what fits in a transaction — and the next person to raise
+// it does not have to rediscover the coupling. board.gno builds this way
+// thirteen times; this was the last `+=` accumulation on a write path.
 func currentSetID(cm *courtMod) string {
-	s := ""
+	var b strings.Builder
 	cm.members.Iterate("", "", func(k string, _ any) bool {
-		s += k + ","
+		b.WriteString(k)
+		b.WriteByte(',')
 		return false
 	})
-	return s
+	return b.String()
 }
 
 func unsuspendSet(c *Court, by address) {

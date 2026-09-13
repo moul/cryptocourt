@@ -1782,3 +1782,77 @@ func TestTheEarlyArmsIgnoreNoAndACapOnlyDelays(cur realm, t *testing.T) {
 			"arms are reading a lie", cast, total)
 	}
 }
+
+// ---- the vote path's own re-entrancy, which the latch did not used to cover --
+
+// hostileCouncil is an Electorate that calls back into the governor from inside
+// PastVotes. That is the one place a consumer-supplied implementation gets
+// control while castVote is midway through its own checks, and it is the exact
+// shape the vote-path latch exists for.
+//
+// Embedded rather than a modified council, so no existing test's fixture moves.
+type hostileCouncil struct {
+	*council
+	g        *Governor
+	id       int64
+	who      address
+	fired    bool
+	refusal  any
+	reentered bool
+}
+
+func (h *hostileCouncil) PastVotes(who address, at uint32) int64 {
+	// Once only: the nested call reaches PastVotes again, and without this the
+	// probe recurses on itself rather than testing the governor.
+	if !h.fired {
+		h.fired = true
+		func() {
+			defer func() { h.refusal = recover() }()
+			h.g.Vote(h.who, h.id, "yes")
+			h.reentered = true // reached only if the governor allowed it
+		}()
+	}
+	return h.council.PastVotes(who, at)
+}
+
+// TestAVoteCannotReEnterThroughTheElectorate pins the half of the latch that was
+// missing: g.executing was READ at the top of castVote and WRITTEN only by
+// Execute, so a vote could not re-enter an execution but could re-enter another
+// vote.
+//
+// WHY THAT ORDERING WAS THE DANGEROUS ONE. castVote's already-voted guard reads
+// p.voted, and p.voted is not written until after g.voters.PastVotes has been
+// called. A nested frame therefore passed the executing check (false) and the
+// already-voted check (not yet written), and each frame added its weight to the
+// same *proposal on the way out. One voter, counted twice.
+//
+// The assertion is the TALLY, not the panic. A test that only checked for a
+// refusal would still pass if the refusal arrived after the weight was added.
+func TestAVoteCannotReEnterThroughTheElectorate(t *testing.T) {
+	g, c, _ := armed(t, gAlice, gBob, gCarl)
+	id := g.Propose(gAlice, "fee", "11", "eleven")
+
+	// Installed AFTER Propose: propose reads PastVotes too, and the probe would
+	// otherwise spend itself there instead of on the vote under test.
+	h := &hostileCouncil{council: c, g: g, id: id, who: gAlice}
+	g.voters = h
+
+	g.Vote(gAlice, id, "yes")
+
+	if !h.fired {
+		t.Fatal("the electorate was never consulted, so this test proved nothing")
+	}
+	if h.reentered {
+		t.Error("a vote re-entered the governor from inside PastVotes and was allowed")
+	}
+	if h.refusal == nil {
+		t.Error("the re-entrant vote was not refused")
+	} else if got, _ := h.refusal.(string); !contains(got, "cannot vote from inside an execution") {
+		t.Errorf("the re-entrant vote was refused with %q", got)
+	}
+	// The point of all of it: alice holds one unit and must have contributed it
+	// exactly once, however many frames tried.
+	if yes, _, _, _ := g.Tally(id); yes != 1 {
+		t.Errorf("the tally recorded %d yes weight for one voter holding 1", yes)
+	}
+}

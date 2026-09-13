@@ -260,8 +260,29 @@ type Governor struct {
 
 	propSeq int64
 
-	// executing is the re-entrancy latch: a kind calling back in while its own
-	// Do runs would see a proposal mid-execution.
+	// executing is the re-entrancy latch, and it is held for the WHOLE of every
+	// state-changing call — propose, castVote and Execute — not only Execute.
+	//
+	// It started as an Execute-only flag, against a kind calling back in while
+	// its own Do runs and seeing a proposal mid-execution. The other two read it
+	// and never wrote it, which made those reads decorative: propose and castVote
+	// both call into the consumer-supplied Electorate (PastVotes, PastTotal,
+	// EngagedTotal, and Height/Now by way of settle) and both mutate afterwards,
+	// so a hostile or merely re-entrant electorate could nest a second call
+	// inside the first. castVote was the sharp one — its already-voted guard
+	// reads state that the same function does not write until after the external
+	// call, so a nested frame passed both checks and the tally took the weight
+	// twice.
+	//
+	// The name is kept because every panic and every test says it; what changed
+	// is the span, from one call to three.
+	//
+	// THE THREE PANICS GAINED A CLAUSE RATHER THAN NEW WORDING. Each said "from
+	// inside an execution", which stopped being the only cause the moment vote
+	// and propose began holding the latch too. Rewriting them outright broke
+	// TestExecutionCannotReEnterTheGovernor, which pins each message by
+	// substring — correctly, because a panic string is API for anyone matching on
+	// it. Appending "or a vote" makes them true without moving what was pinned.
 	executing bool
 
 	// sweepFrom is where the next slot reclaim starts scanning, and it rotates.
@@ -683,8 +704,20 @@ func (g *Governor) ProposeWithQuorum(who address, kind, payload, title string, q
 
 func (g *Governor) propose(who address, kind, payload, title string, quorumFloor int64) int64 {
 	if g.executing {
-		panic("govern: cannot propose from inside an execution")
+		panic("govern: cannot propose from inside an execution or a vote")
 	}
+	// Held for the call, for the reason castVote's own note gives at length: this
+	// function reads the consumer-supplied Electorate four times (Epoch,
+	// PastTotal, EngagedTotal, PastVotes) and writes a proposal afterwards, so
+	// the read-only check above was excluding nothing on its own.
+	//
+	// Its exposure is milder than castVote's — there is no
+	// check-then-write-the-thing-you-checked pair here, so a nested frame would
+	// mint a second proposal rather than double-count a tally — but two
+	// proposals from one call is still a write the caller did not ask for, and
+	// the latch is the same two lines.
+	g.executing = true
+	defer func() { g.executing = false }()
 	// Checked before anything else is done with them: these are the two
 	// strings an ungated caller supplies, and they are persisted for the life
 	// of the realm.
@@ -920,8 +953,33 @@ func (g *Governor) VoteWithReason(who address, id int64, choice, reason string) 
 
 func (g *Governor) castVote(who address, id int64, choice, reason string, cap int64) {
 	if g.executing {
-		panic("govern: cannot vote from inside an execution")
+		panic("govern: cannot vote from inside an execution or another vote")
 	}
+	// AND THE LATCH IS HELD FOR THIS CALL, not merely read at the top of it.
+	//
+	// It was read here and written only in Execute, which means it guarded
+	// nothing on this path: a check with no corresponding write cannot exclude
+	// anything. The hazard is specific and it is this function's own ordering —
+	// the double-vote guard below reads p.voted, and p.voted is not written until
+	// after g.voters.PastVotes has been called. Between those two lines sits a
+	// call into an interface the CONSUMER supplies.
+	//
+	// So an Electorate whose PastVotes re-enters Vote for the same voter and
+	// proposal gets a nested frame that passes the executing check (false) and
+	// passes the already-voted check (not yet written), recurses, and adds its
+	// weight again on every unwind. mustProposal hands back a pointer, so every
+	// frame is adding to the same tally.
+	//
+	// Holding the latch for the whole call closes it at the door rather than by
+	// reordering the body, which also covers g.settle's own reads of
+	// g.voters.Height/Now above and below — the same class of call, made twice
+	// more on this path.
+	//
+	// A consumer whose electorate is its own ledger — which is the only shape in
+	// this repo, kourtv2 passes its grc20votes ledger as both electorate and
+	// token — cannot reach this. The guard is for the ones that are not.
+	g.executing = true
+	defer func() { g.executing = false }()
 	p := g.mustProposal(id)
 	g.settle(p)
 	if p.state != stateActive {
@@ -1234,7 +1292,7 @@ func (g *Governor) Execute(who address, id int64, run Dispatch) {
 		panic("govern: a dispatcher is required to run a kind")
 	}
 	if g.executing {
-		panic("govern: re-entrant execution")
+		panic("govern: re-entrant execution or vote")
 	}
 	p := g.mustProposal(id)
 	g.settle(p)
