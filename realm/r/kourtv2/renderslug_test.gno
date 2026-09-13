@@ -54,6 +54,12 @@ func TestEveryRouteRefusesAnUnknownCourt(cur realm, t *testing.T) {
 		metaSlug + "/999999/board/top",
 		metaSlug + "/999999/board/hidden",
 		metaSlug + "/999999/board/7",
+		// Zero is not an id either. Found on gnoland-1: `meta/0/board` and
+		// `meta/1/board/0` both threw while `meta/0` answered politely.
+		metaSlug + "/0",
+		metaSlug + "/0/board",
+		metaSlug + "/0/board/top",
+		metaSlug + "/0/board/7",
 	}
 	for _, p := range paths {
 		if got := Render(p); !strings.Contains(got, "Not found") {
