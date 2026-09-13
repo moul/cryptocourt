@@ -40,6 +40,10 @@ import io
 import pathlib
 import re
 import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+import repolock
 from collections import defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -102,6 +106,10 @@ def fields_of(text, lines, m):
 
 
 def main():
+    # selftest rewrites these very sources in place; reading them
+    # mid-plant invents findings out of somebody else's control.
+    repolock.refuse_if_held("check-dead-fields")
+
     files = [(p, io.open(p, encoding="utf-8").read()) for p in sorted(REALM.rglob("*.gno"))]
     everything = "\n".join(t for _, t in files)
     by_pkg = defaultdict(str)

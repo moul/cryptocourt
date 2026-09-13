@@ -1601,7 +1601,12 @@ print("\ncheck-inert-flags")
 # `f.retired = false` elsewhere is still a write.
 control("the one line that sets a flag is deleted", f"{KOURTV2}/openrewards.gno",
         "\tcs.authorPaid = true\n", "",
-        "read but never set", argv=["python3", INERTFLAGS])
+        # THE FLAG'S NAME, not the guard's headline. "read but never set" is what
+        # check-inert-flags prints whenever ANY flag is inert, so while the tree
+        # holds one -- it does today, tcEverArmed -- the arm matched with or
+        # without its own plant and proved nothing. selftest's vacuity audit
+        # caught exactly that. `authorPaid` appears only when THIS plant lands.
+        "authorPaid", argv=["python3", INERTFLAGS])
 
 print("\ncheck-getcoins")
 # THE PLANT IS NOT INVENTED -- it is a verbatim copy of what gnoland-1 runs

@@ -28,7 +28,10 @@ import pathlib
 import re
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from gnosource import strip_comments
+import repolock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REALM = ROOT / "realm"
@@ -52,6 +55,10 @@ def bool_names(text):
 
 
 def main():
+    # selftest rewrites these very sources in place; reading them
+    # mid-plant invents findings out of somebody else's control.
+    repolock.refuse_if_held("check-inert-flags")
+
     census, inert = 0, []
     for p in sorted(REALM.rglob("*.gno")):
         if p.name.endswith(("_test.gno", "_filetest.gno")):

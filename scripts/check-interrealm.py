@@ -35,7 +35,10 @@ import pathlib
 import re
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from gnosource import strip_comments
+import repolock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REALM = ROOT / "realm"
@@ -73,6 +76,10 @@ def bodies(text):
 
 
 def main():
+    # selftest rewrites these very sources in place; reading them
+    # mid-plant invents findings out of somebody else's control.
+    repolock.refuse_if_held("check-interrealm")
+
     files = [p for p in sorted(REALM.rglob("*.gno")) if not is_test(p)]
     census, bad = 0, []
     for p in files:
