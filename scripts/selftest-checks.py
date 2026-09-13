@@ -211,6 +211,7 @@ SCENARIO = "scripts/scenario.py"
 SELF = "scripts/selftest-checks.py"
 ARMED = "scripts/check-guards-armed.py"
 GRUN = "scripts/check-guards-run.py"
+GBLIND = "scripts/check-guards-blind.py"
 MAKEFILE = "Makefile"
 STALEG = "scripts/check-stale-guards.py"
 BUY = "realm/r/kourtv2/buy.gno"
@@ -2425,6 +2426,29 @@ control("the guard glob matching nothing", ARMED,
         "measured nothing",
         argv=["python3", ARMED])
 
+
+print("\ncheck-guards-blind")
+# THE THIRD QUESTION. check-guards-armed proves a guard has a control arm;
+# check-guards-run proves a target reaches it. Neither asks whether it still
+# fails when its OWN detection stops matching, and two guards did not:
+# check-tdz and check-mark-font each scanned nothing, found nothing and exited 0
+# with their pattern blinded. check-tdz is the only thing between a reordered
+# declaration and a blank page, so a version of it that silently stops looking
+# is worse than none — the suite goes on reporting the ordering as verified.
+#
+# The arm removes the floor that fix added. Verified to SURVIVE before this
+# guard existed: nothing in the tree noticed a guard that had gone quiet.
+control("a guard that reports success while blinded", TDZ,
+        "    if scanned == 0:", "    if False:",
+        "report success with their own detection blinded",
+        argv=["python3", GBLIND])
+# AND THE OTHER DIRECTION: a sweep that blinds nothing proves nothing. If the
+# pattern that finds `NAME = re.compile(...)` stops matching, every guard lands
+# in "no single named pattern" and the run is vacuous.
+control("a sweep that can no longer blind anything", GBLIND,
+        'PATTERN = re.compile(r"^([A-Z][A-Z_0-9]*)\\s*=\\s*re\\.compile\\((r[\'\"])", re.M)',
+        'PATTERN = re.compile(r"ZZNOSUCHZZ", re.M)',
+        "blinded no guard at all", argv=["python3", GBLIND])
 
 print("\ncheck-guards-run")
 # The OTHER half of "is this guard doing anything": check-guards-armed proves a

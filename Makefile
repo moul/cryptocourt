@@ -81,6 +81,13 @@ paths:
 guards:
 	python3 scripts/check-guards-armed.py
 	python3 scripts/check-guards-run.py
+	@# The third question the other two do not ask. check-guards-armed says a
+	@# guard has a control arm; check-guards-run says a target runs it. Neither
+	@# asks whether it still fails when its OWN detection stops matching -- and
+	@# two of them did not: check-tdz and check-mark-font each scanned nothing,
+	@# found nothing and exited 0 with their pattern blinded. One second, runs
+	@# every guard against a blinded COPY and never writes to the tree.
+	python3 scripts/check-guards-blind.py
 	@# The browser-side twin, and it says so in its own header: a guard that is
 	@# not registered is not a guard, and a browser check no runner runs is the
 	@# same hole. It was in NO target — measured: `grep -rn
