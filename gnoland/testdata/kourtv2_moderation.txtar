@@ -74,6 +74,20 @@ gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
 stdout 'Is the sky blue\?'
 stdout 'Is water wet\?'
 
+# A REAL NODE, A PATH THAT NAMES NOTHING. Nine render arms across two realms
+# reached a must* helper with a raw path segment and panicked; the unit table in
+# renderslug_test.gno pins them, but only a node shows what a READER gets — a
+# gnoweb error rather than a page. Four txtars issued a qrender before this and
+# every one asked for a path that exists, which is why the gap survived.
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:nosuchcourt"
+stdout 'Not found'
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:nosuchcourt/me"
+stdout 'Not found'
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:nosuchcourt/1/board"
+stdout 'Not found'
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/999999/board"
+stdout 'Not found'
+
 # --- Hide: DISCOVERY changes, reachability does not ----------------------------
 gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args orem -args 1 -args 'off-topic' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
