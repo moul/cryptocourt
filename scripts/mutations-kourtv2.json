@@ -11108,5 +11108,12 @@
   "label": "mustSpendPost: level 0 cannot post",
   "find": "\tif lvl == 0 {\n\t\t// The unsealed case is NOT \"earn standing or buy a pass\": neither is\n",
   "replace": "\tif false {\n\t\t// The unsealed case is NOT \"earn standing or buy a pass\": neither is\n"
+ },
+ {
+  "pkg": "curve",
+  "file": "curve.gno",
+  "label": "Cost: the slope is d, not 2d, so every purchase is half price",
+  "find": "\tm := uint64(2 * c.d)",
+  "replace": "\tm := uint64(c.d)"
  }
 ]

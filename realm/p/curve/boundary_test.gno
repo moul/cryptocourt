@@ -162,3 +162,45 @@ func TestCostPricesACostOfExactlyMaxInt64(t *testing.T) {
 			under, ok)
 	}
 }
+
+// THE SLOPE IS 2d, AND UNTIL NOW NOTHING SAID SO. Every existing Cost test
+// asserts only `ok` — whether a span is priceable — so halving the slope passes
+// all of them while charging half price for every purchase in the system.
+//
+// That mutation is in KNOWN-GAPS as "timed out rather than caught": it is not
+// uncaught because the suites disagree with it, but because Minted's correction
+// loops walk ONE unit at a time and a halved price doubles the distance they
+// climb, so the observers ran past SUITE_TIMEOUT. A timeout is a non-result.
+//
+// The fix is to assert the VALUE, which reads the slope without minting
+// anything. The gap note suggests asserting Price or Backing instead; that
+// would not work. Price divides by c.d and Backing by a SECOND `2 * c.d` on its
+// own line, so neither reads the constant this mutation changes.
+//
+// Exact arithmetic, no rounding to argue about: cost from s0 to s1 is
+// (s1² − s0²)/2d, and with d = 1000 every number below divides evenly.
+func TestCostPricesTheSlopeAtTwoD(t *testing.T) {
+	c := New(1000, 1_000_000)
+
+	// (2000² − 0)/2000 = 2000. A slope of d instead of 2d gives 4000.
+	if got, ok := c.Cost(0, 2000); !ok || got != 2000 {
+		t.Fatalf("Cost(0,2000) = %d,%v; want 2000,true", got, ok)
+	}
+	// The curve is quadratic, not linear: the SAME width costs three times as
+	// much starting at 2000. A linear price would charge 2000 again.
+	if got, ok := c.Cost(2000, 2000); !ok || got != 6000 {
+		t.Fatalf("Cost(2000,2000) = %d,%v; want 6000,true", got, ok)
+	}
+	// And the two are additive, which is what makes buying in pieces cost the
+	// same as buying at once — the property a wrong slope keeps but a wrong
+	// EXPONENT would break.
+	if got, ok := c.Cost(0, 4000); !ok || got != 8000 {
+		t.Fatalf("Cost(0,4000) = %d,%v; want 8000,true", got, ok)
+	}
+
+	// COST ROUNDS UP, so no coin is ever minted below its backing. One unit at
+	// the origin costs 1/2000 of a unit, and the buyer pays 1 rather than 0.
+	if got, ok := c.Cost(0, 1); !ok || got != 1 {
+		t.Fatalf("Cost(0,1) = %d,%v; want 1,true — the integral must round up", got, ok)
+	}
+}

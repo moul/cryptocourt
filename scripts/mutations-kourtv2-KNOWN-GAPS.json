@@ -133,15 +133,6 @@
   "why": "UNREACHABLE, by an argument the arithmetic makes and a probe confirms. The up-loop's `cst > coin` narrowed to `>=` can only matter when the isqrt estimate lands BELOW the true answer AND that answer's cost equals the payment exactly. Those are mutually exclusive: if coin == Cost(from, delta) = ceil((s1^2 - from^2)/2d) with s1 = from+delta, then 2d*coin >= s1^2 - from^2, so from^2 + 2d*coin >= s1^2 and isqrt of that is at least s1 - the estimate is never below the answer at an exact payment. PROBED as well as argued: 4 values of d x 60 starts x 8 spans, zero cases where the estimate undershot at an exact price. Kept because the loop is also the repair for the down-loop's overshoot (see the row above), where the comparison it makes is load-bearing."
  },
  {
-  "pkg": "curve",
-  "file": "curve.gno",
-  "label": "Cost: the slope is d, not 2d, so every purchase is half price",
-  "find": "\tm := uint64(2 * c.d)",
-  "replace": "\tm := uint64(c.d)",
-  "why": "TIMED OUT RATHER THAN CAUGHT, which the harness now says out loud. Halving the slope halves every price, so Minted's correction loops - which walk ONE unit at a time - have to climb through roughly twice the span, and the observer suites ran past SUITE_TIMEOUT. A timeout is a non-result: it is not a catch, and treating it as one would credit the suite with an objection it never made. The mutation is obviously behaviour-changing (every purchase at half price), so this is a cost problem and not a coverage one. IF a bounded variant is wanted, mutate the slope in a way that keeps the loops short - or assert Price/Backing directly, which read d without looping. RE-MEASURED 2026-08-22 and the status HOLDS: still [timed out] at MUTATE_SUITE_TIMEOUT=120. Note that `make gaps` filters `slow` rows out, and a KNOWN-GAPS row is not in the main corpus either, so this row is measured in NEITHER direction \u2014 its status is a claim, not an observation, until somebody re-runs it. To do that: strip `slow` into a scratch batch and run mutate-parallel with MUTATE_SUITE_TIMEOUT set low. Not automated because bounding these needs a PER-ROW timeout \u2014 a global 120s would spuriously fail normal rows, one of which timed out at 600s under 4-shard load \u2014 and two rows do not justify that plumbing.",
-  "slow": true
- },
- {
   "pkg": "kourtv2",
   "file": "stakeseries.gno",
   "label": "seriesRowCap: the trim keeps one row more than the cap",
