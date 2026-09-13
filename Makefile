@@ -123,6 +123,12 @@ guards:
 	@# sink, reached from Render via renderAdminParams. The repo is fixed; a
 	@# package deploys once, so this keeps the fixable copy fixed.
 	python3 scripts/check-getcoins.py
+	@# A flag read but never assigned answers the same thing forever. This is the
+	@# live gnoland-1 defect exactly: TestClockFabricated() returns tcEverArmed,
+	@# nothing there sets it, so a chain whose time HAS been fabricated reports
+	@# that it has not. kourt-1 answers true to the identical function. One line
+	@# six hundred lines from the getter decides which.
+	python3 scripts/check-inert-flags.py
 
 # The other half of that check. `guards` asks whether each guard is REGISTERED in
 # selftest-checks.py; this asks whether each control arm's PLANT still applies. A

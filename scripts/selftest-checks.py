@@ -202,6 +202,7 @@ BLOCKTIME = "scripts/check-block-time.py"
 DEADFIELDS = "scripts/check-dead-fields.py"
 INTERREALM = "scripts/check-interrealm.py"
 GETCOINS = "scripts/check-getcoins.py"
+INERTFLAGS = "scripts/check-inert-flags.py"
 MINTERGNO = "realm/r/govern/minter.gno"
 MUTSCOPE = "scripts/check-mutation-scope.py"
 CLAIMGNO = "realm/r/kourtv2/claim.gno"
@@ -1585,6 +1586,22 @@ control("the class stops naming the embedded face", WEBPAGE,
         '.foldsel .eyeshut{font-family:system-ui,sans-serif}',
         "no class on it is one the stylesheet gives the embedded face to",
         argv=["python3", MARKFONT])
+
+print("\ncheck-inert-flags")
+# THE PLANT IS THE MAINNET DEFECT IN MINIATURE: delete the one line that sets a
+# flag and leave its declaration and every reader untouched. Nothing fails to
+# compile, no test notices, and the getter goes on looking correct while
+# answering the same thing forever. That is precisely how gnoland-1 came to
+# report TestClockFabricated()=false permanently while kourt-1 reports true.
+# NOT PLANTED IN testclock.gno, though that is where the real defect lives: the
+# assignment is absent from the working tree right now (another session is
+# editing it), so an arm anchored there would match nothing and prove nothing.
+# authorPaid has exactly one write in the whole realm, which is what a plant of
+# this shape needs -- `retired` looked like a candidate and is not, because
+# `f.retired = false` elsewhere is still a write.
+control("the one line that sets a flag is deleted", f"{KOURTV2}/openrewards.gno",
+        "\tcs.authorPaid = true\n", "",
+        "read but never set", argv=["python3", INERTFLAGS])
 
 print("\ncheck-getcoins")
 # THE PLANT IS NOT INVENTED -- it is a verbatim copy of what gnoland-1 runs
