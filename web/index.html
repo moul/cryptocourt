@@ -3379,6 +3379,12 @@ const CFG_DEFAULTS = {mode:"demo", rpc:"http://127.0.0.1:26657", gnoweb:"https:/
    result as if it were this court. In the repo copy it stays on, because
    choosing a node is exactly what that copy is for. */
 const LOCKED = false;
+/* THE SHAPE OF AN ADDRESS, in one place because two config fields now carry
+   one. `addr` is the account Adena connected; `readaddr` is an address someone
+   typed into "Your positions" or "What needs you". They are different facts —
+   one can sign, the other is only ever read — but the same bech32 shape, and a
+   second copy of this pattern is a second place for the two to drift. */
+const ADDR_RE = /^g1[0-9a-z]{10,80}$/;
 /* Config touches hrefs, shell commands, and the wallet: anything that fails
    these shapes falls back to the default rather than flowing downstream. */
 function cleanCfg(c){
@@ -3390,7 +3396,16 @@ function cleanCfg(c){
     const r=url(c.rpc); if(r) out.rpc=r;
     const g=url(c.gnoweb); if(g) out.gnoweb=g;
     if(typeof c.chainid==="string" && /^[A-Za-z0-9._-]{1,32}$/.test(c.chainid)) out.chainid=c.chainid;
-    if(typeof c.addr==="string" && /^g1[0-9a-z]{10,80}$/.test(c.addr)) out.addr=c.addr;
+    if(typeof c.addr==="string" && ADDR_RE.test(c.addr)) out.addr=c.addr;
+    /* WHICH ADDRESS THIS BROWSER WAS LAST ASKED TO READ, and it is deliberately
+       NOT `addr`. Writing a typed address into `addr` would make the whole page
+       believe a wallet is connected as it: the rail would offer "disconnect",
+       every action would grow a ✍ Sign button, and adenaSign would hand Adena a
+       `caller:` it does not hold — which fails at the wallet, after the reader
+       has been told the page is theirs to sign with. Kept apart, this field does
+       the one thing it is for: "Your positions" comes back to the address you
+       were reading rather than to an empty box. */
+    if(typeof c.readaddr==="string" && ADDR_RE.test(c.readaddr)) out.readaddr=c.readaddr;
     if(c.theme==="light"||c.theme==="dark") out.theme=c.theme;
     // The optional chat service (see CHAT.md). THREE states, not two:
     //   a URL   — that service
@@ -3460,14 +3475,21 @@ try{ stored = JSON.parse(store.get("cc.cfg")||"{}"); }catch(_){}
    prevent — "a way to point a production page at somebody else's node and then
    read the result as if it were this court" — arriving through localStorage
    instead of through the panel.
-   THE READER'S OWN PREFERENCES SURVIVE: theme is theirs, and addr is which of
-   their accounts they last used, neither of which names a chain. Only the four
-   fields that decide WHICH CHAIN this is are dropped. */
+   THE READER'S OWN PREFERENCES SURVIVE: theme is theirs, addr is which of their
+   accounts they last used, and readaddr is the address they last asked to read.
+   None of the three names a chain. Only the four fields that decide WHICH CHAIN
+   this is are dropped.
+
+   READADDR HAD TO BE ADDED HERE TOO, and a feature that forgets to is a feature
+   that works only in the repo copy: the deployed page is the one stamped LOCKED,
+   so anything missing from this list is written by saveCfg and then dropped on
+   the next load, in the one place where it matters. */
 if(LOCKED){
   const keep = {};
   if(stored && typeof stored==="object"){
     if(stored.theme==="light"||stored.theme==="dark") keep.theme = stored.theme;
     if(typeof stored.addr==="string") keep.addr = stored.addr;
+    if(typeof stored.readaddr==="string") keep.readaddr = stored.readaddr;
   }
   stored = keep;
 }
@@ -6258,7 +6280,17 @@ async function adenaConnect(){
     return why;
   }
 }
-function adenaDisconnect(){ delete CFG.addr; saveCfg(); reflectWallet(); render(); }
+/* DISCONNECT HAS TO MEAN DISCONNECT, and one line here is what keeps that true.
+   "Your positions" writes down the address its button was pressed with, and the
+   obvious press is the one on the address already prefilled — the wallet's. Left
+   alone, that note would outlive the link: the rail would say "Connect" while the
+   page went on reading the account just unlinked, with nothing on screen to
+   explain why. An address typed FOR somebody else is a different note and
+   survives; the wallet's own copy of itself does not. */
+function adenaDisconnect(){
+  if(CFG.readaddr===CFG.addr) delete CFG.readaddr;
+  delete CFG.addr; saveCfg(); reflectWallet(); render();
+}
 /* THE CONFIRMATION FOR AUTHORED TEXT — a native <dialog>, because prompt()
    cannot hold what this is confirming, and the point of confirming is that a
    person sees it.
@@ -14526,7 +14558,17 @@ on(/^\/c\/([a-z0-9-]+)\/holders$/, async (slug)=>{
   const name = s.name || slug;
   const h = await chainHolders(slug, 50).catch(()=>({total:null, rows:[]}));
   const supply = Number(s.supply)||0;
-  const mine = (CFG.addr||"").toString();
+  /* youAddr, NOT CFG.addr, so the mark the note above describes reaches the
+     reader it was written for. A wallet-less reader now HAS an address this page
+     knows — the one they typed into "Your positions" — and this table went on
+     showing them the list of strangers that note exists to prevent.
+     A DISPLAY MARK IS THE RIGHT PLACE FOR IT AND A SIGNING FIGURE IS NOT, which
+     is why fillVoteCommitment still reads CFG.addr: that panel prints what a
+     vote WOULD commit, immediately before somebody signs, and a remembered
+     address cannot sign. It is the same split readaddr was created to keep — the
+     field that can sign, and the field that is only ever read. This row is
+     highlighted or it is not; nothing here is signed. */
+  const mine = (youAddr()||"").toString();
   const pct = b => supply>0? (100*b/supply) : 0;
   const rows = h.rows.map((r,i)=>{
     const you = r.who===mine;
@@ -18802,8 +18844,43 @@ async function inChunks(items, size, fn){
   return out;
 }
 
+/* ============ the address these two pages read, across reloads ============
+   "Your positions" and "What needs you" both take an address and both offer a
+   box to type one into, because a court cannot know who is reading. The box was
+   write-only: what you typed was read once and then gone, so every reload —
+   every accidental one included — landed on the empty state and asked for the
+   forty-character string again. A wallet is remembered; an address typed by
+   somebody who has no extension, or who is looking at an account the extension
+   does not hold, was not.
+
+   THE ORDER IS CONNECTED-FIRST and it settles the only real ambiguity. A
+   connected wallet is a live fact about this browser right now; a remembered
+   address is a note about the last time. When both exist the wallet wins, so a
+   connected reader is never shown somebody else's account while the rail names
+   theirs — and connecting always changes what the page reads. */
+const youAddr = () => CFG.addr || CFG.readaddr || null;
+/* And the box is how you change it, INCLUDING back to nothing: clearing the
+   field and pressing the button forgets the address, which is the only way out
+   there is. `adenaDisconnect` is the wallet's; this is the typed one's, and a
+   value that persists with no way to clear it is not a preference.
+
+   A MALFORMED ENTRY CHANGES NOTHING. The page will still try to read whatever
+   was typed — telling somebody their address is wrong when the chain has not
+   been asked yet is a guess — but only a well-formed one is written down, so a
+   typo cannot evict the address that was working. */
+function rememberAddr(a){
+  /* DEMO MODE REMEMBERS NOTHING. Its address is a fixture (DEMO_ME), and
+     persisting it would follow the reader into live mode as "yours" — a real
+     lookup of an account that exists on no chain, from a mode whose whole
+     contract is that it touches no network. */
+  if(CFG.mode==="demo") return;
+  if(a && !ADDR_RE.test(a)) return;
+  if(a) CFG.readaddr = a; else delete CFG.readaddr;
+  saveCfg();
+}
+
 /* --- your positions --- */
-on(/^\/me$/, async ()=> meView(CFG.mode==="demo"? DEMO_ME : (CFG.addr||null)));
+on(/^\/me$/, async ()=> meView(CFG.mode==="demo"? DEMO_ME : youAddr()));
 async function meView(addr){
   loading();
   const courts = await allCourtSlugs();
@@ -18813,12 +18890,18 @@ async function meView(addr){
        <div class="addrbar"><input id="addr" class="mono" value="${esc(addr||"")}" placeholder="g1… address" spellcheck="false" aria-label="your address">
          <button class="btn" id="addrgo">Read positions</button></div>
        <div id="holdings"></div>`;
-  const go = ()=>{ const a=document.getElementById("addr").value.trim(); if(a) meHoldings(a,courts); };
+  /* ONE PATH FOR BOTH ARRIVALS. The address can come from the route (a wallet,
+     or the one this browser remembers) or from the button, and both end in the
+     same two outcomes — read it, or say there is nothing to read. Written
+     twice, clearing the box would have had to repeat the empty state or leave
+     the previous address's holdings on screen under an empty field. */
+  const show = a => { if(a) meHoldings(a,courts);
+    else document.getElementById("holdings").innerHTML =
+      `<div class="empty"><div class="g">◇</div><p>Connect Adena in the left rail, or paste an address above.</p><p class="small">The chain is public — any address can be read.</p></div>`; };
+  const go = ()=>{ const a=document.getElementById("addr").value.trim(); rememberAddr(a); show(a); };
   document.getElementById("addrgo").onclick = go;
   document.getElementById("addr").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
-  if(addr) meHoldings(addr,courts);
-  else document.getElementById("holdings").innerHTML =
-    `<div class="empty"><div class="g">◇</div><p>Connect Adena in the left rail, or paste an address above.</p><p class="small">The chain is public — any address can be read.</p></div>`;
+  show(addr);
 }
 /* ================= personal claimables + last-visit memory ==============
    claimables() decides pulls ONLY from readable state (PullState paid flags,
@@ -19145,7 +19228,7 @@ async function meHoldings(addr,courts){
 
 /* --- what needs you: live answers on claims YOU staked, flagged if against your
    side. The people whose reward a false answer would deny are the ones told. --- */
-on(/^\/needs$/, async ()=> needsView(CFG.mode==="demo"? DEMO_ME : (CFG.addr||null)));
+on(/^\/needs$/, async ()=> needsView(CFG.mode==="demo"? DEMO_ME : youAddr()));
 async function needsView(addr){
   loading();
   const courts = await allCourtSlugs();
@@ -19154,12 +19237,16 @@ async function needsView(addr){
        <p class="page-sub">Answers posted on claims you've staked — flagged when the answer runs <b>against your side</b>. Nobody is more motivated to contest a false answer than the stakers whose reward it would deny. It's a notification, not a role — you cannot vote on a claim you've staked (the rest of the court votes), but you can open the dispute.</p>
        <div class="addrbar"><input id="naddr" class="mono" value="${esc(addr||"")}" placeholder="g1… address" spellcheck="false" aria-label="your address">
          <button class="btn" id="ngo">Check</button></div><div id="needs"></div>`;
-  const go=()=>{ const a=document.getElementById("naddr").value.trim(); if(a) needsList(a,courts); };
+  /* Same shape as meView's, and the same address: both pages ask "what about
+     this account", so remembering it on one and not the other would make the
+     two disagree about who is reading. */
+  const show = a => { if(a) needsList(a,courts);
+    else document.getElementById("needs").innerHTML =
+      `<div class="empty"><div class="g">◇</div><p>Connect Adena, or paste the address whose stakes to watch.</p></div>`; };
+  const go=()=>{ const a=document.getElementById("naddr").value.trim(); rememberAddr(a); show(a); };
   document.getElementById("ngo").onclick=go;
   document.getElementById("naddr").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
-  if(addr) needsList(addr,courts);
-  else document.getElementById("needs").innerHTML =
-    `<div class="empty"><div class="g">◇</div><p>Connect Adena, or paste the address whose stakes to watch.</p></div>`;
+  show(addr);
 }
 let needsSeq=0;
 async function needsList(addr,courts){

@@ -20,7 +20,12 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
 // The block under test, run twice: once as the repo copy and once as a deploy.
 // LOCKED and CFG_DEFAULTS are substituted because deploy.sh rewrites those two
 // lines, which is what makes this worth testing on both settings.
-const cleanFn = slice('function cleanCfg(c){', '\nconst store = {');
+//
+// THE CUT STARTS AT ADDR_RE, NOT AT cleanCfg. cleanCfg validates two address
+// fields against a shared top-level const, and a slice that began at the
+// function left it closing over nothing: "ADDR_RE is not defined", at the first
+// call, in a harness whose subject is a config that survives a deploy.
+const cleanFn = slice('const ADDR_RE = ', '\nconst store = {');
 const loadBlk = slice('let stored = {};', '\nconst saveCfg =');
 
 function load(locked, saved, defaults){
@@ -41,7 +46,8 @@ function load(locked, saved, defaults){
 const DEPLOYED = {mode:"live", rpc:"https://rpc.kourt.xyz", gnoweb:"https://gnoweb.kourt.xyz", chainid:"kourt-1"};
 // Exactly what was in the owner's browser.
 const STALE = {mode:"live", rpc:"http://127.0.0.1:26657", chainid:"dev",
-               addr:"g1w746drdmenjdg0ll38dltjt7kkgtq5lmsmghcg", theme:"dark"};
+               addr:"g1w746drdmenjdg0ll38dltjt7kkgtq5lmsmghcg", theme:"dark",
+               readaddr:"g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5"};
 
 // ------------------------------------------------------------------ deployed
 {
@@ -53,6 +59,11 @@ const STALE = {mode:"live", rpc:"http://127.0.0.1:26657", chainid:"dev",
   // out and reset their theme on every visit, which is a different bug.
   ok("but the reader's account survives", cfg.addr === STALE.addr);
   ok("...and so does their theme", cfg.theme === "dark");
+  // An address typed into "Your positions" is the same kind of fact as the two
+  // above — theirs, and naming no chain. It is also the one the deployed page is
+  // the ONLY place anybody meets, so a keep-list that forgets it ships a feature
+  // that works everywhere except where it is used.
+  ok("...and the address they last asked to read", cfg.readaddr === STALE.readaddr);
 }
 
 // The stale key must be REWRITTEN, or the override returns on the next load as
