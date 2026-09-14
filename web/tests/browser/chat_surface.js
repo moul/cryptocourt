@@ -52,7 +52,7 @@ const ok = (n, c, d) => {
   const errors = [];
   page.on("pageerror", e => errors.push(String(e)));
   await page.setViewport({width: 1100, height: 900});
-  await page.goto(PAGE + "#/c/orem/chat", {waitUntil: "load"});
+  await page.goto(PAGE + "#/c/bedford/chat", {waitUntil: "load"});
   await page.waitForFunction(
     () => !!document.querySelector("#chatview .chatform .chatinput"), {timeout: 20000});
   // The log fills on a tick after mount; the arms below read its box.
@@ -375,7 +375,7 @@ const ok = (n, c, d) => {
      which is exactly the shape that leaves the NEXT page a flex column with a
      24px foot — the bug lives on a different view than the code that causes it,
      so it is measured on a different view than the code that causes it. */
-  await page.evaluate(() => { location.hash = "#/c/orem"; });
+  await page.evaluate(() => { location.hash = "#/c/bedford"; });
   await page.waitForFunction(() => !document.getElementById("chatview"), {timeout: 20000});
   await new Promise(r => setTimeout(r, 500));
   const after = await page.evaluate(() => {

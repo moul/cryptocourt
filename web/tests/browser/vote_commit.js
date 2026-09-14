@@ -55,7 +55,7 @@ const VERDICT = 12000000;
   const read = async (verdict, quality) => {
     // A fresh load per case: same-URL navigation is same-document, so the page
     // would not rebuild and the second case would measure the first.
-    await page.goto(PAGE + `?vc=${verdict}-${quality}#/c/orem/1`, {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + `?vc=${verdict}-${quality}#/c/bedford/1`, {waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 900));
     return page.evaluate(async (v, q) => {
       // The RPC cache lives in sessionStorage and survives a reload, so a
@@ -88,7 +88,7 @@ const VERDICT = 12000000;
         const host = document.createElement("span");
         host.id = "votecommit";
         document.getElementById("main").appendChild(host);
-        await fillVoteCommitment("orem", 1);
+        await fillVoteCommitment("bedford", 1);
         return {text: (host.textContent || "").replace(/\s+/g, " ").trim(),
                 askedWeight: asked.some(e => e.indexOf("ClaimVoteWeightOf") >= 0)};
       } finally { window.fetch = realFetch; CFG.mode = "demo"; delete CFG.addr; }

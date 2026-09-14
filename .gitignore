@@ -16,3 +16,6 @@ web/embed/
 # namespace, plus a per-chain dependency cache. Generated from the canonical
 # source by one command, so a committed copy is only a stale one.
 build/
+
+# editor swap files
+*.swp

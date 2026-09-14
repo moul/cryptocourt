@@ -90,7 +90,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
 
   for (const h of HEIGHTS) {
     await page.setViewport({width: 1280, height: h});
-    await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 900));
 
     const m = await page.evaluate(() => {
@@ -169,7 +169,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
      with an empty room every one of these would certify nothing. */
   for (const w of [390, 430, 768]) {
     await page.setViewport({width: w, height: 844});
-    await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 900));
     const n = await page.evaluate(() => {
       const log = document.querySelector('.chatlog');
@@ -253,7 +253,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
        draggable. Any one of them surviving is a row that still invites a pull
        and no longer answers one. */
     await page.setViewport({width: 1280, height: 900});
-    await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 1000));
     const seam = await page.evaluate(() => {
       const g = document.getElementById('railchathead');
@@ -296,7 +296,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
        together at each size rather than once at a convenient one. */
     for (const h of [1000, 900, 800, 700]) {
       await page.setViewport({width: 1280, height: h});
-      await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+      await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
       // A HASH CHANGE IS NOT A RELOAD: the expanded class survives one, so the
       // state is cleared and the document reloaded before measuring. Measured as
       // alternating rows of nonsense when this was left out.
@@ -338,7 +338,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
        fails the second pair; deleting the floor fails the first. */
     for (const [h, floored] of [[600, true], [480, false]]) {
       await page.setViewport({width: 1280, height: h});
-      await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+      await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
       await page.evaluate(() => { try { localStorage.removeItem("cc.chatbig"); } catch (e) {} });
       await page.reload({waitUntil: 'networkidle0'});
       await new Promise(r => setTimeout(r, 800));
@@ -369,7 +369,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
        there. A regression to overflow-y:auto here would mean something had
        started competing with the navigation again. */
     await page.setViewport({width: 1280, height: 800});
-    await page.goto(PAGE + '#/c/orem', {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + '#/c/bedford', {waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 900));
     const nav = await page.evaluate(() => {
       const n = document.querySelector('.rail .nav');
@@ -410,7 +410,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
      and says nothing about the key that reaches it. */
   {
     await page.setViewport({width: 1440, height: 900});
-    await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'networkidle0'});
+    await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'networkidle0'});
     await new Promise(r => setTimeout(r, 1100));
 
     /* EVERY CONTROL REACHABLE, IN A SENSIBLE ORDER. Read from the document
@@ -497,7 +497,7 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
       CFG.mode = 'live'; CFG.chat = 'http://chat.invalid';
       location.hash = '#/';
       await new Promise(r => setTimeout(r, 250));
-      location.hash = '#/c/orem/chat';
+      location.hash = '#/c/bedford/chat';
       await new Promise(r => setTimeout(r, 1400));
       return !!document.querySelector('#chatview .chatinput');
     });
@@ -582,12 +582,12 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
     /* QUIET IS A WORD, NOT A ZERO. "0 here · 0 recent" is three numbers saying
        nothing happened; a room with nobody in it is quiet. */
     await setRoom(1, []);
-    await p.evaluate(() => { location.hash = '#/c/orem'; });
+    await p.evaluate(() => { location.hash = '#/c/bedford'; });
     await new Promise(r => setTimeout(r, 1500));
     let l = await line();
     ok(`an empty room reads as quiet (${JSON.stringify(l.text)})`,
        /quiet/i.test(l.text || ''), JSON.stringify(l));
-    ok("...and still links to the room", l.href === '#/c/orem/chat', JSON.stringify(l));
+    ok("...and still links to the room", l.href === '#/c/bedford/chat', JSON.stringify(l));
     /* ONE PERSON IS THE READER. "1 here" counts whoever is looking at it, which
        is noise; two is the first number that says anything about the room. */
     ok("...and does not announce the reader to themselves",
@@ -609,9 +609,9 @@ const HEIGHTS = [1000, 900, 800, 760, 700, 620];
        l.dot === true, JSON.stringify(l));
 
     /* OPENING THE ROOM CLEARS IT, and that is the whole contract of a badge. */
-    await p.evaluate(() => { location.hash = '#/c/orem/chat'; });
+    await p.evaluate(() => { location.hash = '#/c/bedford/chat'; });
     await new Promise(r => setTimeout(r, 2000));
-    await p.evaluate(() => { location.hash = '#/c/orem'; });
+    await p.evaluate(() => { location.hash = '#/c/bedford'; });
     await new Promise(r => setTimeout(r, 1800));
     l = await line();
     ok(`opening the room clears the dot (${JSON.stringify(l.text)})`,

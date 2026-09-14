@@ -38,12 +38,12 @@ const ROW = "7:300:100:900:400:250:1:180:0";
   // ---- the fast path -------------------------------------------------------
   ONE = async () => ROW;
   asked = [];
-  await docketSeriesPreload(gstr("orem"), [7]);
+  await docketSeriesPreload(gstr("bedford"), [7]);
   ok("preload asks DocketSeries once, with the ids and the window",
      asked.length === 1 && /^DocketSeries\(/.test(asked[0])
      && asked[0].includes('"7"') && asked[0].endsWith(",120960)"));
   asked = [];
-  const r = await docketSeriesRow(gstr("orem"), 7);
+  const r = await docketSeriesRow(gstr("bedford"), 7);
   ok("a preloaded row costs no further read", asked.length === 0);
   // THE FIELD ORDER IS THE WHOLE CONTRACT. Written out one by one rather than
   // deep-equalling an object literal, so a transposition names itself.
@@ -75,9 +75,9 @@ const ROW = "7:300:100:900:400:250:1:180:0";
   TUPS = {StakePools:[11,22], PoolConviction:[33,44],
           TrailingOI:[55,true], TrailingYes:[66,false]};
   asked = [];
-  await docketSeriesPreload(gstr("orem"), [7]);
+  await docketSeriesPreload(gstr("bedford"), [7]);
   ok("an older chain's refusal is swallowed, not thrown", true);
-  const f = await docketSeriesRow(gstr("orem"), 7);
+  const f = await docketSeriesRow(gstr("bedford"), 7);
   ok("the fallback asks the four single readers",
      asked.filter(q => /^(StakePools|PoolConviction|TrailingOI|TrailingYes)\(/.test(q)).length === 4);
   ok("and produces the same shape as the packed row",
@@ -89,18 +89,18 @@ const ROW = "7:300:100:900:400:250:1:180:0";
 
   // ---- what the wire may throw at it ---------------------------------------
   ONE = async () => "7:300:100:900:400:250:1:180:0;8:1:2:3:4:5:0:6:1";
-  await docketSeriesPreload(gstr("orem"), [7,8]);
-  ok("two records parse", (await docketSeriesRow(gstr("orem"),8)).yesStake === 1);
+  await docketSeriesPreload(gstr("bedford"), [7,8]);
+  ok("two records parse", (await docketSeriesRow(gstr("bedford"),8)).yesStake === 1);
   ONE = async () => "7:300:100";                    // truncated record
-  await docketSeriesPreload(gstr("orem"), [7]);
+  await docketSeriesPreload(gstr("bedford"), [7]);
   asked = [];
-  await docketSeriesRow(gstr("orem"), 7);
+  await docketSeriesRow(gstr("bedford"), 7);
   ok("a short record is skipped and the row falls back rather than mis-parsing",
      asked.length === 4);
   ONE = async () => "";                              // court with no matches
-  await docketSeriesPreload(gstr("orem"), [7]);
+  await docketSeriesPreload(gstr("bedford"), [7]);
   asked = [];
-  await docketSeriesRow(gstr("orem"), 7);
+  await docketSeriesRow(gstr("bedford"), 7);
   ok("an empty reply falls back too", asked.length === 4);
 
   // ---- the cap agrees with the realm's --------------------------------------

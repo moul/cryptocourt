@@ -86,19 +86,19 @@ const hasHead = (h, label) => headAt(h, label) >= 0;
 let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else console.log("ok:",n); };
 
 // ---- data ripples ----
-ok("orem has 11 claims", DEMO.courts.orem.claims.length===11);
-ok("all 11 claim objects exist", DEMO.courts.orem.claims.every(i=>DEMO.claims["orem/"+i]));
-const cen = demoCensus("orem");
+ok("bedford has 11 claims", DEMO.courts.bedford.claims.length===11);
+ok("all 11 claim objects exist", DEMO.courts.bedford.claims.every(i=>DEMO.claims["bedford/"+i]));
+const cen = demoCensus("bedford");
 ok("census live-now 5→8", cen.live===8);
 ok("census sums to 11", cen.undis+cen.vote+cen.nodec+cen.unans+cen.live===11);
-const f = DEMO.courts.orem.folders;
+const f = DEMO.courts.bedford.folders;
 ok("folder counts 4/3/3 (+1 nested)", folderCount(f[0])===4 && folderCount(f[1])===3 && folderCount(f[2])===3);
-ok("relations well-formed: every endpoint exists", DEMO.relations.orem.every(r=>DEMO.claims["orem/"+r.from] && DEMO.claims["orem/"+r.to]));
-ok("one parent max per claim", (()=>{ const p={}; for(const r of DEMO.relations.orem){ if(r.type==="part"){ if(p[r.from]) return false; p[r.from]=1; } } return true; })());
+ok("relations well-formed: every endpoint exists", DEMO.relations.bedford.every(r=>DEMO.claims["bedford/"+r.from] && DEMO.claims["bedford/"+r.to]));
+ok("one parent max per claim", (()=>{ const p={}; for(const r of DEMO.relations.bedford){ if(r.type==="part"){ if(p[r.from]) return false; p[r.from]=1; } } return true; })());
 
 // ---- association section: #9 the parent ----
-const demoLookup = i => { const dd=DEMO.claims["orem/"+i]; return dd? {title:dd.title, statusText:statusText(dd)} : null; };
-const h9 = associationSection("orem", 9, demoLookup);
+const demoLookup = i => { const dd=DEMO.claims["bedford/"+i]; return dd? {title:dd.title, statusText:statusText(dd)} : null; };
+const h9 = associationSection("bedford", 9, demoLookup);
 // The section no longer wears a title of its own — the group headings are it.
 ok("#9: section renders", hasHead(h9, "Related") || hasHead(h9, "Part of") || hasHead(h9, "Rests on"));
 // The heading must not name ONE of the two axes it renders — COURTS_STRUCTURE
@@ -116,9 +116,9 @@ ok("#9: sample label", h9.includes("sample curation — the chain stores no rela
    have let the other regress. */
 const bare = i => null;
 const noRelId = (() => {
-  const rel = DEMO.relations.orem;
+  const rel = DEMO.relations.bedford;
   for(const k of Object.keys(DEMO.claims)){
-    if(!k.startsWith("orem/")) continue;
+    if(!k.startsWith("bedford/")) continue;
     const id = +k.split("/")[1];
     if(!rel.some(r => r.from === id || r.to === id)) return id;
   }
@@ -126,44 +126,44 @@ const noRelId = (() => {
 })();
 ok("a claim with no relations exists in the fixture to test with", noRelId !== null);
 ok("...and its section is empty, not a heading over nothing",
-   associationSection("orem", noRelId, demoLookup) === "");
+   associationSection("bedford", noRelId, demoLookup) === "");
 ok("...also with an empty chain answer rather than none",
-   associationSection("orem", noRelId, demoLookup, []) === "");
+   associationSection("bedford", noRelId, demoLookup, []) === "");
 ok("...and a claim that HAS relations still renders", hasHead(h9, "Related") || hasHead(h9, "Part of"));
 // The id-only fallback: a related claim outside the loaded window is marked for
 // the filler rather than explained in terms of this page's pagination.
 ok("a title the window lacks is marked for fetching, not narrated",
-   associationSection("orem", 9, bare).includes("data-needtitle")
-   && !associationSection("orem", 9, bare).includes("not in the rendered docket window"));
+   associationSection("bedford", 9, bare).includes("data-needtitle")
+   && !associationSection("bedford", 9, bare).includes("not in the rendered docket window"));
 ok("#9: rests on 3, 1 settled", h9.includes("1 of 3 parts settled"));
 ok("#9: undecided banner", h9.includes("2 of 3 parts are still undecided — any verdict here is reached without them"));
-ok("#9: children rows 3/4/7 as 'one part'", ["/3","/4","/7"].every(x=>h9.includes(`#/c/orem${x}`)) && (h9.match(/one part/g)||[]).length===3);
+ok("#9: children rows 3/4/7 as 'one part'", ["/3","/4","/7"].every(x=>h9.includes(`#/c/bedford${x}`)) && (h9.match(/one part/g)||[]).length===3);
 /* NAMING THE OBJECT, on both halves. "supports" alone did not say which way —
    asked of covid/19 — while the outbound half already read "supported by this".
    Pinned as the whole predicate, so dropping the object fails here rather than
    passing on a substring of it. */
-ok("#9: #6 supports this (incoming)", h9.includes(">supports this<") && h9.includes("#/c/orem/6"));
+ok("#9: #6 supports this (incoming)", h9.includes(">supports this<") && h9.includes("#/c/bedford/6"));
 ok("#9: fineprint", h9.includes("Curation, not mechanics: relations move no stake, no bond, no bar, no verdict"));
 ok("#9: no yes% or sparkline in rows", !h9.includes("YES now") && !h9.includes("spark"));
 
 // ---- #3: part-of line + contradicts (incoming) ----
-const h3 = associationSection("orem", 3, demoLookup);
+const h3 = associationSection("bedford", 3, demoLookup);
 // The parent is a ROW like every other relation, on the containment axis with
 // "Rests on" rather than in the association graph under "Related". It was a bare
 // paragraph: no chip, and no status pill on the whole it is a part of.
 ok("#3: Part of subsection", hasHead(h3, "Part of"));
 // "the whole" asserted the parent was the top of the tree. Containment is a
 // tree and the design runs three levels, so a parent is usually a part too.
-ok("#3: parent is a row, chipped by its relation", /assocrow[^]*?#\/c\/orem\/9/.test(h3) && h3.includes(">contains this<"));
+ok("#3: parent is a row, chipped by its relation", /assocrow[^]*?#\/c\/bedford\/9/.test(h3) && h3.includes(">contains this<"));
 ok("#3: chip does not claim to be the top of the tree", !h3.includes(">the whole<"));
 ok("#3: parent row carries the whole's status", h3.slice(headAt(h3, "Part of")).slice(0,700).includes("pill"));
 ok("#3: parent is NOT filed under Related", headAt(h3, "Part of") < (hasHead(h3, "Related")? headAt(h3, "Related") : Infinity));
-ok("#3: #11 contradicts this", h3.includes(">contradicts this<") && h3.includes("#/c/orem/11"));
+ok("#3: #11 contradicts this", h3.includes(">contradicts this<") && h3.includes("#/c/bedford/11"));
 ok("#3: no rests-on subsection", !h3.includes("Rests on"));
 
 // ---- #5: superseded (incoming supersedes) ----
-const h5 = associationSection("orem", 5, demoLookup);
-ok("#5: #10 supersedes this", h5.includes(">supersedes this<") && h5.includes("#/c/orem/10"));
+const h5 = associationSection("bedford", 5, demoLookup);
+ok("#5: #10 supersedes this", h5.includes(">supersedes this<") && h5.includes("#/c/bedford/10"));
 /* Both directions on one page must not both read as the bare verb — that is the
    ambiguity, not the wording of either one alone. */
 ok("no inbound chip is left without its object", (()=>{
@@ -172,22 +172,22 @@ ok("no inbound chip is left without its object", (()=>{
 })());
 
 // ---- #10: outgoing supersedes ----
-const h10 = associationSection("orem", 10, demoLookup);
-ok("#10: superseded by this", h10.includes("superseded by this") && h10.includes("#/c/orem/5"));
+const h10 = associationSection("bedford", 10, demoLookup);
+ok("#10: superseded by this", h10.includes("superseded by this") && h10.includes("#/c/bedford/5"));
 
 // ---- #6: outgoing supports ----
-const h6 = associationSection("orem", 6, demoLookup);
-ok("#6: supported by this", h6.includes("supported by this") && h6.includes("#/c/orem/9"));
+const h6 = associationSection("bedford", 6, demoLookup);
+ok("#6: supported by this", h6.includes("supported by this") && h6.includes("#/c/bedford/9"));
 
 // ---- #11: outgoing contradicts ----
-const h11 = associationSection("orem", 11, demoLookup);
-ok("#11: contradicted by this", h11.includes("contradicted by this") && h11.includes("#/c/orem/3"));
+const h11 = associationSection("bedford", 11, demoLookup);
+ok("#11: contradicted by this", h11.includes("contradicted by this") && h11.includes("#/c/bedford/3"));
 
 // ---- relationless + live ----
-ok("#1: section omitted", associationSection("orem",1,demoLookup)==="");
-ok("#2: section omitted", associationSection("orem",2,demoLookup)==="");
+ok("#1: section omitted", associationSection("bedford",1,demoLookup)==="");
+ok("#2: section omitted", associationSection("bedford",2,demoLookup)==="");
 CFG.mode='live';
-ok("live: section absent", associationSection("orem",9,demoLookup)==="");
+ok("live: section absent", associationSection("bedford",9,demoLookup)==="");
 CFG.mode='demo';
 
 // ---- status pills in rows reflect phases ----
@@ -216,8 +216,8 @@ ok("#9 rows: #4 wears the verdict's oval, #3 wears it questioned",
       would have been the wrong pin anyway. */
    && !/<span class="pill escrow">(YES|NO)\?</.test(h9));
 ok("...and the contested mark follows the oval, not the row's chip cluster", (()=>{
-  const lk = id => { const d = DEMO.claims["orem/"+id]; return d? {title:d.title, statusText:statusText(d)} : null; };
-  const r = assocRow("orem", 3, "contradicts this", lk);
+  const lk = id => { const d = DEMO.claims["bedford/"+id]; return d? {title:d.title, statusText:statusText(d)} : null; };
+  const r = assocRow("bedford", 3, "contradicts this", lk);
   const oval = r.indexOf('sidetag vtag'), q = r.indexOf('class="vqm"'), rt = r.indexOf('class="rt"');
   return oval >= 0 && q > oval && q < rt;
 })());
@@ -254,24 +254,24 @@ ok("a row's mark is flat, and the asking control is opt-in",
 /* NOT STRUCK, even on a NO: the strike says "no longer accurate", which is a
    verdict, and a dispute has not reached one. */
 ok("...and a contested NO is not struck through", (()=>{
-  const r = assocRow("orem", 3, "x", () => ({title:"t", statusText:"disputed NO — a vote is deciding"}));
+  const r = assocRow("bedford", 3, "x", () => ({title:"t", statusText:"disputed NO — a vote is deciding"}));
   return r.includes('vtag n">NO<') && r.includes('class="vqm"') && !r.includes("<s>");
 })());
 
 // ---- resolution ladder ----
-const d2 = Object.assign({id:2}, DEMO.claims["orem/2"], {answered:true});
+const d2 = Object.assign({id:2}, DEMO.claims["bedford/2"], {answered:true});
 const L2 = resolutionLadder(d2, NOW);
 ok("ladder #2: derived answered rung labeled", L2.includes("derived: settle deadline − 72h"));
 ok("ladder #2: settle deadline rung", L2.includes("settle deadline"));
 ok("ladder #2: now rung", L2.includes(">now<") || L2.includes("now <small>chain height</small>") || L2.includes("chain height"));
-const d1 = Object.assign({id:1}, DEMO.claims["orem/1"]);
+const d1 = Object.assign({id:1}, DEMO.claims["bedford/1"]);
 const L1 = resolutionLadder(d1, NOW);
 ok("ladder #1 (open): awaiting-answer future rung", L1.includes("awaiting an answer"));
 ok("ladder #1: no fabricated heights (only now)", (L1.match(/≈block/g)||[]).length===1);
-const d4 = Object.assign({id:4}, DEMO.claims["orem/4"]);
+const d4 = Object.assign({id:4}, DEMO.claims["bedford/4"]);
 const L4 = resolutionLadder(d4, NOW);
 ok("ladder #4 (settled): closing rung, no future promise", L4.includes("settled — every stake withdraws 1×"));
-const d3l = Object.assign({id:3}, DEMO.claims["orem/3"], {answered:true});
+const d3l = Object.assign({id:3}, DEMO.claims["bedford/3"], {answered:true});
 const L3 = resolutionLadder(d3l, NOW);
 ok("ladder #3 (disputed w/ voteEndsAt): vote closes rung", L3.includes("vote closes"));
 const d3n = Object.assign({}, d3l); delete d3n.voteEndsAt;
@@ -460,7 +460,7 @@ ok("...and keeps the number on a later round", L3n.includes("round 2 is voting")
 ok("no banned words", ![h9,h3,h5,h10,h6,h11,L1,L2,L4].some(x=>/backing|redeem\b|profit|APR|odds|price/i.test(x)));
 
 // relation-chip layout + colour (owner report: "contradicts" overlapped the
-// wrapped title from orem/3; the contradiction family must read bright red)
+// wrapped title from bedford/3; the contradiction family must read bright red)
 /* THE TWO LISTS SHOW ONE FIGURE, RENDERED ONCE. Asked: are they the same
    measure, and if so make them match. They are — claimSeries puts ratios().inst
    at ser[2], and ratios().inst is pctYes(yesStake,noStake), which is exactly what
@@ -532,9 +532,9 @@ ok("chip cluster is right-aligned in its own column", src.includes(".docket .cro
 ok("specificity matches .docket .crow (which sets the docket grid)", !src.includes("\n.crow.assocrow{grid-template-columns"));
 ok("both pills ride one .rt cluster", src.includes('<span class="rt"><span class="pill ${/contradict/.test(chip)?"contra":"void"}">'));
 ok("contradiction family wears .contra", (()=>{
-  const r=assocRow("orem",11,"contradicts",()=>({title:"t",statusText:"open"}));
-  const r2=assocRow("orem",11,"contradicted by this",()=>({title:"t",statusText:"open"}));
-  const r3=assocRow("orem",4,"one part",()=>({title:"t",statusText:"open"}));
+  const r=assocRow("bedford",11,"contradicts",()=>({title:"t",statusText:"open"}));
+  const r2=assocRow("bedford",11,"contradicted by this",()=>({title:"t",statusText:"open"}));
+  const r3=assocRow("bedford",4,"one part",()=>({title:"t",statusText:"open"}));
   return /pill contra/.test(r) && /pill contra/.test(r2) && /pill void/.test(r3);
 })());
 ok("--contra token defined for both themes", (src.match(/--contra:/g)||[]).length===4);
@@ -613,7 +613,7 @@ ok("...each note appearing once, not once per group", (()=>{
   // TWO claim-row groups, which is what makes this bite: with only "Related"
   // present a note emitted per group is indistinguishable from one emitted once.
   // Claim 3 carries a curation parent, so "Part of" renders above "Related".
-  const h = associationSection("orem", 3, demoLookup, [[11,"supports"]],
+  const h = associationSection("bedford", 3, demoLookup, [[11,"supports"]],
                                [{fid:4, name:"Proximal Origin"}]);
   const groups = ["Part of","Related"].filter(l=>hasHead(h,l));
   return groups.length === 2
@@ -624,7 +624,7 @@ ok("...each note appearing once, not once per group", (()=>{
    flush at the top, so the gap that separates one group from the next has to
    come from the headings themselves — one rule, or they drift. */
 ok("the first group heading is flush, the rest are spaced", (()=>{
-  const h = associationSection("orem", 3, demoLookup, [[11,"supports"]],
+  const h = associationSection("bedford", 3, demoLookup, [[11,"supports"]],
                                [{fid:4, name:"Proximal Origin"}]);
   const mts = [...h.matchAll(/class="sec-h" style="margin-top:(\d+)px"/g)].map(m=>+m[1]);
   return mts.length >= 3 && mts[0] === 0 && mts.slice(1).every(v=>v === 14);
@@ -756,12 +756,12 @@ ok("every statusPill call is gated on there being no side to show", (()=>{
    on its sentence AND a pill repeating it is the state this was fixing. */
 ok("a settled row shows the oval and drops the pill", (()=>{
   const settled = {title:"t", statusText:"settled NO — every stake withdraws 1×"};
-  const r = assocRow("orem", 4, "x", () => settled);
+  const r = assocRow("bedford", 4, "x", () => settled);
   return r.includes('vtag n">NO<') && !r.includes('class="pill good"') && !/>settled NO</.test(r);
 })());
 ok("...and a row with no readable side keeps its pill", (()=>{
   const bare = {title:"t", statusText:"settled — every stake withdraws 1×"};
-  const r = assocRow("orem", 4, "x", () => bare);
+  const r = assocRow("bedford", 4, "x", () => bare);
   return !r.includes("vtag") && r.includes("pill");
 })());
 /* ONE ANSWER TO "WHAT DOES THIS ROW WEAR", asked by four builders. It used to be
@@ -795,7 +795,7 @@ ok("...and a claim nobody has answered wears nothing", (()=>{
   return o.side === "" && o.mark === "" && !o.contested;
 })());
 ok("...so a disputed row shows the oval with its mark, not a pill", (()=>{
-  const r = assocRow("orem", 4, "x",
+  const r = assocRow("bedford", 4, "x",
     () => ({title:"t", statusText:"disputed YES — a vote is deciding"}));
   // It wears the oval THROUGH the contested path, which carries the mark with it.
   return r.includes('class="vqm"') && r.includes('vtag y">YES<');

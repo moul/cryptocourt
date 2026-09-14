@@ -35,7 +35,7 @@ eval(slice("function fnv1a(", "function mulberry32("));
   // ---- the cover is a function of the slug and nothing else -----------------
   const a1 = courtCover("covid"), a2 = courtCover("covid");
   ok("the same court draws the same cover, every time", a1 === a2);
-  ok("a different court draws a different one", courtCover("orem") !== a1);
+  ok("a different court draws a different one", courtCover("bedford") !== a1);
   // A cover that changed between reloads is worse than none, so the only inputs
   // allowed are the slug — no time, no randomness.
   const body = slice("function courtCover(", "\n}");
@@ -56,13 +56,13 @@ eval(slice("function fnv1a(", "function mulberry32("));
   ok("and holds the drawn cover until a picture arrives", slot.includes("<svg"));
 
   // ---- one read for a page of courts ----------------------------------------
-  const cells = ["covid","orem","meta"].map(s => { const e = {innerHTML:""}; DOM.set("cf-"+s, e); return e; });
-  ONE = async () => "orem\tIMGLINE\n";
+  const cells = ["covid","bedford","meta"].map(s => { const e = {innerHTML:""}; DOM.set("cf-"+s, e); return e; });
+  ONE = async () => "bedford\tIMGLINE\n";
   asked = [];
-  await fillCourtFaces(["covid","orem","meta"]);
+  await fillCourtFaces(["covid","bedford","meta"]);
   ok("one read for the whole page, not one per court", asked.length === 1);
   ok("it asks CourtImages with every slug",
-     /^CourtImages\(/.test(asked[0]) && asked[0].includes("covid,orem,meta"));
+     /^CourtImages\(/.test(asked[0]) && asked[0].includes("covid,bedford,meta"));
   ok("the court with a picture gets it", cells[1].innerHTML.includes("<img"));
   // THE ABSENT ONES KEEP THEIR COVER. CourtImages sends nothing for a court with
   // no image, and "nothing" must not be read as "blank it".
@@ -74,15 +74,15 @@ eval(slice("function fnv1a(", "function mulberry32("));
   ONE = async () => { throw new Error("name CourtImages not declared"); };
   await fillCourtFaces(["covid"]);
   ok("a chain without the entrypoint leaves every cover alone", cells[0].innerHTML === "");
-  ONE = async () => "orem-no-tab-here\n";
-  await fillCourtFaces(["orem"]);
+  ONE = async () => "bedford-no-tab-here\n";
+  await fillCourtFaces(["bedford"]);
   ok("a record with no tab is skipped, not mis-parsed", cells[1].innerHTML === "");
   // a caption may contain anything a person can type, including a pipe or a
   // comma — which is why the outer separator is a tab. Prove the split is on the
   // FIRST tab only, so a caption cannot steal the media line.
   cells[1].innerHTML = "";
-  ONE = async () => "orem\tkind|sha|mime|1|2|3|a caption, with a pipe |\n";
-  await fillCourtFaces(["orem"]);
+  ONE = async () => "bedford\tkind|sha|mime|1|2|3|a caption, with a pipe |\n";
+  await fillCourtFaces(["bedford"]);
   ok("a caption carrying separators still lands on the right court",
      cells[1].innerHTML.includes("<img"));
 

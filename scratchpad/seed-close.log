@@ -1,0 +1,89 @@
+seed-node: generating the plan from scenarios/covid_demo.py (mode: genesis)
+seed-node: making keys in /var/folders/19/85srrz214qlbd122_0jzskvw0000gn/T/tmp.8CWIqpnQxC/keys
+  deployer g14ns3glgagr0kuq7etxgyhlf8mz5ulkzh9cdeyl
+  virology g1kywdaluwjnvgxrez9hfjxra29nee23nlk3eq3w
+  biosafety g16fwcljwq7kp2n29v3778v48lutdqyelkuh2n4e
+  epi g16ag03vm7heznm75s7ge7qsp0ytzetzuvgapkhp
+  genomics g1x5ry8wp74jkaemujl4yewwemknm3mvekg43agl
+  foia g13dacrmkf8mfqzmdslxytae3acdcpr8huqnn420
+  oversight g1enhqfwlhzk2aajvwax88naz58vxrnu5xylxvtt
+  journo g14zuwqqkf39wjasst5n32kgdpzdf0psydr9h2qt
+  clinician g1ljntt9ue43xsugexex2shqx63gea4qnc5evcvz
+  modeller g1tkw4q66lxj59q0v2u485xrrkzz607tgrw6e8ju
+  statistician g1ctn3te8panlktlnrfgx8qkd5pucc5qgfnwfr7c
+  teacher g1uwjsase2m4ppk8svcwdyfc4j4ddwtqupqlf948
+  vaxsafety g1e0gnhfzjkelavarxty0205rmmux3x4aqdnvkxm
+  skeptic g17vp0djauj9m2gexy96z9juk87eu244v7s7ykmx
+  trader g1dy0w0mzygwmmmsj3a9vlm87tkygy4wmyf4l8q5
+  arbiter g1q82ylswwztqd8qtr229depr9sc3jds6yj87snl
+  arbiter2 g1mht4dfk27yr2snyx30dcjnc5l5xkvm48pfh96m
+seed-node: 639 genesis transactions
+seed-node: starting gnodev (log: /var/folders/19/85srrz214qlbd122_0jzskvw0000gn/T/tmp.8CWIqpnQxC/gnodev.log)
+seed-node: waiting for http://127.0.0.1:26750
+seed-node: node is up after 8s
+seed-node: realm queryable after 1s
+  19 of 23 assertions are end-state and re-checked here; the other 4 are point-in-time and only the broadcast path can make them
+  arm clock and height together, before any court exists — the overlay reads dates off the ratio between them, so a fixture that moves one alone lies to the tool it exists to exercise
+  point every gnoweb page at the overlay
+  the court, and real GNOT burned into its coin by sixteen participants
+  the filing system on chain: CreateFolder for a root, CreateFolderIn for a child, parents first — moderator-only, single-signer, no bond
+  #1 furin — dead, 17 moves
+  #1 died unanswered — twelve weeks passed and nobody could answer it
+  #2 bioweapon — no, 11 moves
+  #3 yanrep — yes, 4 moves
+  #4 gof — yes, 4 moves
+  #5 misc82 — no, 11 moves
+  #6 denom — yes, 4 moves
+  #7 lancet — yes, 4 moves
+  #8 miscrisk — no, 11 moves
+  #9 defuse — yes, 4 moves
+  #10 p3co — dispute, 11 moves
+  #10 is disputed — a sealed vote is left running
+  #11 baric — no, 11 moves
+  #12 divergence — yes, 4 moves
+  #13 lab23 — dead, 17 moves
+  #13 died unanswered — twelve weeks passed and nobody could answer it
+  #14 prompted — dispute, 11 moves
+  #14 is disputed — a sealed vote is left running
+  #15 baricout — yes, 4 moves
+  #16 perjury — dispute, 11 moves
+  #16 is disputed — a sealed vote is left running
+  #17 mctext — yes, 4 moves
+  #18 concealed — no, 11 moves
+  #19 nochain — yes, 4 moves
+  associations: the claim's own author pays nothing, a stranger posts a bond
+  #9 -> #13: filed by epi, who wrote neither — 1 CC bonded
+  #4 -> #13: filed by epi, who wrote neither — 1 CC bonded
+  #1 -> #2: filed by oversight, who wrote neither — 1 CC bonded
+  a moderator judges two of the three bonds and leaves the third pending
+  re-filings, on chain too — the realm checks the older claim really died
+  four winners collect, which is how an address earns standing at all
+  the boards: comments on the two claims a verdict has not closed
+  upvotes, so the ranked ordering differs from the newest one at all
+  the author withdraws their own row — a discovery bit, not a delete
+  and a MODERATOR hides a different row, for a different reason
+
+  Seeded. The scenario reported its clock state above.
+
+    RPC      http://127.0.0.1:26750
+    gnoweb   http://127.0.0.1:8950/r/kourt/kourtv2
+    overlay  set mode=live, RPC=http://127.0.0.1:26750, chain=dev
+             (the settings panel's "gnodev" preset fills all three)
+
+  READING the chain works straight from disk — open web/index.html as a
+  file:// URL and it will query this node; gnodev answers with
+  Access-Control-Allow-Origin: *, so the browser allows it (verified).
+
+  SIGNING does not. Browser extensions are not injected into file:// pages,
+  so a wallet is invisible there and the page reports "no wallet found".
+  To connect one, serve the folder over http first:
+
+      (cd web && python3 -m http.server 8777) &
+      open http://127.0.0.1:8777/index.html
+
+  Conformance-check the overlay's live reads against this node:
+
+      python3 scripts/check-live-reads.py --remote http://127.0.0.1:26750
+
+  Ctrl-C stops the node and discards the chain and the keys.
+seed rc=0

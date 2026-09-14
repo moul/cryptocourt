@@ -82,13 +82,13 @@ for(const s0 of positions){
 }
 ok("quote == brute-force reference on "+(positions.length*sends.length)+" cases", agree);
 
-// 2) orem demo: 100 GNOT at s0 = supply−emitted
+// 2) bedford demo: 100 GNOT at s0 = supply−emitted
 const S0 = 118500000000 - 8900000;
 const q = curveQuote(S0, 118500000000, 100000000n);
-ok("orem 100 GNOT mints ~0.84 CC", q.units>800000n && q.units<900000n);
-ok("orem avg ≈ 118.5 µGNOT/unit", q.avg>118 && q.avg<119);
-ok("orem priceAfter ≥ now(118)", q.priceAfter>=118);
-ok("orem cost+refund == X", q.cost + q.refund === 100000000n);
+ok("bedford 100 GNOT mints ~0.84 CC", q.units>800000n && q.units<900000n);
+ok("bedford avg ≈ 118.5 µGNOT/unit", q.avg>118 && q.avg<119);
+ok("bedford priceAfter ≥ now(118)", q.priceAfter>=118);
+ok("bedford cost+refund == X", q.cost + q.refund === 100000000n);
 
 // 3) dust send refuses (price 118 → 117 µGNOT mints nothing)
 const dust = curveQuote(S0, 118500000000, 117n);
@@ -113,7 +113,7 @@ ok("deterministic", q2.units===q.units && q2.cost===q.cost);
 
 // 7) panel renders in demo mode with rows + ack + inert button
 const s = {price:118, supply:118500000000, emitted:8900000, minted:S0};
-const html = joinPanel("orem", s);
+const html = joinPanel("bedford", s);
 ok("panel: input present", html.includes('id="buyamt"'));
 ok("panel: five labels", ["You burn","You receive","Average price you pay","Price after this","Your voice share"].every(l=>html.includes(l)));
 // round 61: the Buy button had to be scrolled to. What a reader needs BEFORE
@@ -121,7 +121,7 @@ ok("panel: five labels", ["You burn","You receive","Average price you pay","Pric
 // the button. Lock the order, or the receipt creeps back above it row by row.
 ok("panel: one row above the button", (()=>{
   const q = curveQuote(s.minted, s.supply, 100000000n);
-  return (buyRowsHtml(q, s.price, "orem").match(/class="line"/g)||[]).length === 1;
+  return (buyRowsHtml(q, s.price, "bedford").match(/class="line"/g)||[]).length === 1;
 })());
 ok("panel: button precedes the receipt", html.indexOf('id="buyactions"') < html.indexOf('id="buyrows2"'));
 ok("panel: receipt rows sit below the button", ["Average price you pay","Price after this","Your voice share"]
@@ -185,7 +185,7 @@ ok("panel: no banned words", !/backing|redeem|profit|APR/i.test(html));
 
 // 8) live mode: gated anchor + staleness note; and the no-quote fallback
 CFG.mode = 'live';
-const htmlL = joinPanel("orem", s);
+const htmlL = joinPanel("bedford", s);
 ok("live: anchor gated until ack", htmlL.includes('data-needack="1"') && htmlL.includes('aria-disabled="true"'));
 // ...and the concrete send moved here with it, which is where it was always
 // true: this is the mode where the amount is a real amount.
@@ -195,7 +195,7 @@ ok("live: CLI --send concrete", htmlL.includes("--send 100000000ugnot"));
 ok("live: the gate does not disable the button",
    !/data-needack="1"[^>]*\sdisabled/.test(htmlL));
 ok("live: staleness caveat", htmlL.includes("fewer units than shown, never more"));
-const htmlF = joinPanel("orem", {price:118, supply:118500000000, emitted:8900000, minted:null});
+const htmlF = joinPanel("bedford", {price:118, supply:118500000000, emitted:8900000, minted:null});
 ok("live fallback: price+supply kv, no computed rows", htmlF.includes("No quote") && !htmlF.includes('id="buyrows"') && htmlF.includes("coin price"));
 ok("live fallback: CLI placeholder send", htmlF.includes("--send AMOUNTugnot"));
 
@@ -207,9 +207,9 @@ ok("F4: parseGnot rejects beyond int64", parseGnot("9223372036854.775808")===nul
 // what a buyer needs before pressing is how much they get; the rest is a receipt.
 // So it is asked for with after=true, which is the half that now holds it. The
 // exact-digits point is unchanged: toLocaleString on a BigInt, never Number.
-ok("F4: refund row uses exact BigInt digits", buyRowsHtml({x:10n**18n, units:1000000n, cost:10n**18n-9007199254740993n, refund:9007199254740993n, avg:1, priceAfter:1, share:0}, 1, "orem", true).includes("9,007,199,254,740,993"));
+ok("F4: refund row uses exact BigInt digits", buyRowsHtml({x:10n**18n, units:1000000n, cost:10n**18n-9007199254740993n, refund:9007199254740993n, avg:1, priceAfter:1, share:0}, 1, "bedford", true).includes("9,007,199,254,740,993"));
 CFG.mode='live';
-const gated = buyActionsHtml("orem", null);
+const gated = buyActionsHtml("bedford", null);
 // THE PROPERTY, not the old shape. This asserted "an <a> with no href", which
 // was how the gate used to stop a middle-click or open-in-new-tab from routing
 // around the acknowledgement. The control is a <button> now, so that is
@@ -220,7 +220,7 @@ ok("F2: the gated action is a button the handler can refuse",
    /<button class="btn primary"[^>]*data-needack="1"/.test(gated)
    && /<button class="btn primary"[^>]*data-act="1"/.test(gated)
    && !gated.includes("href="));
-const htmlF2 = joinPanel("orem", {price:118, supply:118500000000, emitted:8900000, minted:null});
+const htmlF2 = joinPanel("bedford", {price:118, supply:118500000000, emitted:8900000, minted:null});
 ok("F3: fallback keeps the ack checkbox", htmlF2.includes('id="buyack"'));
 ok("F3: fallback buy gated until ack", (()=>{
   const m = htmlF2.match(/<button class="btn primary"[^>]*>/);
@@ -259,7 +259,7 @@ ok("gas: the ceiling clears the measured cost of a Buy, with headroom",
 ok("gas: the signed tx carries both",
    /gasFee: GAS_FEE_UGNOT, gasWanted: GAS_WANTED/.test(src));
 {
-  const cmd = cliCmd("Buy", {slug:"orem"}, "100000000ugnot");
+  const cmd = cliCmd("Buy", {slug:"bedford"}, "100000000ugnot");
   ok("gas: the printed command offers the same pair the wallet signs",
      cmd.includes("--gas-wanted " + GAS_WANTED) && cmd.includes("--gas-fee " + GAS_FEE_UGNOT + "ugnot"));
 }

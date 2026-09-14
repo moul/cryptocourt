@@ -49,28 +49,28 @@ stdout ${KOURTV2}
 # --- A court, and two claims in it ---------------------------------------------
 # The creator bootstraps as the court's 1-of-1 moderator set, so test1 can
 # moderate its own court without any appointment.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args orem -args 'Orem Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args bedford -args 'Bedford Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # The other half of the comparison: an ordinary court's escrow comes from
 # cur.Address(), so meta's constant-derived one above must equal it.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtEscrow(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtEscrow(\"bedford\")"
 stdout ${KOURTV2}
 
 # Claims cost a refundable CC deposit, so buy into the court's curve first.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args orem -send 50000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args bedford -send 50000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args orem -args 'Is the sky blue?' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args bedford -args 'Is the sky blue?' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args orem -args 'Is water wet?' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args bedford -args 'Is water wet?' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.IsCourtMod(\"orem\", \"${TEST1}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.IsCourtMod(\"bedford\", \"${TEST1}\")"
 stdout 'true'
 
 # Both claims are discoverable on the court page.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford"
 stdout 'Is the sky blue\?'
 stdout 'Is water wet\?'
 
@@ -86,42 +86,42 @@ gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:nosuchcourt"
 stdout 'Not found'
 ! gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:nosuchcourt/me"
 ! gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:nosuchcourt/1/board"
-! gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/999999/board"
+! gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/999999/board"
 
 # --- Hide: DISCOVERY changes, reachability does not ----------------------------
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args orem -args 1 -args 'off-topic' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args bedford -args 1 -args 'off-topic' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.HiddenFromListing(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.HiddenFromListing(\"bedford\", 1)"
 stdout 'true'
 
 # Gone from the listing; its neighbour is untouched.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford"
 ! stdout 'Is the sky blue\?'
 stdout 'Is water wet\?'
 
 # THE constitutional claim: the deep link still renders, with the banner naming
 # the authority, and the title is still there. Hiding is not deletion.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/1"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/1"
 stdout 'Hidden by this court.s moderators'
 stdout 'Is the sky blue\?'
 stdout 'reachable here'
 
 # And the money reads still answer for that claim — a moderator cannot strand a
 # position (I1/I2). The title read is the same one every surface goes through.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimTitle(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimTitle(\"bedford\", 1)"
 stdout 'Is the sky blue\?'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimClosed(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimClosed(\"bedford\", 1)"
 stdout 'false'
 
 # The moderation log is a real sub-route, carved out before the numeric-id parse.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/mod"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/mod"
 stdout 'hide'
 
 # --- Unhide restores discovery -------------------------------------------------
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func UnhideItem -args orem -args 1 -args 'resolved' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func UnhideItem -args bedford -args 1 -args 'resolved' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford"
 stdout 'Is the sky blue\?'
 
 # --- The global DAO: redaction, then purge -------------------------------------
@@ -132,44 +132,44 @@ stdout ${TEST1}
 
 # GlobalHide withholds TEXT everywhere while IDs, state and money still render,
 # so a participant can always act on a position they hold.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func GlobalHide -args orem -args 1 -args 'DMCA-512c' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func GlobalHide -args bedford -args 1 -args 'DMCA-512c' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimTitle(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimTitle(\"bedford\", 1)"
 stdout 'text withheld'
 ! stdout 'Is the sky blue\?'
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/1"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/1"
 stdout 'Text withheld pending review'
 ! stdout 'Is the sky blue\?'
 
 # Purge is the one power that removes text, and it must reach EVERY surface.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func PurgeClaim -args orem -args 1 -args 'CSAM-2258A' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func PurgeClaim -args bedford -args 1 -args 'CSAM-2258A' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimPurged(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimPurged(\"bedford\", 1)"
 stdout 'true'
 
 # Surface 1: the single title read every other surface funnels through. The
 # category code arrives markdown-escaped ("CSAM\-2258A") because it goes through
 # sanitize.InlineText like every other rendered string — hence the loose match.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimTitle(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimTitle(\"bedford\", 1)"
 stdout 'removed'
 stdout 'CSAM.*2258A'
 ! stdout 'Is the sky blue\?'
 
 # Surface 2: the claim's own page.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/1"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/1"
 stdout 'Removed on legal grounds'
 stdout 'CSAM.*2258A'
 ! stdout 'Is the sky blue\?'
 
 # Surface 3: the court listing.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford"
 ! stdout 'Is the sky blue\?'
 
 # Surface 4: the POSITIONS route, /<slug>/<id>/<addr>. This one is the reason the
 # test exists — it takes an arbitrary address string, is reachable by anyone, and
 # was once the single render path that skipped the text gate, leaving purged text
 # publicly readable at a URL nobody thought to check.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/1/${TEST1}"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/1/${TEST1}"
 ! stdout 'Is the sky blue\?'
 # The heading is "Positions on this claim", not "Your positions": this route
 # renders for ANY address, so calling them the reader's was wrong and was
@@ -179,20 +179,20 @@ gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/1/${TEST1}"
 stdout 'Positions on this claim'
 
 # A purge removes TEXT and nothing else: the lifecycle read still answers.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimClosed(\"orem\", 1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimClosed(\"bedford\", 1)"
 stdout 'false'
 
 # --- Suspension disarms the set without touching the claims --------------------
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func GlobalSuspendSet -args orem -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func GlobalSuspendSet -args bedford -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtSuspended(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtSuspended(\"bedford\")"
 stdout 'true'
 
 # A suspended set cannot hide, but may still UNHIDE — clearing your own bits is
 # de-escalatory and survives suspension by design.
-! gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args orem -args 2 -args 'nope' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+! gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args bedford -args 2 -args 'nope' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stderr 'only clearing its own bits is allowed'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.HiddenFromListing(\"orem\", 2)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.HiddenFromListing(\"bedford\", 2)"
 stdout 'false'
 
 # --- Tier curation is a GLOBAL DAO power, and it is evented ---------------------
@@ -200,19 +200,19 @@ stdout 'false'
 # global DAO was described as having. It was gated on a lone directoryAdmin key
 # until v0.24, which left the realm with two unrelated moderation authorities —
 # one of them with no m-of-n, no membership management and no way to hand over.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func SetTier -args orem -args 0 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func SetTier -args bedford -args 0 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtTier(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtTier(\"bedford\")"
 stdout '(0 int)'
 
 # A stranger is refused, on chain and not merely in the unit harness.
-! gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func SetTier -args orem -args 2 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test stranger
+! gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func SetTier -args bedford -args 2 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test stranger
 stderr 'only a global DAO member'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtTier(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtTier(\"bedford\")"
 stdout '(0 int)'
 
 # Put it back so the rest of the script reads a listed court.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func SetTier -args orem -args 1 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func SetTier -args bedford -args 1 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # --- Purge reaches the moderation log itself ------------------------------------
@@ -223,31 +223,31 @@ stdout 'OK!'
 #
 # The set is suspended from the section above, and a suspended set cannot hide,
 # so lift it first — that is the global DAO's recovery power, exercised here.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func ClearCourtSuspension -args orem -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func ClearCourtSuspension -args bedford -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtSuspended(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtSuspended(\"bedford\")"
 stdout 'false'
 
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args orem -args 2 -args 'poster listed a home address' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func HideItem -args bedford -args 2 -args 'poster listed a home address' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # The log prints the row id, because that is the handle PurgeModLogRow takes —
 # a power addressed by an id nobody can see is a power nobody can use.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/mod"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/mod"
 stdout 'row 1'
 stdout 'poster listed a home address'
 
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func PurgeModLogRow -args orem -args 2 -args 1 -args 'DOXX-1' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func PurgeModLogRow -args bedford -args 2 -args 1 -args 'DOXX-1' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # The prose is gone; the ROW SURVIVES with its height, actor and act code, so the
 # audit trail still shows that something happened and who did it.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/mod"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/mod"
 ! stdout 'poster listed a home address'
 stdout 'reason removed on legal grounds'
 stdout 'row 1'
 stdout 'hide'
 
 # And the hide itself is untouched — a text purge is not an unhide.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.HiddenFromListing(\"orem\", 2)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.HiddenFromListing(\"bedford\", 2)"
 stdout 'true'

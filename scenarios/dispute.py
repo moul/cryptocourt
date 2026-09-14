@@ -42,32 +42,32 @@ s.expect("TestClockActive", [], "false")
 s.arm_clock(at=1780000000)
 
 s.note("a court, and coin spread across three holders so a vote can reach quorum")
-s.court(alice, "orem", "Orem Truth Court")
-s.buy(alice, "orem", 400_000_000)
-s.buy(bob, "orem", 400_000_000)
-s.buy(carol, "orem", 400_000_000)
-s.buy(dave, "orem", 400_000_000)
-s.buy(erin, "orem", 400_000_000)
+s.court(alice, "bedford", "Bedford Truth Court")
+s.buy(alice, "bedford", 400_000_000)
+s.buy(bob, "bedford", 400_000_000)
+s.buy(carol, "bedford", 400_000_000)
+s.buy(dave, "bedford", 400_000_000)
+s.buy(erin, "bedford", 400_000_000)
 
 s.note("a claim, staked by alice only — bob and carol keep coin free for bonds")
-s.claim(alice, "orem", "The county certified 12,412 mail ballots on Nov 6, 2025.")
-s.stake(alice, "orem", 1, YES, 300_000_000)
+s.claim(alice, "bedford", "The county certified 12,412 mail ballots on Nov 6, 2025.")
+s.stake(alice, "bedford", 1, YES, 300_000_000)
 
 s.note("ripen the answerability ring: 2,160 blocks, one transaction")
 s.advance_height(2200, "answerWindow, without producing a block")
-s.stake(alice, "orem", 1, YES, 1_000_000)
-s.answer(bob, "orem", 1, YES)
-s.expect("HasAnswer", ["orem", 1], "true")
+s.stake(alice, "bedford", 1, YES, 1_000_000)
+s.answer(bob, "bedford", 1, YES)
+s.expect("HasAnswer", ["bedford", 1], "true")
 
 s.note("carol disputes — she is not the answerer and her coin is unstaked")
-s.dispute(carol, "orem", 1)
-s.expect("DisputeOpen", ["orem", 1], "true")
+s.dispute(carol, "bedford", 1)
+s.expect("DisputeOpen", ["bedford", 1], "true")
 
 s.note("votes cast while the round is open — by the two non-participants")
 # The chain takes yes/no/abstain; "uphold" and "overturn" are the OVERLAY's
 # words for them. The proposal asks "overturn the answer?", so a no upholds it.
-s.vote(dave, "orem", 1, "no")
-s.vote(erin, "orem", 1, "no")
+s.vote(dave, "bedford", 1, "no")
+s.vote(erin, "bedford", 1, "no")
 
 s.note("THE POINT: close a week-long vote by telling the chain both its clocks")
 # votingBlocks (120,960) + graceBlocks. Sized generously — the scenario cannot
@@ -84,8 +84,8 @@ s.note("THE POINT: close a week-long vote by telling the chain both its clocks")
 # and a second number to keep in step with the first for ever.
 s.advance_height(140_000, "votingBlocks + grace, in one transaction",
                  with_time=True)
-s.call(alice, "ResolveDispute", ["orem", 1])
-s.expect("DisputeOpen", ["orem", 1], "false")
+s.call(alice, "ResolveDispute", ["bedford", 1])
+s.expect("DisputeOpen", ["bedford", 1], "false")
 
 s.note("cross two emission periods — 241,920 blocks, for free")
 # Two facts the first attempt here got wrong, both learned from the chain:
@@ -97,9 +97,9 @@ s.note("cross two emission periods — 241,920 blocks, for free")
 # `Buy` is the touch: staking freezes once a claim has an answer (learned by
 # being refused), and buy.gno:43 is the other cheap path through `touch(c)`.
 s.advance_height(120_960, "one emission period")
-s.buy(dave, "orem", 1_000_000)
+s.buy(dave, "bedford", 1_000_000)
 s.advance_height(60_000, "half a period for the budget to accrue against")
-s.buy(erin, "orem", 1_000_000)
+s.buy(erin, "bedford", 1_000_000)
 # NOT asserting a non-zero Reservoir, and the reason is now measured rather than
 # guessed: emission DOES accrue here — 376M over three periods on a bare court,
 # see TestEmissionAccruesWithoutMining. `Reservoir` is the FREE-AND-CLEAR

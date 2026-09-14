@@ -60,46 +60,46 @@ ok("P3 junk rejected", [null,undefined,"",";","x,720,1,0;","hourly,720,1,0;1:2",
 ok("P3 unsorted input sorted", (()=>{const p=parseStakeSeries("hourly,720,9,0;5:1:1,3:2:2");return p.rows[0][0]===3;})());
 ok("P3 zero-total row keeps share null", (()=>{const m=mergeStakeSeries(parseStakeSeries("hourly,720,9,0;3:5:5,5:0:0"),null,NOW);return m.pts[1][1]===null;})());
 ok("merge clamps future epochs to now", (()=>{const m=mergeStakeSeries(parseStakeSeries("hourly,720,999999,0;999999:1:1"),null,NOW);return m.pts[0][0]===NOW;})());
-ok("merge: daily below hourly only", (()=>{const m=serOf("orem/1");
+ok("merge: daily below hourly only", (()=>{const m=serOf("bedford/1");
   const hs=6510*720; const dailyPart=m.pts.filter(p=>p[0]<hs);
   return dailyPart.length===6 && m.pts.length===6+8;})());
 
 // P4: step geometry — no interpolation commands, path not polyline
 LIVE=false;
-const h1=signalChart("orem",1,claims["orem/1"],null,serOf("orem/1"));
+const h1=signalChart("bedford",1,claims["bedford/1"],null,serOf("bedford/1"));
 ok("P4 real branch draws a path", h1.includes('<path class="ln"') && !h1.includes('<polyline class="ln"'));
 const dAttr=(h1.match(/<path class="ln" d="([^"]+)"/)||[])[1]||"";
 ok("P4 step-after only (M/H/V, no L/C in the line)", /^M [\d. -]+(?: H [\d.]+(?: V [\d.]+)?)*$/.test(dAttr));
 ok("P4 area closes to the axis", h1.includes('<path class="ar"') && / Z"><\/path>/.test(h1));
 
 // P5: seam and knee
-ok("P5 orem/1 seam, linear (no knee)", h1.includes('class="seam"'));
+ok("P5 bedford/1 seam, linear (no knee)", h1.includes('class="seam"'));
 const hl=signalChart("ledger",1,claims["ledger/1"],null,serOf("ledger/1"));
 ok("P5 ledger/1 knee engages at Xs=217.3", hl.includes('x1="217.3"'));
-const h2=signalChart("orem",2,claims["orem/2"],null,serOf("orem/2"));
-ok("P5 orem/2 no seam (all within the week)", !h2.includes('class="seam"'));
+const h2=signalChart("bedford",2,claims["bedford/2"],null,serOf("bedford/2"));
+ok("P5 bedford/2 no seam (all within the week)", !h2.includes('class="seam"'));
 
 // P6: freeze — flat to the end, endS frozen
 ok("P6 frozen endS", h2.includes(">frozen<"));
 ok("P6 records-begin event", h1.includes("records begin"));
 
 // P7: fallbacks byte-compatible
-const noSer=signalChart("orem",7,claims["orem/7"],null,null);
+const noSer=signalChart("bedford",7,claims["bedford/7"],null,null);
 ok("P7 demo fallback keeps the synthesized note",
    /illustrative|drawn here, not read from the chain/.test(noSer)
    && /chain (records|keeps) only those three numbers/.test(noSer));
 ok("P7 demo fallback still a polyline", noSer.includes('<polyline class="ln"'));
 LIVE=true;
-const lh=signalChart("orem",2,claims["orem/2"],5000000,null);
+const lh=signalChart("bedford",2,claims["bedford/2"],5000000,null);
 ok("P7 live fallback: ref+band, no line", lh.includes('class="ref"') && lh.includes('class="band"') && !lh.includes('class="ln"'));
-const lhReal=signalChart("orem",2,claims["orem/2"],4800000,serOf("orem/2"));
+const lhReal=signalChart("bedford",2,claims["bedford/2"],4800000,serOf("bedford/2"));
 // THE SOURCE NOTE IS A DISCLOSURE, NOT A LEGEND. On a live claim it described
 // the sampling interval — trivia under a chart whose axis already says what it
 // plots. In demo mode it is the sentence that stops a reader taking sample data
 // for a court's record, so that is the one that stays.
 ok("P7 live real: no source note under a real chart", !lhReal.includes("srcnote"));
 ok("P7 demo real: still says it is a sample", (()=>{ LIVE=false;
-  const dr=signalChart("orem",2,claims["orem/2"],4800000,serOf("orem/2"));
+  const dr=signalChart("bedford",2,claims["bedford/2"],4800000,serOf("bedford/2"));
   LIVE=true; return dr.includes("srcnote") && dr.includes("sample data"); })());
 LIVE=false;
 
@@ -184,23 +184,23 @@ for(const k of Object.keys(claims)){
   // are not short. Same two readings, read from where they live.
   const zoneOf = h => (h.match(/<div class="chartzone">([\s\S]*?)<\/div>/)||["",""])[1]
     .split(/<\/?span>/).map(t=>t.trim()).filter(Boolean);
-  // orem/3 is disputed: a vote close sits days past now.
-  const disp = signalChart("orem",3,claims["orem/3"],NOW,null);
+  // bedford/3 is disputed: a vote close sits days past now.
+  const disp = signalChart("bedford",3,claims["bedford/3"],NOW,null);
   const zd = zoneOf(disp);
   ok("P8b the axis end is not labelled now when the plot runs past now",
      zd.length===2 && zd[1]!=="now" && /^in ≈/.test(zd[1]));
-  // orem/4 is settled: nothing is scheduled, so the edge IS now and still says so.
-  const done = zoneOf(signalChart("orem",4,claims["orem/4"],NOW,null));
+  // bedford/4 is settled: nothing is scheduled, so the edge IS now and still says so.
+  const done = zoneOf(signalChart("bedford",4,claims["bedford/4"],NOW,null));
   ok("P8b ...and still says now when nothing is scheduled ahead",
      done.length===2 && done[1]==="now");
   // The distance named is the distance to the LAST marker, within rounding.
-  const d3 = claims["orem/3"];
+  const d3 = claims["bedford/3"];
   const far = Math.max(NOW, d3.settleAt||0, d3.escrowUntil||0, d3.voteEndsAt||0);
   const want = Math.round(Math.abs(far-NOW)*5/86400*10)/10;
   ok("P8b the distance is the distance to that last marker",
      zd[1] === "in ≈"+want+"d");
   // A dated chart names the edge's date, not today's.
-  const ans = zoneOf(signalChart("orem",2,claims["orem/2"],NOW,serOf("orem/2")));
+  const ans = zoneOf(signalChart("bedford",2,claims["bedford/2"],NOW,serOf("bedford/2")));
   ok("P8b a dated strip stamps the edge, not now",
      / · in ≈/.test(ans[1]) && !/ · now$/.test(ans[1]));
 }
@@ -224,8 +224,8 @@ for(const k of Object.keys(claims)){
   const zone = h => (h.match(/<div class="chartzone">([\s\S]*?)<\/div>/)||["",""])[1]
     .split(/<\/?span>/).map(t=>t.trim()).filter(Boolean);
   LIVE=true;
-  const withTl = zone(signalChart("orem",9,c,5000,SER,TL));
-  const noTl   = zone(signalChart("orem",9,c,5000,SER,null));
+  const withTl = zone(signalChart("bedford",9,c,5000,SER,TL));
+  const noTl   = zone(signalChart("bedford",9,c,5000,SER,null));
   LIVE=false;
   // x0 = min(firstH, ansH). With the chain's answer height that is 3,000, so
   // the window opens on the answer and the strip says how long ago the CHAIN
@@ -258,7 +258,7 @@ for(const k of Object.keys(claims)){
            answer:0, round:1, voteEndsAt:NOWH+86400/5*5,   // five nominal days out
            yesConv:10, noConv:3};
   LIVE=true;
-  const chart = signalChart("orem",9,c,NOWH,{pts:[[4900,60],[4950,62]], firstH:4900},TL);
+  const chart = signalChart("bedford",9,c,NOWH,{pts:[[4900,60],[4950,62]], firstH:4900},TL);
   LIVE=false;
   const zones = (chart.match(/<div class="chartzone">([\s\S]*?)<\/div>/)||["",""])[1]
     .split(/<\/?span>/).map(t=>t.trim()).filter(Boolean);
@@ -287,9 +287,9 @@ for(const k of Object.keys(claims)){
              now:{t:1600000000+1800*DAY, h:5000} };
   const SER={pts:[[4900,60],[4950,62],[4990,64]], firstH:4900};
   LIVE=true;
-  const h=signalChart("orem",9,{title:"T",yesStake:10,noStake:3,statusText:"answered",
+  const h=signalChart("bedford",9,{title:"T",yesStake:10,noStake:3,statusText:"answered",
                                 phase:"answered",answer:0,settleAt:5000+SETTLE_DELAY},5000,SER,TL);
-  const bare=signalChart("orem",9,{title:"T",yesStake:10,noStake:3,statusText:"open",
+  const bare=signalChart("bedford",9,{title:"T",yesStake:10,noStake:3,statusText:"open",
                                    phase:"open"},5000,null,TL);
   LIVE=false;
   const pts=(h.match(/data-hov="([^"]*)"/)||[])[1];
@@ -352,7 +352,7 @@ for(const k of Object.keys(claims)){
   const c={title:"T",yesStake:10,noStake:3,statusText:"answered",phase:"answered",
            answer:0,settleAt:5000+SETTLE_DELAY};
   LIVE=true;
-  const h=signalChart("orem",9,c,5000,{pts:[[4900,60],[4990,64]],firstH:4900},TL);
+  const h=signalChart("bedford",9,c,5000,{pts:[[4900,60],[4990,64]],firstH:4900},TL);
   LIVE=false;
   ok("P8f the axis strip is html, so its ends cannot be placed on each other",
      h.includes('<div class="chartzone">') && !/text class="zone"/.test(h));
@@ -386,7 +386,7 @@ for(const k of Object.keys(claims)){
      && src.includes(".bigchart .tickL.covered{display:none}")
      && /max-width:820px\)\{[\s\S]*?\.bigchart \.tickL\.covered\{display:inline\}/.test(src));
   // and the case itself renders: a claim whose end share sits on the top tick
-  const near=signalChart("orem",9,{title:"T",yesStake:99,noStake:1,statusText:"answered",
+  const near=signalChart("bedford",9,{title:"T",yesStake:99,noStake:1,statusText:"answered",
                                    phase:"answered",answer:0,settleAt:5000+SETTLE_DELAY},5000,null,TL);
   ok("P8f ...and a claim that covers one actually marks it",
      /class="tickL covered"/.test(near));
@@ -441,8 +441,8 @@ for(const k of Object.keys(claims)){
   const ans = Object.assign({}, base, {statusText:"answered", phase:"answered", settleAt:NOWH+2000});
   const dis = Object.assign({}, base, {statusText:"disputed", phase:"disputed",
                                        settleAt:NOWH+2000, round:1, voteEndsAt:NOWH+4000});
-  const mAns = marks(signalChart("orem",9,ans,NOWH,SER,TLA));
-  const mDis = marks(signalChart("orem",9,dis,NOWH,SER,TL));
+  const mAns = marks(signalChart("bedford",9,ans,NOWH,SER,TLA));
+  const mDis = marks(signalChart("bedford",9,dis,NOWH,SER,TL));
   LIVE=false;
   const lAns = resolutionLadder(ans, NOWH, TLA, false, false);
   const lDis = resolutionLadder(dis, NOWH, TL, false, false);
@@ -461,12 +461,12 @@ for(const k of Object.keys(claims)){
 
   // A synthesized chart never calls its window's edge the claim's opening.
   LIVE=false;
-  const synth = marks(signalChart("orem",4,DEMO.claims["orem/4"],NOW,null,
-                                  parseTimeline(DEMO.claims["orem/4"].timeline)));
+  const synth = marks(signalChart("bedford",4,DEMO.claims["bedford/4"],NOW,null,
+                                  parseTimeline(DEMO.claims["bedford/4"].timeline)));
   ok("P8h a synthesized window says window start, not opened",
      synth.some(m=>m.label==="window start"));
   const op = synth.find(m=>m.label==="opened");
-  const tl4 = parseTimeline(DEMO.claims["orem/4"].timeline);
+  const tl4 = parseTimeline(DEMO.claims["bedford/4"].timeline);
   ok("P8h ...and any opened mark it does draw is the chain's own opening",
      !op || (tl4 && tl4.opened && day(op.t)===day(tl4.opened.t)));
 }
@@ -484,14 +484,14 @@ ok("P9 aria recorded history", h1.includes("recorded history"));
 ok("P9 §7.4 sweep", ![h1,h2,hl,noSer,lhReal].some(x=>/backing|redeem|APR|profit|return on|price rises/i.test(x)));
 
 // P10: terminal snap only when live pools differ from the last point
-const snapClaim={...claims["orem/1"], yesStake:60_000_000}; // inst=83.3 vs last 77.4
-const hS=signalChart("orem",1,snapClaim,null,serOf("orem/1"));
+const snapClaim={...claims["bedford/1"], yesStake:60_000_000}; // inst=83.3 vs last 77.4
+const hS=signalChart("bedford",1,snapClaim,null,serOf("bedford/1"));
 const dS=(hS.match(/<path class="ln" d="([^"]+)"/)||[])[1]||"";
 ok("P10 snap riser present", / V [\d.]+$/.test(dS));
 ok("P10 no snap when equal", !/ V [\d.]+$/.test(dAttr.slice(dAttr.lastIndexOf("H"))));
 
 // legacy diagnostics kept (fallback shapes)
-const lh3=signalChart("orem",1,claims["orem/1"],null,null);
+const lh3=signalChart("bedford",1,claims["bedford/1"],null,null);
 console.log("demo no-series:", lh3.includes("synthesized shape")?"note-ok":"missing-note", lh3.includes("NaN")?"NaN!":"clean");
 
 // the clock: dates decide, heights are reference (owner ruling)
@@ -598,7 +598,7 @@ ok("...and still refuses to break inside the side's name",
    where an inline box's is the font's em box, so the display change alone grew
    the tag 17px -> 21.66px and the 320px claim embed 500px -> 503px, failing
    embed_layout.js. line-height:1 reproduces the inline geometry: measured at
-   both #/embed/orem/1 and #/c/orem/3, scrollHeight and the .sbout row match the
+   both #/embed/bedford/1 and #/c/bedford/3, scrollHeight and the .sbout row match the
    inline version exactly. The two declarations only work as a pair, so dropping
    this one silently re-breaks a check in a different file. */
 ok("...at no cost to the line it sits in",

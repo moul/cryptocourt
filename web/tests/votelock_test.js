@@ -89,8 +89,8 @@ ok("no banned words in the disclosure",
    !/backing|redeem\b|profit|APR|odds|price/i.test(MODAL));
 
 // ---- the figures: a missing read prints nothing, never a zero ----
-ok("no figures at all renders nothing", voteLockFigures("orem", null, null, null) === "");
-ok("a zero would-commit is omitted, not printed as 0", voteLockFigures("orem", 0, null, null) === "");
+ok("no figures at all renders nothing", voteLockFigures("bedford", null, null, null) === "");
+ok("a zero would-commit is omitted, not printed as 0", voteLockFigures("bedford", 0, null, null) === "");
 // Format-agnostic on purpose: cc() gives two decimals below ten and one above, so
 // pinning "12.00" pinned the formatter rather than the disclosure.
 // Tags stripped: the symbol is wrapped for colour, the wording is unchanged.
@@ -98,19 +98,19 @@ const bare = h => String(h).replace(/<[^>]*>/g, "");
 // CASE-INSENSITIVE ON THE MARK ONLY. The symbol's canonical spelling is the
 // realm's — court.gno renders KOURT:SYMBOL — and that is still what ccSym and
 // ccText return. What changed is the DISPLAY: the mark is a gold bar reading
-// "Kourt" beside the court's name, so tag-stripped output reads "Kourt:OREM".
+// "Kourt" beside the court's name, so tag-stripped output reads "Kourt:BEDFORD".
 // The colon and the court name are still pinned exactly; only the mark's case
 // is allowed to be a presentation choice.
 ok("a would-commit is quoted in the court's own unit",
-  /this vote would commit [\d,.]+ kourt:OREM/i.test(bare(voteLockFigures("orem", 12_000_000, null, null))));
+  /this vote would commit [\d,.]+ kourt:BEDFORD/i.test(bare(voteLockFigures("bedford", 12_000_000, null, null))));
 ok("an existing commitment is named separately",
-  /already committed by voting: 5\.00 kourt:OREM/i.test(bare(voteLockFigures("orem", null, 5_000_000, null))));
+  /already committed by voting: 5\.00 kourt:BEDFORD/i.test(bare(voteLockFigures("bedford", null, 5_000_000, null))));
 // Zero FREE is meaningful and must show: "nothing is free" is the disclosure.
 ok("zero free-to-bond is shown rather than omitted",
-  /free to bond or deposit right now: 0\.00 kourt:OREM/i.test(bare(voteLockFigures("orem", null, null, 0))));
+  /free to bond or deposit right now: 0\.00 kourt:BEDFORD/i.test(bare(voteLockFigures("bedford", null, null, 0))));
 ok("all three figures can appear together",
   (f => /would commit/.test(f) && /already committed/.test(f) && /free to bond/.test(f))
-    (voteLockFigures("orem", 1_000_000, 2_000_000, 3_000_000)));
+    (voteLockFigures("bedford", 1_000_000, 2_000_000, 3_000_000)));
 
 // ---- the wiring: the row is on the panel that has one ----
 // NOT ON THE BALLOT. I wrote this the other way round first — moving the row onto
@@ -196,18 +196,18 @@ ok("an unknown key is ignored rather than assigned",
 ok("a short q record is skipped rather than half-read",
   parseCommitments("stake:0;vote:0;free:0;q:d:1").q.length===0);
 
-const T = commitmentsTicket(C, "orem");
-ok("no read renders no block", commitmentsTicket(null,"orem")==="");
+const T = commitmentsTicket(C, "bedford");
+ok("no read renders no block", commitmentsTicket(null,"bedford")==="");
 ok("the ticket names all three totals",
   /committed by voting/.test(T) && /committed as stake/.test(T) && /free to bond, deposit or transfer/.test(T));
 ok("the ticket says the free figure is the enforced one", /the figure the (court|realm) enforces/.test(T));
 // The trap: two commitments, one pile. Saying "total" would invite the reader to add.
 ok("with several rows the copy denies the sum", /not their total/.test(T));
 ok("with one row it does NOT say that",
-  !/not their total/.test(commitmentsTicket(parseCommitments("stake:0;vote:5;free:0;q:d:1:1:5"),"orem")));
+  !/not their total/.test(commitmentsTicket(parseCommitments("stake:0;vote:5;free:0;q:d:1:1:5"),"bedford")));
 ok("a claim row shows its claim, an election row shows its election",
   /on claim #1/.test(T)
-  && /#7/.test(commitmentsTicket(parseCommitments("stake:0;vote:5;free:0;q:e:0:7:5"),"orem")));
+  && /#7/.test(commitmentsTicket(parseCommitments("stake:0;vote:5;free:0;q:e:0:7:5"),"bedford")));
 
 ok("the me-page reads it once per court",
   src.includes('CommitmentsOf(${gstr(slug)},${gstr(addr)})'));

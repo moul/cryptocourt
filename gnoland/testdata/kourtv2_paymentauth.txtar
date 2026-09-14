@@ -24,11 +24,11 @@ loadpkg gno.land/r/kourt/kourtv2
 
 gnoland start
 
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args orem -args 'Orem Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args bedford -args 'Bedford Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # --- CONTROL: a DIRECT user call is the sanctioned form and must work -----------
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args orem -send 50000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args bedford -send 50000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # --- THE GUARD: the same buy through a `maketx run` ephemeral realm is refused ---
@@ -42,5 +42,5 @@ package main
 import "gno.land/r/kourt/kourtv2"
 
 func main(cur realm) {
-	kourtv2.Buy(cross(cur), "orem")
+	kourtv2.Buy(cross(cur), "bedford")
 }

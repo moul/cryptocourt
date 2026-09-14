@@ -235,21 +235,21 @@ func TestPublicSuffix(t *testing.T) {
 	a := netip.MustParseAddr("203.0.113.9")
 	const day = 86400
 
-	if h.PublicSuffix(a, "orem", 0) != h.PublicSuffix(a, "orem", day-1) {
+	if h.PublicSuffix(a, "bedford", 0) != h.PublicSuffix(a, "bedford", day-1) {
 		t.Fatal("the tag must be stable within a day")
 	}
-	if h.PublicSuffix(a, "orem", 0) == h.PublicSuffix(a, "orem", day) {
+	if h.PublicSuffix(a, "bedford", 0) == h.PublicSuffix(a, "bedford", day) {
 		t.Fatal("the tag must change across days")
 	}
-	if h.PublicSuffix(a, "orem", 0) == h.PublicSuffix(a, "ipsum", 0) {
+	if h.PublicSuffix(a, "bedford", 0) == h.PublicSuffix(a, "ipsum", 0) {
 		t.Fatal("the tag must differ between courts")
 	}
-	if len(h.PublicSuffix(a, "orem", 0)) != 6 {
-		t.Fatalf("want 6 hex, got %q", h.PublicSuffix(a, "orem", 0))
+	if len(h.PublicSuffix(a, "bedford", 0)) != 6 {
+		t.Fatalf("want 6 hex, got %q", h.PublicSuffix(a, "bedford", 0))
 	}
 	// It must not be the stored key: showing that in public would hand out the
 	// join key for every message a person ever posted.
-	if h.PublicSuffix(a, "orem", 0) == h.Hash(a)[:6] {
+	if h.PublicSuffix(a, "bedford", 0) == h.Hash(a)[:6] {
 		t.Fatal("the public tag must not be a prefix of the stored hash")
 	}
 }

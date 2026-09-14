@@ -25,7 +25,7 @@ func TestTheOperatorsViewOfABadBan(t *testing.T) {
 	ctx := context.Background()
 
 	say := func(ip, body string) (int64, error) {
-		return s.Post(ctx, PostInput{Chain: "dev", Court: "orem", Moniker: ip,
+		return s.Post(ctx, PostInput{Chain: "dev", Court: "bedford", Moniker: ip,
 			Body: body, IPHash: "ip-" + ip, NetHash: "net-" + strings.Split(ip, "/")[0]})
 	}
 
@@ -66,7 +66,7 @@ func TestTheOperatorsViewOfABadBan(t *testing.T) {
 		}
 		t.Logf("status %-20s %s", who, st.State)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 100)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +144,7 @@ func TestTheOperatorsViewOfABadBan(t *testing.T) {
 		}
 	}
 	// And their words are back on screen.
-	msgs, err = s.Recent(ctx, "dev", "orem", 0, 100)
+	msgs, err = s.Recent(ctx, "dev", "bedford", 0, 100)
 	if err != nil {
 		t.Fatal(err)
 	}

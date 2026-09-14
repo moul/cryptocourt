@@ -73,7 +73,7 @@ const HERE = {
   }, HERE);
 
   // ---- the affordance, on the panel ---------------------------------------
-  await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1300));
 
   const link = await page.evaluate(() => {
@@ -156,7 +156,7 @@ const HERE = {
      of those ever shows up here, the page has started reporting where people are
      rather than only which countries they are in. */
   for (const forbidden of ["moniker", "anon", "hello", "ip hash", "hash",
-                           "address", "orem", "covid", "ledger", "annex"]) {
+                           "address", "bedford", "covid", "ledger", "annex"]) {
     ok(`the page does not show "${forbidden.trim()}"`,
        !seen.text.toLowerCase().includes(forbidden),
        JSON.stringify(seen.text.replace(/\s+/g, " ").slice(0, 160)));

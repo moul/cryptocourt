@@ -84,7 +84,7 @@ const MAX_PAGES = 60;
   // Tested with a real wheel rather than scrollBy, because overflow:hidden stops
   // a user scrolling and does not stop a programmatic scroll: the first version
   // of this measured nothing about the fix and reported it broken.
-  await page.evaluate(r => { location.hash = r.slice(1); }, "#/c/orem/3");
+  await page.evaluate(r => { location.hash = r.slice(1); }, "#/c/bedford/3");
   await new Promise(r => setTimeout(r, 500));
   const opened = await page.evaluate(() => {
     const ex = document.querySelector(".exhibits .ex");
@@ -273,7 +273,7 @@ const MAX_PAGES = 60;
   // sent while the router is mid-navigation can be delivered late, and a stray
   // one landing during a later check closes a lightbox that check has just
   // opened. This block closes what it opens by clicking, not by pressing a key.
-  await page.evaluate(() => { location.hash = "/c/orem/3?ex=1"; });
+  await page.evaluate(() => { location.hash = "/c/bedford/3?ex=1"; });
   await new Promise(r => setTimeout(r, 600));
   const deep = await page.evaluate(() => ({open: !!document.querySelector(".lbox"),
                                            hash: location.hash}));
@@ -290,9 +290,9 @@ const MAX_PAGES = 60;
   // Out of range is ignored rather than clamped: a stale link to exhibit 5 of a
   // claim that now shows three should leave the reader on the claim, not
   // silently on a different picture.
-  await page.evaluate(() => { location.hash = "/c/orem/3"; });
+  await page.evaluate(() => { location.hash = "/c/bedford/3"; });
   await new Promise(r => setTimeout(r, 300));
-  await page.evaluate(() => { location.hash = "/c/orem/3?ex=9"; });
+  await page.evaluate(() => { location.hash = "/c/bedford/3?ex=9"; });
   await new Promise(r => setTimeout(r, 600));
   const far = await page.evaluate(() => ({open: !!document.querySelector(".lbox"),
                                           page: !!document.querySelector(".exhibits")}));
@@ -302,7 +302,7 @@ const MAX_PAGES = 60;
   // And one lightbox at a time: opening a second over the first stacks two
   // modals, and which one Escape closes then depends on binding order.
   const stacked = await page.evaluate(async () => {
-    location.hash = "/c/orem/3";
+    location.hash = "/c/bedford/3";
     await new Promise(r => setTimeout(r, 400));
     const open = () => { const e = document.querySelector(".exhibits .ex"); if (e) e.click(); };
     open(); open();
@@ -311,7 +311,7 @@ const MAX_PAGES = 60;
     return n;
   });
   ok("asking for an exhibit twice leaves one lightbox", stacked === 1, String(stacked));
-  await page.evaluate(() => { location.hash = "/c/orem/3"; });
+  await page.evaluate(() => { location.hash = "/c/bedford/3"; });
   await new Promise(r => setTimeout(r, 500));
 
   console.log(`\ncrawled ${visited} route(s); measured ${rows} row(s)`);

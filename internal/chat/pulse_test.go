@@ -22,11 +22,11 @@ func closed(ch <-chan struct{}) bool {
 
 func TestFireWakesOneCourtAndLeavesTheOthersAsleep(t *testing.T) {
 	p := newPulse()
-	orem, _ := p.watch(pulseKey("dev", "orem"))
+	bedford, _ := p.watch(pulseKey("dev", "bedford"))
 	ledger, _ := p.watch(pulseKey("dev", "ledger"))
 
-	p.fire(pulseKey("dev", "orem"))
-	if !closed(orem) {
+	p.fire(pulseKey("dev", "bedford"))
+	if !closed(bedford) {
 		t.Fatal("the court that changed was not woken")
 	}
 	/* A POST IS EXACT, which is the reason posts fire per court at all: they are
@@ -39,14 +39,14 @@ func TestFireWakesOneCourtAndLeavesTheOthersAsleep(t *testing.T) {
 
 func TestTheSameCourtOnTwoChainsIsTwoRooms(t *testing.T) {
 	p := newPulse()
-	dev, _ := p.watch(pulseKey("dev", "orem"))
-	live, _ := p.watch(pulseKey("kourt-1", "orem"))
+	dev, _ := p.watch(pulseKey("dev", "bedford"))
+	live, _ := p.watch(pulseKey("kourt-1", "bedford"))
 
-	p.fire(pulseKey("dev", "orem"))
+	p.fire(pulseKey("dev", "bedford"))
 	if !closed(dev) {
-		t.Fatal("dev/orem was not woken")
+		t.Fatal("dev/bedford was not woken")
 	}
-	// pulseKey's own comment: "orem" on dev and "orem" on kourt-1 are two rooms.
+	// pulseKey's own comment: "bedford" on dev and "bedford" on kourt-1 are two rooms.
 	// Without the chain in the key they would be one, and a dev post would wake
 	// every reader on the live chain.
 	if closed(live) {
@@ -56,7 +56,7 @@ func TestTheSameCourtOnTwoChainsIsTwoRooms(t *testing.T) {
 
 func TestFireAllWakesEveryWaiterThroughTheGlobalChannelOnly(t *testing.T) {
 	p := newPulse()
-	orem, g1 := p.watch(pulseKey("dev", "orem"))
+	bedford, g1 := p.watch(pulseKey("dev", "bedford"))
 	ledger, g2 := p.watch(pulseKey("dev", "ledger"))
 
 	p.fireAll()
@@ -70,14 +70,14 @@ func TestFireAllWakesEveryWaiterThroughTheGlobalChannelOnly(t *testing.T) {
 	   this design exists to remove.
 	   This is the assertion that would fail if somebody "fixed" fireAll by
 	   closing the per-court map too, which reads like thoroughness. */
-	if closed(orem) || closed(ledger) {
+	if closed(bedford) || closed(ledger) {
 		t.Fatal("a global wake also closed a per-court channel; every waiter wakes twice")
 	}
 }
 
 func TestAWaiterArrivingAfterAWakeGetsTheNextOneNotASpentChannel(t *testing.T) {
 	p := newPulse()
-	key := pulseKey("dev", "orem")
+	key := pulseKey("dev", "bedford")
 	first, firstG := p.watch(key)
 
 	p.fire(key)

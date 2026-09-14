@@ -114,7 +114,7 @@ stdout 'false'
 # second copy of the one above. Nothing anywhere reached it: widening the check to
 # `> 2` survives the gno suite (which cannot arm at all) and survived both of these
 # files (which never held two courts).
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args orem -args 'Orem Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args bedford -args 'Bedford Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtCount()"
 stdout '\(2 int\)'

@@ -14,7 +14,7 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
-const ROUTES = ["#/", "#/about", "#/c/orem", "#/c/orem/11", "#/me", "#/needs", "#/c/orem/curate"];
+const ROUTES = ["#/", "#/about", "#/c/bedford", "#/c/bedford/11", "#/me", "#/needs", "#/c/bedford/curate"];
 
 (async () => {
   const browser = await puppeteer.launch({headless: 'new'});
@@ -60,7 +60,7 @@ const ROUTES = ["#/", "#/about", "#/c/orem", "#/c/orem/11", "#/me", "#/needs", "
      for "receive" anywhere passes on a button that says nothing at all — the
      dialogs alone use the word twice — which is how a vocabulary change quietly
      becomes a deletion. So the verb is read off the control it belongs to. */
-  await page.goto(PAGE + "#/c/orem", {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + "#/c/bedford", {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 700));
   const says = await page.evaluate(() => {
     const b = document.querySelector("#buyactions .btn.primary") || document.querySelector("#buyactions .btn");

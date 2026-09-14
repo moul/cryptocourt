@@ -1348,7 +1348,7 @@ print("\ncheck-demo-physics")
 # lifetime, and no test noticed.
 control("a demo conviction above the realm's ceiling", WEBPAGE,
         "convYes:439774", "convYes:439774000",
-        "orem/1", argv=["python3", PHYSICS])
+        "bedford/1", argv=["python3", PHYSICS])
 # Fail CLOSED when the realm moves under it. The guard's whole design claim is
 # that it READS the constants rather than copying them ("a check that hardcodes
 # the number it is checking only pins the moment it was written"), and the cost of

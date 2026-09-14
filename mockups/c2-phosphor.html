@@ -1,0 +1,909 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phosphor burn — Kourt concept</title>
+<style>/* The site's real stylesheet, captured so each concept overrides it rather than
+   reinventing it. Regenerate with mockups/_capture.js. Not committed. */
+
+/* ============================================================================
+   Kourt overlay — a presentation layer over the r/kourt/kourtv2 realm.
+   The chain carries all the information (every screen here can be served by the
+   realm's own Render); this overlay only makes it prettier, and every button is
+   a signable gnoweb transaction link, never a private API. Self-contained: no
+   external fonts, scripts, or styles — it runs from a file:// or any static host.
+   ========================================================================== */
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body,h1,h2,h3,h4,p,ul,ol,figure,dl,dd{margin:0}
+ul[role=list]{list-style:none;padding:0}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:inherit}
+img,svg{display:block;max-width:100%}
+
+:root{
+  --paper:#eaeef1; --surface:#f7f9fa; --surface-2:#e2e8ec; --inset:#e2e8ec;
+  --ink:#16202a; --ink-2:#4a5b68; --muted:#56646f;
+  --line:#dbe3e8; --line-2:#c8d2d9;
+  --accent:#2e3a7d; --accent-2:#24306b; --accent-wash:#dfe3f2; --accent-ink:#fff;
+  --yes:#1c6551; --yes-wash:#d8e7e1; --no:#93362b; --no-wash:#f0dcd8; --contra:#d92d20; --contra-wash:#fbe0dd;
+  --escrow:#7d5c0f; --escrow-wash:#f0e6cd; --void:#74848f; --void-wash:#e2e8ec;
+  --good:#1c6551;
+  --shadow-sm:0 1px 2px rgba(27,27,33,.05);
+  --shadow:0 1px 2px rgba(27,27,33,.05), 0 10px 30px -16px rgba(27,27,33,.22);
+  /* NEON, OFF. Every glow in this file is a token, so the light theme turns
+     them all off in one place rather than each rule needing a theme guard.
+     Glow on white paper is smudge, not light. */
+  --glow-a:none; --glow-y:none; --glow-n:none; --glow-e:none;
+  --trace:none; --edge:transparent; --lip:none; --gridline:transparent;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,system-ui,sans-serif;
+  --mono:"SF Mono","JetBrains Mono","Cascadia Code",ui-monospace,Menlo,Consolas,monospace;
+  --r:3px; --r-sm:3px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#11171c; --surface:#171f26; --surface-2:#1d2731; --inset:#0d1317;
+    --ink:#e6edf2; --ink-2:#a3b2bd; --muted:#8a99a4;
+    --line:#212b33; --line-2:#2b3843;
+    --accent:#9aa8ee; --accent-2:#b3bef3; --accent-wash:#1e2545; --accent-ink:#11171c;
+    --yes:#6fc0a5; --yes-wash:#12302a; --no:#e08b7c; --no-wash:#351a16; --contra:#ff6b5e; --contra-wash:#3a1512;
+    --escrow:#d7b264; --escrow-wash:#2e2512; --void:#7a8994; --void-wash:#1a232b;
+    --good:#6fc0a5;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px -18px rgba(0,0,0,.7);
+    /* NEON, ON — and kept to the things that carry information: the traces on
+       the chart, the stake bar, the state pills, the focused control. Nothing
+       animates and nothing decorative glows, because a UI that pulses is a toy
+       and this one is a record. Each is one shadow, no stacked blurs.
+       0 0 Npx: a halo with no offset reads as emitted light rather than as a
+       drop shadow, which is the whole difference between Tron and a bevel. */
+    /* TURNED UP. The first pass was invisible: measured side by side against the
+       previous build, the only perceptible difference was a faint halo on one
+       dot. "Subtle" has to mean restrained-but-present, not absent — so the
+       radius roughly doubles, the opacity goes up by half, and the traces get a
+       second wider halo underneath the tight one. Two shadows is what makes it
+       read as emitted light rather than a blurred edge. */
+    --glow-a:0 0 8px rgba(154,168,238,.55), 0 0 22px rgba(154,168,238,.22);
+    --glow-y:0 0 8px rgba(111,192,165,.60), 0 0 22px rgba(111,192,165,.26);
+    --glow-n:0 0 8px rgba(224,139,124,.55), 0 0 22px rgba(224,139,124,.22);
+    --glow-e:0 0 8px rgba(215,178,100,.50), 0 0 20px rgba(215,178,100,.20);
+    --trace:drop-shadow(0 0 3px rgba(179,190,243,.95)) drop-shadow(0 0 10px rgba(154,168,238,.55));
+    --edge:rgba(179,190,243,.9);
+    /* A lit top edge on a panel, so a card reads as a slab with light on it. */
+    --lip:inset 0 1px 0 rgba(179,190,243,.16);
+    /* The faintest grid. Tron's floor, at an opacity where it is texture rather
+       than pattern — it must never compete with a number. */
+    --gridline:rgba(154,168,238,.055);
+  }
+}
+:root[data-theme=light]{
+  --paper:#eaeef1; --surface:#f7f9fa; --surface-2:#e2e8ec; --inset:#e2e8ec;
+  --ink:#16202a; --ink-2:#4a5b68; --muted:#56646f; --line:#dbe3e8; --line-2:#c8d2d9;
+  --accent:#2e3a7d; --accent-2:#24306b; --accent-wash:#dfe3f2; --accent-ink:#fff;
+  --yes:#1c6551; --yes-wash:#d8e7e1; --no:#93362b; --no-wash:#f0dcd8; --contra:#d92d20; --contra-wash:#fbe0dd;
+  --escrow:#7d5c0f; --escrow-wash:#f0e6cd; --void:#74848f; --void-wash:#e2e8ec; --good:#1c6551;
+  --shadow-sm:0 1px 2px rgba(27,27,33,.05); --shadow:0 1px 2px rgba(27,27,33,.05), 0 10px 30px -16px rgba(27,27,33,.22);
+  --glow-a:none; --glow-y:none; --glow-n:none; --glow-e:none;
+  --trace:none; --edge:transparent; --lip:none; --gridline:transparent;
+}
+:root[data-theme=dark]{
+  --paper:#11171c; --surface:#171f26; --surface-2:#1d2731; --inset:#0d1317;
+  --ink:#e6edf2; --ink-2:#a3b2bd; --muted:#8a99a4; --line:#212b33; --line-2:#2b3843;
+  --accent:#9aa8ee; --accent-2:#b3bef3; --accent-wash:#1e2545; --accent-ink:#11171c;
+  --yes:#6fc0a5; --yes-wash:#12302a; --no:#e08b7c; --no-wash:#351a16; --contra:#ff6b5e; --contra-wash:#3a1512;
+  --escrow:#d7b264; --escrow-wash:#2e2512; --void:#7a8994; --void-wash:#1a232b; --good:#6fc0a5;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px -18px rgba(0,0,0,.7);
+  --glow-a:0 0 8px rgba(154,168,238,.55), 0 0 22px rgba(154,168,238,.22);
+  --glow-y:0 0 8px rgba(111,192,165,.60), 0 0 22px rgba(111,192,165,.26);
+  --glow-n:0 0 8px rgba(224,139,124,.55), 0 0 22px rgba(224,139,124,.22);
+  --glow-e:0 0 8px rgba(215,178,100,.50), 0 0 20px rgba(215,178,100,.20);
+  --trace:drop-shadow(0 0 3px rgba(179,190,243,.95)) drop-shadow(0 0 10px rgba(154,168,238,.55));
+  --edge:rgba(179,190,243,.9);
+  --lip:inset 0 1px 0 rgba(179,190,243,.16);
+  --gridline:rgba(154,168,238,.055);
+}
+
+body{
+  /* THE FLOOR. Two 1px lines on a 44px cell, at an opacity where it is texture
+     and not pattern — a grid you can read a number through. It has to come
+     AFTER the `background:` shorthand and inside the same rule: declared
+     earlier in the sheet, the shorthand below resets background-image and the
+     grid silently never paints, which is exactly what happened the first time.
+     background-attachment:fixed so it does not scroll with the content and beat
+     against the docket rows. --gridline is transparent in the light theme, so
+     this costs nothing there. */
+  background:var(--paper); color:var(--ink); font-family:var(--sans);
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size:44px 44px; background-attachment:fixed;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  display:grid; grid-template-columns:clamp(230px,22vw,290px) 1fr;
+  grid-template-rows:auto 1fr; min-height:100vh;
+}
+.tnum{font-variant-numeric:tabular-nums}
+code,.mono{font-family:var(--mono)}
+
+/* ---- left rail ---------------------------------------------------------- */
+.rail{
+  grid-row:1/-1; border-right:1px solid var(--line); background:var(--surface);
+  display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow:auto;
+}
+.brand{padding:22px 22px 16px; border-bottom:1px solid var(--line)}
+.brand .mark{display:flex; align-items:center; gap:10px; text-decoration:none}
+.brand .scale{font-size:26px; filter:grayscale(.2)}
+.brand h1{font-family:var(--serif); font-size:22px; font-weight:600; letter-spacing:-.01em; line-height:1.05}
+.brand .tag{color:var(--muted); font-size:12.5px; margin-top:6px; letter-spacing:.02em}
+.nav{padding:14px 12px; display:flex; flex-direction:column; gap:2px}
+.nav a{
+  display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:var(--r-sm);
+  text-decoration:none; color:var(--ink-2); font-size:14px; font-weight:500;
+}
+.nav a .g{width:18px; text-align:center; opacity:.8}
+.nav a:hover{background:var(--surface-2); color:var(--ink)}
+/* The lit edge. A filled block says "selected"; a bright rule down its leading
+   edge says it, and looks like a circuit. inset so it costs no layout. */
+.nav a.on{background:var(--accent-wash); color:var(--accent-2); font-weight:600;
+  box-shadow:inset 2px 0 0 var(--edge), var(--glow-a)}
+.nav .sec{padding:14px 12px 5px; font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--muted)}
+.rail .foot{margin-top:auto; padding:14px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:10px}
+
+/* ---- node + theme controls --------------------------------------------- */
+.node{font-size:12px}
+.node .row{display:flex; align-items:center; gap:7px; margin-bottom:7px}
+.dot{width:8px; height:8px; border-radius:50%; background:var(--void); flex:none}
+.dot.live{background:var(--good)} .dot.demo{background:var(--escrow)}
+.node select,.node input{
+  width:100%; font:inherit; font-size:12px; color:var(--ink); background:var(--inset);
+  border:1px solid var(--line-2); border-radius:var(--r); padding:6px 8px;
+}
+.node input.mono{font-family:var(--mono); font-size:11px}
+.node label{color:var(--muted); display:block; margin:6px 0 3px}
+.themebtn{display:flex; align-items:center; gap:8px; color:var(--ink-2); font-size:12.5px; padding:2px}
+.themebtn:hover{color:var(--ink)}
+
+/* ---- main --------------------------------------------------------------- */
+.main{grid-column:2; grid-row:2; min-width:0; padding:34px clamp(20px,4vw,56px) 90px; max-width:1080px}
+.crumbs{font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-bottom:18px; display:flex; gap:7px; flex-wrap:wrap; align-items:center}
+.seal{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; border:1px solid var(--accent); color:var(--accent); border-radius:var(--r); padding:4px 8px; white-space:nowrap; vertical-align:middle}
+.crumbs a{text-decoration:none; color:var(--ink-2)} .crumbs a:hover{color:var(--accent-2)}
+.crumbs .sep{opacity:.5}
+
+/* These two are PROGRAMMATIC SCROLL TARGETS, not tab stops — the page moves
+   focus to them so a screen reader lands in the right place, and they suppress
+   the ring for that reason. The glow added to :focus-visible leaked straight
+   onto them: a claim title wearing a neon box for no reason the reader can
+   explain. Whatever :focus-visible grows, these must cancel all of it. */
+.page-h:focus,.page-h:focus-visible{outline:none; box-shadow:none}
+#resolution:focus,#resolution:focus-visible{outline:none; box-shadow:none}
+.page-h{font-family:var(--serif); font-size:clamp(26px,3.4vw,36px); font-weight:600; letter-spacing:-.015em; line-height:1.08; text-wrap:balance; overflow-wrap:anywhere}
+.page-sub{color:var(--ink-2); margin-top:8px; max-width:66ch}
+.lead-row{display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap}
+
+section{margin-top:34px}
+/* The section rule starts lit at the left and fades to nothing, so a page of
+   them reads as etched rather than ruled. border-image, so the border box and
+   every existing measurement stay exactly as they were. */
+.sec-h{font:600 11px/1 var(--sans); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line-2); padding-bottom:6px; margin-bottom:10px; display:flex; align-items:baseline; gap:10px;
+  border-image:linear-gradient(90deg, var(--edge), var(--line-2) 22%, transparent) 1}
+.sec-h .count{font-family:var(--mono); font-size:11px; color:var(--ink-2); font-weight:500; letter-spacing:0; text-transform:none}
+
+/* cards + grids */
+.grid{display:grid; gap:14px}
+.grid.courts{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.grid.stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; padding:1px; background:transparent; border:none}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:18px; box-shadow:var(--shadow-sm); text-decoration:none; color:inherit; display:block;
+}
+a.card{transition:border-color .12s}
+a.card:hover{border-color:var(--line-2)}
+.card .ct-name{font-family:var(--serif); font-size:19px; font-weight:600; letter-spacing:-.01em}
+.card .ct-meta{color:var(--muted); font-size:13px; margin-top:4px}
+.card .ct-price{display:flex; gap:16px; margin-top:14px; padding-top:13px; border-top:1px solid var(--line)}
+.kv .k{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
+.kv .v{font-size:16px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:2px}
+.kv .v small{font-weight:500; color:var(--ink-2); font-size:12px}
+
+.stat{background:var(--surface); border:none; border-radius:0; padding:12px 14px; box-shadow:0 0 0 1px var(--line-2)}
+.stat .k{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
+.stat .v{font-family:var(--mono); font-size:18px; font-weight:500; font-variant-numeric:tabular-nums; margin-top:6px}
+.stat .v small,.stat .sub{font-size:12px; color:var(--ink-2); font-weight:500}
+.stat .sub{margin-top:3px}
+
+/* pills / status */
+.pill{
+  display:inline-flex; align-items:center; gap:6px; font:600 10.5px/1.4 var(--sans);
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:4px 7px; border-radius:2px; background:transparent; color:var(--ink-2);
+  border:1px solid var(--line-2); white-space:nowrap;
+}
+.pill .g{font-size:10px}
+.pill.yes{background:var(--yes-wash); color:var(--yes); border-color:var(--yes)}
+.pill.no{background:var(--no-wash); color:var(--no); border-color:var(--no)}
+/* A pill is a state, so it emits in that state's colour. --glow-* is `none` in
+   the light theme, which is why these need no theme guard. */
+.pill.open,.pill.good{box-shadow:var(--glow-y)}
+.pill.no,.pill.contra{box-shadow:var(--glow-n)}
+.pill.escrow{box-shadow:var(--glow-e)}
+.pill.escrow{background:var(--escrow-wash); color:var(--escrow); border-color:var(--escrow)}
+.pill.void{background:transparent; color:var(--muted); border-color:var(--line-2)}
+.pill.contra{background:var(--contra-wash); color:var(--contra); border-color:var(--contra)}
+.pill.open{background:var(--escrow-wash); color:var(--escrow); border-color:var(--escrow)}
+.pill.good{background:var(--yes-wash); color:var(--good); border-color:var(--good)}
+
+/* docket list */
+.docket{border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--surface)}
+.docket a{display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; padding:14px 18px; text-decoration:none; border-top:1px solid var(--line)}
+.docket a:first-child{border-top:none}
+.docket a:hover{background:var(--surface-2)}
+.docket .t{font-weight:560; color:var(--ink); line-height:1.35}
+.docket .m{font-size:12.5px; color:var(--muted); margin-top:3px; display:flex; gap:12px; flex-wrap:wrap}
+.docket .rt{display:flex; align-items:center; gap:10px}
+.docket a.crow{grid-template-columns:52px minmax(0,1fr) 64px 124px; align-items:baseline; padding:11px 14px}
+.docket a.crow .px{justify-self:end}
+.docket a.crow .pill{justify-self:end}
+.docket .t{overflow-wrap:anywhere}
+.docket a.courtrow{grid-template-columns:minmax(52px,auto) minmax(0,1fr) auto 124px; align-items:center}
+.docket a.courtrow .id{max-width:110px; overflow:hidden; text-overflow:ellipsis}
+.docket a.crow .t{font-family:var(--serif); font-size:15.5px; font-weight:600}
+.docket .id{font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap; display:flex; align-items:center; gap:6px}
+.icn{width:14px; height:12px; flex:none}
+.courtrow .icn{color:var(--escrow)}
+.cols{display:grid; grid-template-columns:minmax(0,1fr) 288px; gap:22px; margin-top:20px; align-items:start}
+.panel h4{font:600 11px/1 var(--sans); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:0 0 10px}
+.docket a.folderrow{background:var(--accent-wash)}
+.docket a.folderrow:hover{background:var(--accent-wash); filter:brightness(.985)}
+.docket a.folderrow .id .icn{color:var(--accent)}
+.docket a.folderrow .t{color:var(--accent-2)}
+.px{display:flex; flex-direction:column; align-items:flex-end; min-width:64px}
+.px b{font-family:var(--mono); font-size:13px; font-weight:500; font-variant-numeric:tabular-nums}
+.px small{font-size:10px; color:var(--muted); letter-spacing:.05em}
+.spark{width:60px; height:16px; display:block; margin-bottom:2px}
+.spark polyline{fill:none; stroke:var(--muted); stroke-width:1.5; stroke-linejoin:round}
+.docket a.crow:hover .spark polyline{stroke:var(--accent)}
+.spark .base{stroke:var(--line); stroke-width:1}
+.lead-row{border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:16px}
+
+/* buttons / txlinks */
+.actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:9px 16px; border-radius:var(--r-sm);
+  background:var(--surface); border:1px solid var(--line-2); color:var(--ink); font-weight:560; font-size:14px;
+  text-decoration:none; transition:border-color .12s, background .12s;
+}
+.btn:hover{border-color:var(--accent); background:var(--accent-wash)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-2)}
+.btn.yes{border-color:var(--yes); color:var(--yes)} .btn.yes:hover{background:var(--yes-wash)}
+.btn.no{border-color:var(--no); color:var(--no)} .btn.no:hover{background:var(--no-wash)}
+/* On hover only: a page of permanently glowing buttons is a slot machine. */
+.btn.yes:hover{box-shadow:var(--glow-y)} .btn.no:hover{box-shadow:var(--glow-n)}
+/* the side an embed's button asked for — a ring, not a pre-filled form */
+.btn.picked{box-shadow:0 0 0 3px var(--accent-wash); outline:2px solid var(--accent-2)}
+.btn .g{font-size:13px; opacity:.85}
+.btn small{font-weight:500; color:var(--muted); font-size:11.5px}
+
+/* the four-things primer */
+.primer{background:linear-gradient(180deg,var(--surface),var(--surface)); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:var(--r); padding:16px 20px}
+.primer h3{font-family:var(--serif); font-size:15px; margin-bottom:10px; color:var(--accent-2)}
+.primer ol{margin:0; padding-left:20px; display:grid; gap:7px}
+.primer li{font-size:13.5px; color:var(--ink-2)} .primer li b{color:var(--ink); font-weight:600}
+
+/* stake panel + ratio series */
+.stakewrap{display:grid; grid-template-columns:1.3fr 1fr; gap:16px}
+/* ---- embed mode -------------------------------------------------------
+   Polymarket serves embeds from a separate host (embed.polymarket.com/market
+   ?market=<slug>&theme=&features=) at a default 400x400 in a <figure>. This
+   page cannot do that: web/README.md promises one self-contained file that runs
+   from file:// and makes no network calls in demo mode, so there is no second
+   host to serve. The equivalent is a ROUTE — #/embed/<slug>/<id> — which the
+   same file answers, so an embed needs no infrastructure at all and a reader
+   who saves the file keeps working embeds.
+   The chrome goes away: an iframe has no room for a sidebar, and a nav inside
+   someone else's article is a trap rather than a courtesy. */
+html.embed, html.embed body{margin:0; padding:0; background:var(--paper)}
+html.embed body{display:block; min-height:0}
+html.embed .rail, html.embed #nav{display:none !important}
+/* The page banner is a paragraph; an embed is a fixed box. It would overflow,
+   so the card carries the short form (.esrc) and this stays out of the way. */
+html.embed #tcbanner{display:none !important}
+html.embed .main{grid-column:1; grid-row:1; max-width:none; padding:0}
+html.embed #tcbanner{grid-column:1; padding:0}
+.emb{display:flex; flex-direction:column; gap:9px; padding:14px 15px;
+  border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
+  min-height:calc(100vh - 2px); box-sizing:border-box}
+/* NOWRAP, not wrap. A court name is whatever its creator typed; wrapping turned
+   a one-line head into three and pushed the card 9px past the iframe it was
+   sized for — a scrollbar in somebody else's article. One line, and the name is
+   the part that gives way. */
+.emb .ehead{display:flex; align-items:baseline; gap:8px; flex-wrap:nowrap; overflow:hidden;
+  font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--muted)}
+.emb .ehead .ename{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
+/* Inherit, like Polymarket's: the card should read as a card, not as a page of
+   blue links. The affordance arrives on hover, and the footer link stays the
+   one explicit call to action. */
+.emb .eacts{display:flex; gap:8px; margin-top:2px}
+.emb .eact{flex:1 1 0; min-width:0; display:flex; align-items:baseline; justify-content:center; gap:7px;
+  padding:8px 6px; border-radius:var(--r-sm); text-decoration:none; font-size:12.5px;
+  border:1px solid transparent; white-space:nowrap; overflow:hidden}
+.emb .eact b{font-weight:600}
+.emb .eact .epc{font-variant-numeric:tabular-nums; opacity:.85}
+.emb .eact.y{color:var(--yes); background:var(--yes-wash); border-color:var(--yes)}
+.emb .eact.n{color:var(--no);  background:var(--no-wash);  border-color:var(--no)}
+.emb .eact:hover{filter:brightness(1.06); text-decoration:underline; text-underline-offset:2px}
+.emb .elink{color:inherit; text-decoration:none}
+.emb .elink:hover{text-decoration:underline; text-underline-offset:2px}
+.emb .etitle .elink:hover{color:var(--accent-2)}
+.emb .ehead > :not(.ename){flex:0 0 auto}
+/* Four lines, then the browser's own ellipsis. An embed is a FIXED box on
+   someone else's page — it cannot grow to fit, so an unbounded title either
+   overflows into a scrollbar or forces every card to be sized for the longest
+   claim anyone might ever file. Clamping bounds the card, and the ellipsis is
+   what keeps it honest: a cut sentence is MARKED as cut, and "Open on Kourt"
+   is on the same card. The share clip does the same thing for the same reason. */
+.emb .etitle{font-family:var(--serif,inherit); font-size:17px; line-height:1.3; color:var(--ink);
+  font-weight:600; margin:0; display:-webkit-box; -webkit-line-clamp:4;
+  -webkit-box-orient:vertical; overflow:hidden}
+.emb .estat{font-size:12.5px; color:var(--ink-2)}
+/* The claim's own events, dated. Wraps rather than truncating: a claim that has
+   been answered AND disputed AND reopened has more history than one line, and
+   the history is the point. */
+.emb .enopath{font-size:11px; color:var(--muted); font-style:italic}
+.emb .etrail{display:flex; flex-wrap:wrap; gap:2px 10px; font-size:11px; color:var(--ink-2)}
+.emb .etrail span{white-space:nowrap}
+.emb .etrail b{font-weight:600; color:var(--muted); font-weight:500}
+.emb .etrail .fut{color:var(--muted)}
+.emb .etrail .fut b{font-style:italic}
+.emb .esparkwrap{display:flex; flex-direction:column; gap:3px}
+.emb .espark{width:100%; height:56px; display:block; overflow:visible}
+.emb .espan{display:flex; justify-content:space-between; gap:6px; font-family:var(--mono);
+  font-size:9.5px; letter-spacing:.02em; color:var(--muted); white-space:nowrap; overflow:hidden}
+.emb .espan .efrozelab{overflow:hidden; text-overflow:ellipsis; min-width:0}
+.emb .espark .e25{stroke:var(--line-2); stroke-width:1; stroke-dasharray:2 5; opacity:.7;
+  vector-effect:non-scaling-stroke}
+.emb .espark .efroze{stroke:var(--muted); stroke-width:1; stroke-dasharray:3 3;
+  vector-effect:non-scaling-stroke}
+.emb .espark .e50{stroke:var(--line-2); stroke-width:1; stroke-dasharray:3 3;
+  vector-effect:non-scaling-stroke}
+.emb .espark .eline{fill:none; stroke:var(--good); stroke-width:2;
+  vector-effect:non-scaling-stroke; stroke-linejoin:round}
+.emb .espark .efill{fill:var(--good); opacity:.10; stroke:none}
+.emb .espark .edot{fill:var(--good); vector-effect:non-scaling-stroke}
+.emb .efoot{margin-top:auto; display:flex; justify-content:space-between; align-items:baseline;
+  gap:10px; font-size:11.5px}
+.emb .efoot a{color:var(--accent-2); text-decoration:none; font-weight:600}
+.emb .efoot a:hover{text-decoration:underline}
+.emb .ewhen{font-family:var(--mono); font-size:10.5px; color:var(--muted)}
+/* --escrow is already this page's "provisional / not the real thing" colour —
+   it is what paints the demo dot in the rail — so the note reads the same way
+   in both themes without a new token. */
+.emb .esrc{font-family:var(--mono); font-size:10px; letter-spacing:.04em; line-height:1.35;
+  color:var(--escrow); background:var(--escrow-wash); border:1px solid var(--escrow);
+  border-radius:var(--r-sm); padding:3px 6px; align-self:flex-start; max-width:100%}
+/* The stake split — full chart width, so the proportion is read rather than computed. */
+.sbar{display:flex; width:100%; height:14px; margin:12px 0 0; border-radius:var(--r);
+  overflow:hidden; border:1px solid var(--line)}
+.sbar>div{min-width:0}
+/* Each side lights in its own colour, and inset:0 0 0 1px puts a bright hairline
+   INSIDE the segment so the two meet at a lit seam rather than a butt joint.
+   The glow is the side's own hue, so which side is ahead is legible from the
+   light alone before any number is read. */
+.sbar .sbY{background:var(--yes); box-shadow:var(--glow-y), inset 0 1px 0 rgba(255,255,255,.14)}
+.sbar .sbN{background:var(--no);  box-shadow:var(--glow-n), inset 0 1px 0 rgba(255,255,255,.14)}
+.sbar.empty{height:auto; padding:7px 10px; justify-content:center; background:var(--surface);
+  color:var(--muted); font-size:12px}
+.sbout{display:flex; justify-content:space-between; gap:14px; margin-top:6px; font-size:12.5px; flex-wrap:wrap}
+.sbout .y{color:var(--yes)} .sbout .n{color:var(--no); text-align:right}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px;
+  box-shadow:var(--lip)}
+.bigchart{margin:2px 0 6px}
+.bigchart figcaption{display:flex; justify-content:space-between; gap:12px; font-size:12px; color:var(--muted); margin-bottom:6px; align-items:baseline}
+.bigchart figcaption b{font-family:var(--mono); font-weight:500; color:var(--ink)}
+.bigchart svg{display:block; width:100%; height:auto; overflow:visible}
+.bigchart .grid{stroke:var(--line); stroke-width:1}
+.bigchart .axis{stroke:var(--line-2); stroke-width:1}
+.bigchart .mid{stroke:var(--line-2); stroke-width:1; stroke-dasharray:2 3}
+/* The recorded path reads as a light trace rather than a drawn line. filter on
+   the PATH only, not the <svg>: on the svg it would halo the axes, the labels
+   and the gridlines too, and a glowing axis is decoration. */
+.bigchart .ln{fill:none; stroke:var(--accent-2); stroke-width:2.25; stroke-linejoin:round; stroke-linecap:round;
+  filter:var(--trace)}
+.bigchart .ar{fill:var(--accent); opacity:.1}
+.bigchart .seam{stroke:var(--line-2); stroke-width:1; stroke-dasharray:1 3}
+.bigchart .ref{stroke:var(--accent); stroke-width:1.5; stroke-dasharray:5 4; opacity:.75}
+.bigchart .band{stroke:var(--accent); stroke-width:4; opacity:.45; stroke-linecap:round}
+.bigchart .wash{fill:var(--escrow-wash); opacity:.55}
+.bigchart .washf{fill:var(--void-wash); opacity:.5}
+.bigchart .tickL{font:10px var(--mono); fill:var(--muted)}
+.bigchart .zone{font:9.5px var(--sans); fill:var(--muted); letter-spacing:.08em; text-transform:uppercase}
+.bigchart .evt{stroke:var(--ink-2); stroke-width:1; stroke-dasharray:2 2}
+.bigchart .evtDot{fill:var(--ink-2)}
+.bigchart .evtL{font:10px var(--sans); fill:var(--ink-2)}
+.bigchart .hit{fill:transparent}
+.bigchart .hit:hover + .evtDot, .bigchart .hit:focus + .evtDot{r:5}
+.bigchart .note{font:10.5px var(--sans); fill:var(--muted)}
+/* The "now" dot is where the trace terminates — the one point a reader looks
+   for, so it is the one that emits. */
+.bigchart .end{fill:var(--accent); stroke:var(--surface); stroke-width:2; filter:var(--trace)}
+.bigchart .endL{font:600 12px var(--mono); fill:var(--accent)}
+.bigchart .endS{font:9.5px var(--sans); fill:var(--muted)}
+.srcnote{font-size:10.5px; color:var(--muted); margin:6px 0 0}
+.chartchips{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 12px; font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
+.chartchips span{border:1px solid var(--line-2); border-radius:2px; padding:3px 7px; background:var(--surface)}
+
+/* stake ticket */
+.ticket{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px}
+.ticket h3{font-family:var(--serif); font-size:17px; margin-bottom:4px}
+.ticket .hint{font-size:12.5px; color:var(--muted); margin-bottom:14px}
+/* A ticket row is a label and what it says. The label is the bold thing on the
+   LEFT and the text reads left-to-right from its own aligned column: two real
+   grid tracks with a gutter, because space-between put the emphasis on the
+   right, ragged-left, and closed the gap entirely once a row's text filled it. */
+.ticket .line{display:grid; grid-template-columns:minmax(0,20ch) minmax(0,1fr); column-gap:24px;
+  align-items:baseline; padding:9px 0; border-top:1px dashed var(--line); font-size:14px}
+.ticket .line:first-of-type{border-top:none}
+.ticket .line>*:first-child{font-weight:600; color:var(--ink)}
+.ticket .line .r{font-weight:400; color:var(--ink-2); text-align:left; font-variant-numeric:tabular-nums}
+.ticket .line .r b{color:var(--ink)}
+.ticket .line.spent>*:first-child{color:var(--muted); font-weight:400}
+.ticket .line.spent .r{color:var(--muted)}
+@media (max-width:640px){ .ticket .line{grid-template-columns:minmax(0,1fr); row-gap:2px} }
+/* the clock ladder: what happened on the left, when on the right — the dates
+   align in their own column because the grid lives on the container, not the
+   row, and the column sits just past the labels rather than at the far edge */
+.ticket .clockrows{display:grid; grid-template-columns:minmax(0,30ch) max-content;
+  column-gap:28px; justify-content:start; align-items:baseline}
+.ticket .clockrows>*{padding:9px 0; border-top:1px dashed var(--line); font-size:14px}
+.ticket .clockrows>*:nth-child(-n+2){border-top:none}
+.ticket .clockrows .ev{font-weight:600; color:var(--ink)}
+.ticket .clockrows .dt{color:var(--ink-2); font-variant-numeric:tabular-nums; white-space:nowrap}
+.ticket .clockrows .ev small,.ticket .clockrows .dt small{font-weight:400; color:var(--muted)}
+.ticket .clockrows .ev small{display:block; margin-top:1px}
+@media (max-width:640px){ .ticket .clockrows{grid-template-columns:minmax(0,1fr) max-content; column-gap:14px}
+  .ticket .clockrows .dt{white-space:normal} }
+/* Helper modals: the long "why" lives one click away, so a ballot reads as a
+   ballot. Native <dialog> — Escape, the backdrop and focus come with it. */
+dialog.helper{border:1px solid var(--line-2); border-radius:var(--r); padding:0;
+  max-width:min(640px,92vw); background:var(--surface); color:var(--ink); box-shadow:var(--shadow)}
+dialog.helper::backdrop{background:rgba(12,18,24,.5)}
+dialog.helper .hd{display:flex; justify-content:space-between; align-items:baseline; gap:18px;
+  padding:16px 18px; border-bottom:1px solid var(--line)}
+dialog.helper .hd h3{font-family:var(--serif); font-size:17px; margin:0}
+dialog.helper .bd{padding:16px 18px 18px; font-size:14px; line-height:1.6; color:var(--ink-2)}
+dialog.helper .bd h4{color:var(--ink); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+  margin:16px 0 6px; font-family:var(--mono)}
+dialog.helper .bd h4:first-child{margin-top:0}
+dialog.helper .bd p{margin:0 0 8px}
+dialog.helper .bd ul{margin:4px 0 0; padding-left:18px}
+dialog.helper .bd li{margin:5px 0}
+dialog.helper .bd b{color:var(--ink)}
+button.helplink{color:var(--accent-2); cursor:pointer; text-decoration:underline; background:none;
+  border:0; padding:0; font:inherit; font-size:inherit}
+button.helplink:hover{color:var(--accent)}
+.ticket .never{margin-top:12px; background:var(--inset); border-radius:var(--r-sm); padding:11px 13px; font-size:12.5px; color:var(--ink-2)}
+.ticket .never b{color:var(--ink)}
+/* buy receipt — reuses the ticket's row token inside the join panel */
+.buyrcpt{padding:12px 14px; margin:0 0 4px; background:var(--inset)}
+.buyrcpt .line{font-size:13px; grid-template-columns:minmax(0,1fr); row-gap:3px; column-gap:0}
+/* The receipt lives in the 288px join rail, where the ticket's 20ch label track
+   leaves the value ~100px and "185.2 KOURT:OREM / 185,241,936 units" wraps into
+   a ragged stack. Label above value instead — the rail is too narrow for two
+   columns, and the token name got longer when CC became KOURT:SLUG. */
+.buyrcpt .line>*:first-child{font-size:12px; color:var(--muted); font-weight:600;
+  letter-spacing:.02em; text-transform:uppercase}
+.buyrcpt .line .r{font-size:14px; color:var(--ink)}
+.buyrcpt .line .r small{display:block; font-weight:400; color:var(--muted)}
+.buyrcpt input{width:9ch; min-width:0; background:var(--surface); border:1px solid var(--line-2); border-radius:2px;
+  color:var(--ink); font:inherit; font-weight:600; font-variant-numeric:tabular-nums; padding:3px 7px; text-align:right}
+.buyrcpt input:focus{outline:2px solid var(--accent); outline-offset:1px}
+.ack{display:flex; gap:8px; align-items:flex-start; margin:10px 0 0; cursor:pointer; color:var(--ink-2)}
+.ack input{margin-top:2px; accent-color:var(--accent)}
+/* court scope line + record panel (p.sub so the stat tiles' div.sub stay untouched) */
+p.sub{font-size:13.5px; color:var(--ink-2); max-width:54ch; margin-top:6px}
+.panel .kv+.kv{margin-top:8px}
+/* argument rows: no sparkline slot — id · title · relation chip · status pill */
+/* the relation chip needs its own column: a wrapped title must never end a
+   few pixels from it and read as one sentence. Specificity matches
+   `.docket a.crow`, which sets the docket's own four-track grid. */
+.docket a.crow.argrow{grid-template-columns:52px minmax(0,1fr) 268px; gap:20px}
+.docket a.crow.argrow>.rt,.docket a.crow.argrow>.pill{justify-self:end}
+.docket a.crow.argrow .rt{justify-content:flex-end; gap:10px; flex-wrap:wrap}
+@media (max-width:820px){ .docket a.crow.argrow{grid-template-columns:44px minmax(0,1fr); gap:10px}
+  .docket a.crow.argrow .rt{grid-column:2; justify-content:flex-start; margin-top:2px} }
+/* the map */
+.mapwrap{border:1px solid var(--line); border-radius:var(--r); background:var(--inset); overflow:hidden}
+.mapwrap svg{display:block; width:100%; height:clamp(420px,62vh,640px); cursor:grab; touch-action:none; outline-offset:-2px}
+.mapwrap svg:active{cursor:grabbing}
+.mapctl{display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:10px 0}
+.mapctl .pill{cursor:pointer; font:inherit}
+.mapctl .pill[aria-pressed="true"]{background:var(--accent-wash); color:var(--accent-2); border-color:var(--accent)}
+.mapctl input[type=range]{accent-color:var(--accent); width:140px}
+.mlegend{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--ink-2); align-items:center}
+.mlegend span{display:inline-flex; gap:6px; align-items:center}
+.mnode{fill:var(--surface); stroke:var(--ink-2); stroke-width:1}
+.mnode-a{cursor:pointer}
+.mnode-a:hover .mnode,.mnode-a:focus .mnode{stroke:var(--accent); stroke-width:2}
+.mnode-a.focused .mnode{stroke:var(--accent); stroke-width:3}
+.mnode-a.dim{opacity:.35}
+.mtext{fill:var(--ink)} .mtitle{fill:var(--ink-2)}
+.mapsvg.far .mtitle{display:none}
+.mfold{fill:none; stroke:var(--line-2)}
+.mfold.pseudo{stroke-dasharray:4 3; stroke:var(--muted)}
+.mhdr{fill:var(--accent-wash)} .mhdr-t{fill:var(--accent-2); font-weight:600}
+.medge{fill:none; stroke:var(--ink-2); stroke-width:1.2}
+.medge.part{stroke:var(--ink); stroke-width:2}
+.medge.bears.yes{stroke:var(--yes); stroke-dasharray:5 4; stroke-width:1.6}
+.medge.bears.no{stroke:var(--contra); stroke-dasharray:5 4; stroke-width:1.6}
+.medge.sup{stroke:var(--muted); stroke-dasharray:2 3; stroke-width:1.6}
+.medge.dim,.marrow.dim{opacity:.35}
+.marrow{fill:var(--ink)}
+.mdot.g{fill:var(--good); stroke:var(--good)}
+.mdot.e{fill:var(--escrow); stroke:var(--escrow)}
+.mdot.ed{fill:var(--escrow-wash); stroke:var(--escrow); stroke-dasharray:2 2}
+.mdot.o{fill:var(--escrow-wash); stroke:var(--escrow)}
+.mdot.v{fill:none; stroke:var(--void)}
+.mdot.vd{fill:none; stroke:var(--void); stroke-dasharray:2 2}
+.mdot.vf{fill:var(--void); stroke:var(--void)}
+/* search bar */
+.qbar{margin:8px 0}
+.qbar input{flex:1}
+.docket .offp{display:none}
+.qactive .docket .offp:not(.qhide){display:grid}
+.qhide{display:none !important}
+.qactive .pager,.qactive [data-qfold]{display:none}
+/* pager: caption left, square chips right */
+.pager{display:flex; justify-content:space-between; align-items:center; gap:10px; margin:8px 0; color:var(--ink-2); flex-wrap:wrap}
+.pager .chips{display:flex; gap:6px}
+.pager a.pill{text-decoration:none}
+.pager .pill.off{opacity:.35}
+.pager .pill[aria-pressed="true"]{background:var(--accent-wash); color:var(--accent-2); border-color:var(--accent)}
+.pager.hidenav .pnav{display:none}
+.schips{display:inline-flex; gap:6px; margin-right:8px}
+
+/* body / untrusted text frame */
+
+/* generic prose + tables */
+.prose{max-width:70ch} .prose p{margin:0 0 12px} .prose h2{font-family:var(--serif); font-size:20px; margin:22px 0 10px}
+.prose ul{padding-left:22px; margin:0 0 12px}
+table.data{width:100%; border-collapse:collapse; font-size:13.5px}
+table.data th,table.data td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line)}
+table.data th{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600}
+table.data td.num{text-align:right; font-variant-numeric:tabular-nums; font-family:var(--mono); font-size:12.5px}
+.scroll-x{overflow-x:auto}
+
+.rawblock{background:var(--inset); border:1px solid var(--line); border-radius:var(--r); padding:18px; font-family:var(--mono); font-size:12.5px; white-space:pre-wrap; line-height:1.5; color:var(--ink-2); overflow-x:auto}
+
+/* The seeded-chain warning. Full-bleed above the page rather than inside it,
+   because it describes the NODE and not whatever route you happen to be on. */
+/* Column 2, row 1 — NOT 1/-1. Spanning every column put it under the rail,
+   which is sticky and opaque, so the first third of the sentence was invisible.
+   Padding matches .main's so the banner lines up with the page beneath it. */
+#tcbanner{grid-column:2; grid-row:1; min-width:0; max-width:1080px;
+  padding:20px clamp(20px,4vw,56px) 0}
+.tcbar{background:var(--contra-wash); color:var(--ink); border:1px solid var(--contra);
+  border-left-width:4px; border-radius:var(--r); padding:11px 16px;
+  font-size:13.5px; display:flex; gap:10px; align-items:flex-start}
+.notice{border-radius:var(--r); padding:13px 16px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start}
+.notice.warn{background:var(--escrow-wash); color:var(--ink); border:1px solid var(--escrow); border-left-width:4px}
+.notice.refuse{background:var(--no-wash); border:1px solid var(--no); border-left-width:4px; color:var(--ink)}
+.notice.good{background:var(--yes-wash); color:var(--ink); border:1px solid var(--yes); border-left-width:4px}
+.notice.void{background:var(--void-wash); color:var(--ink); border:1px solid var(--void); border-left-width:4px}
+.notice .g{flex:none}
+.empty{text-align:center; color:var(--muted); padding:50px 20px}
+.empty .g{font-size:34px; opacity:.5}
+
+.addrbar{display:flex; gap:9px; margin:8px 0 20px; flex-wrap:wrap}
+.addrbar input{font-family:var(--mono); font-size:13px; background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-sm); padding:9px 12px; color:var(--ink); min-width:min(360px,80vw)}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+/* Visually gone, still in the accessible name. */
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0}
+.hr{height:1px; background:var(--line); margin:26px 0}
+/* ============================ the utility row ============================
+   The line under a page title: what this thing IS, then what you can do about
+   it. Four routes use it (claim, court, curate, map) and the claim page was the
+   only one that also put facts and an action in it, which is what made it read
+   as a jumble.
+
+   THE SIZE LIVES ON THE ROW. It used to live on each child's `.small`, and
+   `button.helplink` is `font:inherit` — so the share trigger inherited the 15px
+   BODY size while the anchors beside it were 12.5px. That one mismatch is most
+   of "inconsistent in font": it made the button 20% larger than its neighbours
+   and pushed it onto a line of its own.
+
+   TWO ROLES, NOT FOUR VOICES. A fact is --muted and never reacts to the cursor;
+   a link is --accent and grows an underline when you point at it. The pill is
+   the only boxed thing here, and that border is the whole "this is status"
+   signal. Nothing else gets a box, a second family, or a second size. */
+.tagrow{display:flex; flex-wrap:wrap; align-items:center; column-gap:16px; row-gap:8px;
+  margin-top:12px; font-size:12.5px; line-height:1.45; min-width:0}
+/* Facts and actions are two groups, so the row wraps at the SEAM between them
+   rather than wherever a wide status pill happens to push it. That is what
+   stranded "share ↗" alone on line two. */
+.tagrow .tfacts,.tagrow .tacts{display:flex; flex-wrap:wrap; align-items:center;
+  column-gap:16px; row-gap:6px; min-width:0}
+.tagrow .tfacts{column-gap:10px}
+.tagrow .tfact{color:var(--muted)}
+/* the only mono in the row, and only on the machine string inside a fact —
+   "opened by" is prose. SF Mono sets larger than the UI sans at matched px. */
+.tagrow .tfact .mono{font-size:.94em}
+.tagrow .tlink{
+  /* inline-flex buys the 24px target height, and costs the whitespace BETWEEN
+     its children — flex discards it, which ran "filed under" into the folder
+     name. `gap` puts it back, so the markup needs no &nbsp;. */
+  display:inline-flex; align-items:center; gap:.32em;
+  min-height:24px;   /* SC 2.5.8, and free beside a 24.7px pill */
+  color:var(--accent); font:inherit; background:none; border:0; padding:0; cursor:pointer;
+  text-decoration:underline; text-decoration-color:transparent; text-decoration-thickness:1px;
+  text-underline-offset:3px; border-radius:2px; min-width:0;
+  transition:color .12s ease, text-decoration-color .12s ease}
+/* --accent-2 is the HIGHER-contrast variant in both themes, so hover reads as
+   "more". button.helplink had this backwards and dimmed on hover. */
+.tagrow .tlink:hover,.tagrow .tlink:focus-visible{
+  color:var(--accent-2); text-decoration-color:currentColor}
+@media(prefers-reduced-motion:reduce){ .tagrow .tlink{transition:none} }
+/* THE ONLY UNBOUNDED STRING IN THE ROW: a folder label from local curation,
+   which is imported JSON. safeInline() escapes it but does not bound it, and a
+   flex item defaults to min-width:auto — so a 40-character label made this
+   anchor the widest element on the PAGE and gave the whole document a
+   horizontal scrollbar at 390px (scrollWidth 454 vs 390; 140 chars gave 1542).
+   WCAG 1.4.10. Bounded here, and the ellipsis keeps the truncation visible. */
+.tagrow .tname{display:inline-block; max-width:26ch; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom}
+@media(pointer:coarse){ .tagrow .tlink{min-height:32px} }
+@media(max-width:560px){
+  /* the seam becomes a hard break, so facts and actions never interleave */
+  .tagrow{column-gap:0}
+  .tagrow .tfacts,.tagrow .tacts{width:100%}
+  .tagrow .tname{max-width:14ch}
+}
+
+/* mobile */
+@media(max-width:820px){
+  body{grid-template-columns:1fr}
+  .cols{grid-template-columns:1fr}
+  .bigchart .tickL,.bigchart .zone,.bigchart .evtL,.bigchart .note{font-size:20px}
+  .bigchart .endS{font-size:18px}
+  .bigchart .endL{font-size:26px}
+  body{grid-template-rows:none}
+  .rail,.main,#tcbanner{grid-row:auto; grid-column:auto}
+  #tcbanner{padding:16px 20px 0}
+  .docket a.crow{grid-template-columns:44px minmax(0,1fr) auto}
+  .docket a.crow > span:nth-child(2){grid-column:2/4}
+  .docket a.crow .id{grid-row:1/3; align-self:start}
+  .docket a.crow .px{grid-row:2; grid-column:2; flex-direction:row; flex-wrap:wrap; align-items:baseline; gap:4px 8px; min-width:0}
+  .docket a.crow .pill{grid-row:2; grid-column:3; justify-self:end}
+  .docket a.courtrow{grid-template-columns:minmax(44px,auto) minmax(0,1fr) auto}
+  .rail{position:static; height:auto; flex-direction:column}
+  .nav{flex-direction:row; flex-wrap:wrap; gap:4px} .nav .sec{width:100%}
+  .rail .foot{border-top:1px solid var(--line)}
+  .main{padding:24px 18px 80px}
+  .stakewrap{grid-template-columns:1fr}
+}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px;
+  box-shadow:var(--glow-a)}
+.act{display:inline-flex; align-items:flex-start; gap:6px; flex-wrap:wrap; position:relative; max-width:100%; min-width:0}
+.clitog,.copybtn{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted);
+  border:1px solid var(--line-2); border-radius:var(--r); padding:3px 7px; align-self:center}
+.clitog:hover,.copybtn:hover{color:var(--accent-2); border-color:var(--accent-2)}
+/* Three theme buttons with no pressed state left the reader guessing which one
+   built the snippet on screen. aria-pressed carries it to a screen reader. */
+.copybtn[aria-pressed=true]{color:var(--accent-2); border-color:var(--accent-2);
+  background:var(--accent-wash)}
+.copybtn{margin-top:5px}
+.cliblock{flex-basis:100%; background:var(--inset); border:1px solid var(--line-2);
+  border-radius:var(--r-sm); padding:10px 12px; font-size:11.5px; line-height:1.5;
+  white-space:pre; overflow-x:auto; cursor:copy; margin-top:6px; min-width:0; max-width:min(640px,100%)}
+.cliblock.copied{outline:2px solid var(--good)}
+#share-dlg .cliblock{white-space:pre-wrap; word-break:break-all; max-width:100%}
+#share-dlg h4{margin:14px 0 2px}
+/* You could not see the thing you were about to send. It downloaded unseen. */
+.clipprev{margin:0 0 10px; border:1px solid var(--line-2); border-radius:var(--r-sm);
+  overflow:hidden; background:var(--inset); min-height:40px}
+.clipprev img{display:block; width:100%; height:auto}
+#share-dlg h4 .hint{font-weight:400; font-size:10.5px; letter-spacing:.06em;
+  font-family:var(--mono); color:var(--muted); margin-left:8px; text-transform:none}
+.signbtn{font-size:11.5px; color:var(--accent-2); border:1px solid var(--accent);
+  border-radius:var(--r); padding:3px 8px; align-self:center; background:var(--accent-wash)}
+.signbtn:hover{filter:brightness(1.05)}
+.txnote{flex-basis:100%; font-size:12px; color:var(--ink-2); margin-top:5px}
+.txnote.ok{color:var(--good)}
+.btn.inert{opacity:.55; cursor:not-allowed}
+.intro{background:var(--accent-wash);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:16px 18px;margin-bottom:22px;font-size:14.5px;line-height:1.6;max-width:72ch}
+.intro b{color:var(--accent-2)}
+.intro .btn-row{margin-top:10px;display:flex;gap:14px;align-items:center}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+/* ===================== CONCEPT: Phosphor burn =====================
+   Territory Studio's "screen burn suggesting old technology" — the most
+   Blade-Runner idea in their notes, and the one that fought hardest with the
+   content.
+
+   REVISED, and the revision is a retreat forced by arithmetic. The first version
+   was a full-screen radial multiply reaching rgba(0,0,0,.55) at the corners. A
+   multiply overlay turns a pixel into base*(1-a), and the WCAG formula's +0.05
+   floor means scaling BOTH text and background down pushes their ratio toward 1.
+   Computed:
+
+       vignette alpha   rail footer   body text
+       0.00 (none)      6.17:1        15.27:1
+       0.25             3.88:1         8.82:1
+       0.40             2.83:1         5.88:1
+       0.55  <- shipped 2.03:1         3.67:1
+
+   So at .55 it failed AA (4.5:1) for ORDINARY BODY TEXT in the corners, not just
+   for the rail footer I had noticed. Keeping the footer at AA caps the alpha near
+   0.15, which is invisible — the effect and the content cannot share the same
+   pixels.
+
+   So it no longer tries: the vignette is confined to the main column and is fully
+   transparent across the whole reading area, darkening only the last fifth at the
+   frame edge. The rail is exempt entirely. The ruling drops to .10, where it
+   costs almost nothing.
+   ===================================================================== */
+
+/* The ruling stays global — it is a 1-in-3 row pattern at low alpha, so its
+   contrast cost is small and even. */
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9998;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+  mix-blend-mode:multiply;
+}
+/* The vignette is confined to the MAIN COLUMN and transparent across all of the
+   reading area: the dark stop starts at 78% and only reaches .42 at the very
+   corner, which is outside the text column at every width the page supports.
+   The rail is exempt — its footer is 12.5px --muted, the least robust text on
+   the page, and it sits exactly where a full-screen vignette is darkest. */
+.main{position:relative}
+.main::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:9997;
+  background:radial-gradient(115% 85% at 50% 42%, transparent 78%, rgba(0,0,0,.42) 100%);
+  mix-blend-mode:multiply;
+}
+/* Phosphor: ink cannot quite stay inside its own pixel. .35px, deliberately
+   below the threshold where it reads as blur — this part cost nothing and stays. */
+.page-h,.sec-h,.pill,.grid.stats b{text-shadow:0 0 .35px currentColor, 0 0 6px rgba(154,168,238,.18)}
+
+</style></head><body>
+<!-- Captured from the live claim page (#/c/orem/1, demo source, dark theme) so every
+     concept is judged against REAL content: real numbers, real labels, the real
+     chart, the real ticket. Regenerate with mockups/_capture.js. Not committed. -->
+<aside class="rail">
+  <div class="brand">
+    <a class="mark" href="#/">
+      <span class="scale">⚖️</span>
+      <span><h1>Kourt</h1></span>
+    </a>
+    <div class="tag">Stake on claims of fact. Your principal always returns 1×.</div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="#/" data-k="dir" class="on"><span class="g">▤</span> Directory</a>
+    <div class="sec">You</div>
+    <a href="#/me" data-k="me"><span class="g">◈</span> Your positions</a>
+    <a href="#/needs" data-k="needs"><span class="g">!</span> What needs you</a>
+    <div class="sec">Reference</div>
+    <a href="#/about" data-k="about"><span class="g">?</span> How it works</a>
+  </nav>
+  <div class="foot">
+    <div class="node">
+      <div class="row"><span class="dot demo" id="dot"></span> <b id="nodelab">Demo data</b></div>
+      <a class="small" id="gwrealm" target="_blank" rel="noopener" style="display:none; margin:2px 0 4px" title="the chain's own view — every screen here can be served by the realm's Render" href="https://gno.land/r/kourt/kourtv2">⚖ this realm on gnoweb →</a>
+      <label for="modesel">Source</label>
+      <select id="modesel">
+        <option value="demo">Demo (offline sample)</option>
+        <option value="live">Live node (RPC)</option>
+      </select>
+      <div id="rpcwrap" hidden="">
+        <label for="preset">Preset</label>
+        <select id="preset">
+          <option value="">Custom</option>
+          <option value="gnodev">Local gnodev</option>
+          <option value="sapphire">Sapphire testnet</option>
+        </select>
+        <label for="rpc">RPC endpoint</label>
+        <input id="rpc" class="mono" placeholder="http://127.0.0.1:26657" spellcheck="false">
+        <label for="gnoweb">gnoweb (for tx links)</label>
+        <input id="gnoweb" class="mono" placeholder="https://gno.land" spellcheck="false">
+        <label for="chainid">chain id (for CLI commands)</label>
+        <input id="chainid" class="mono" placeholder="dev" spellcheck="false">
+        <label for="chat">court chat (optional)</label>
+        <input id="chat" class="mono" placeholder="http://127.0.0.1:8788  (this site)" spellcheck="false">
+      </div>
+    </div>
+    <button class="themebtn" id="walletbtn"><span class="g">◇</span> <span id="walletlab">Connect Adena</span></button>
+    <div class="small muted" id="wallethint" role="status" hidden=""></div>
+    <button class="themebtn" id="themebtn"><span class="g">◐</span> <span id="themelab">Light mode</span></button>
+  </div>
+</aside>
+<main class="main" id="main"><div class="crumbs"><a href="#/">Directory</a><span class="sep">/</span><a href="#/c/orem">Orem Truth Court</a><span class="sep">/</span><span>Claim #1</span></div><h1 class="page-h">The county certified 12,412 mail ballots on Nov 6, 2025.</h1><div class="tagrow">
+        <span class="tfacts"><span class="pill void">open · no answer yet</span><span class="tfact">opened by <span class="mono" aria-hidden="true">g1oremf…0000</span><span class="sr-only">g1oremfiler0000000000000000000000000000</span></span></span>
+        <span class="tacts"><a class="tlink" href="#/c/orem/f/0.0" title="sample curation">filed under <span class="tname">Municipal record · Elections</span> · sample</a><a class="tlink" href="#/c/orem/map?focus=1">on the map<span aria-hidden="true">→</span></a><a class="tlink" href="#/raw/orem/1">as the chain serves it<span aria-hidden="true">→</span></a>
+        <button type="button" class="tlink" data-help="share-dlg" aria-haspopup="dialog">share<span aria-hidden="true">↗</span></button></span></div><section><div class="sec-h">The signal <span class="count">staking live</span></div>
+        <div class="stakewrap">
+          <div class="panel"><figure class="bigchart"><figcaption><span>YES-share of stakes — <b>the recorded path · lifetime · now</b></span><span>now 77.4% · week 74% · lifetime 77.4%</span></figcaption>
+<svg viewBox="0 0 640 150" role="img" aria-label="Sample data in the chain's real form — YES-share of stakes, recorded history: 14 change points since block 4,596,480; now 77.4% · week 74% · lifetime 77.4%; events at real block heights."><line class="grid" x1="8" y1="12" x2="606" y2="12"></line>
+<line class="mid" x1="8" y1="68" x2="606" y2="68"></line>
+<line class="axis" x1="8" y1="124" x2="606" y2="124"></line>
+<text class="tickL" x="610" y="15">100</text><text class="tickL" x="610" y="71">50</text><text class="tickL" x="610" y="127">0</text><rect class="washf" x="583.9" y="12" width="22.1" height="112"></rect><path class="ar" d="M 30.1 124 L 30.1 63 L 77.2 63 L 77.2 42.6 L 124.2 42.6 L 124.2 57.6 L 171.2 57.6 L 171.2 45.6 L 218.2 45.6 L 218.2 42.6 L 265.2 42.6 L 265.2 42.1 L 277 42.1 L 277 42 L 357.3 42 L 357.3 40.7 L 421.9 40.7 L 421.9 38.1 L 459.1 38.1 L 459.1 41.3 L 494.4 41.3 L 494.4 38.8 L 531.6 38.8 L 531.6 38.9 L 561 38.9 L 561 37.9 L 578.6 37.9 L 578.6 37.3 L 583.9 37.3 L 583.9 124 Z"></path><path class="ln" d="M 30.1 63 H 77.2 V 42.6 H 124.2 V 57.6 H 171.2 V 45.6 H 218.2 V 42.6 H 265.2 V 42.1 H 277 V 42 H 357.3 V 40.7 H 421.9 V 38.1 H 459.1 V 41.3 H 494.4 V 38.8 H 531.6 V 38.9 H 561 V 37.9 H 578.6 V 37.3 H 583.9" fill="none"></path><line class="ref" x1="8" y1="37.3" x2="606" y2="37.3"><title>Lifetime conviction ratio 77.4% YES.</title></line><line class="seam" x1="254.8" y1="12" x2="254.8" y2="124"></line><text class="zone" x="258.8" y="140">−7d · hourly</text><circle class="end" cx="583.9" cy="37.3" r="4"></circle>
+<text class="endL" x="612" y="41.3">77.4%</text><text class="endS" x="612" y="53.3">YES now</text><g><line class="evt" x1="30.1" y1="25" x2="30.1" y2="124"></line><circle class="hit" cx="30.1" cy="124" r="10"><title>The chain's stake record for this claim begins at ≈block 4,596,480 (≈11.8d ago).</title></circle><circle class="evtDot" cx="30.1" cy="124" r="3"></circle><text class="evtL" x="34.1" y="22">records begin</text></g><g><line class="evt" x1="583.9" y1="12" x2="583.9" y2="103"></line><circle class="hit" cx="583.9" cy="124" r="10"><title>Chain height ≈4,800,000.</title></circle><circle class="evtDot" cx="583.9" cy="124" r="3"></circle><text class="evtL" x="560" y="112">now</text></g><text class="zone" x="8" y="140">block 4,596,480 · ≈11.8d ago · sample</text><text class="zone" x="606" y="140" text-anchor="end">block 4,800,000 · now</text></svg>
+<div class="srcnote">sample data — a sample series in the chain's real form (hourly for a week, daily beyond; a flat run means the pools did not change). YES-share of stakes, not a price.</div></figure><div class="sbar" role="img" aria-label="staked YES 41.0 KOURT:OREM 77.4%, NO 12.0 KOURT:OREM 22.6%">
+      <div class="sbY" style="width:77.358%"></div>
+      <div class="sbN" style="width:22.642%"></div>
+    </div>
+    <div class="sbout"><span class="y"><b>YES 77.4%</b> · 41.0 KOURT:OREM</span><span class="n"><b>NO 22.6%</b> · 12.0 KOURT:OREM</span></div><div class="chartchips"><span>conviction 0.44 / 0.13 KOURT:OREM</span></div></div>
+          <div class="ticket" id="stake-ticket"><h3>Stake the claim</h3>
+    <div class="hint">Take the side you believe. Free to unstake until an answer posts — then it locks and your <b>conviction</b> (stake × time held) becomes your reward weight.</div>
+    <div class="line"><span class="l">Your principal</span><span class="r">returns 1×, either way</span></div>
+    <div class="line"><span class="l">If your side wins</span><span class="r">1× + accuracy reward</span></div>
+    <div class="line"><span class="l">If your side loses</span><span class="r">1×, nothing lost</span></div>
+    <div class="never"><b>Reward = conviction, not stake.</b> Staking early and holding earns more than a last-second flood; the number that pays is stake × time, and it survives an honest unstake. Principal is not a wager — it always comes home.</div>
+    <div class="actions" style="margin-top:14px">
+      <span class="act"><button class="btn yes inert" data-inert="1"><span class="g">↗</span> Stake YES <small>1 KOURT:OREM</small></button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;Stake&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --args &quot;0&quot; \
+  --args &quot;1000000&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span>
+      <span class="act"><button class="btn no inert" data-inert="1"><span class="g">↗</span> Stake NO <small>1 KOURT:OREM</small></button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;Stake&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --args &quot;1&quot; \
+  --args &quot;1000000&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span>
+      <span class="act"><button class="btn  inert" data-inert="1"><span class="g">↗</span> Unstake YES</button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;Unstake&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --args &quot;0&quot; \
+  --args &quot;1000000&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span>
+      <span class="act"><button class="btn  inert" data-inert="1"><span class="g">↗</span> Unstake NO</button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;Unstake&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --args &quot;1&quot; \
+  --args &quot;1000000&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span>
+    </div></div>
+        </div></section><section id="resolution" tabindex="-1"><div class="sec-h">Resolution</div><div class="ticket" style="margin-bottom:12px"><h3>Resolution so far</h3>
+      <div class="clockrows"><div class="ev" title="block 4,596,480">opened<small>the claim was filed</small></div><div class="dt" title="block 4,596,480">6 Aug 2026, 17:20 UTC <small>11 days ago</small></div><div class="ev" title="block 4,800,000">now</div><div class="dt" title="block 4,800,000">18 Aug 2026, 12:00 UTC</div><div class="ev">awaiting an answer — anyone may post one with a bond</div><div class="dt">—</div></div>
+      <p class="small muted" style="margin:10px 0 0">Dates are the chain's own record; hover a row for its block. A date marked ≈ is projected from the current pace.</p></div><div class="notice warn"><span class="g">◔</span><div><b>No answer yet.</b> Once the trailing total stake clears the answerability floor, an answer may be posted with a bond sized so lying does not pay. Once a court has seasoned answerers, they hold the first day; a young court opens to anyone at once. A claim nobody ever answers dies at its timeout — anyone may close it then. Posting freezes staking; an undisputed answer settles 72 hours later.
+      <div class="actions" style="margin-top:10px">
+        <span class="act"><button class="btn yes inert" data-inert="1"><span class="g">↗</span> Answer YES</button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;PostAnswer&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --args &quot;0&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span>
+        <span class="act"><button class="btn no inert" data-inert="1"><span class="g">↗</span> Answer NO</button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;PostAnswer&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --args &quot;1&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span>
+        <span class="act"><button class="btn  inert" data-inert="1"><span class="g">↗</span> Close dead claim <small>if its timeout passed</small></button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;CloseDeadClaim&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span></div></div></div></section></main>
+
+</body></html>

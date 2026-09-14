@@ -40,7 +40,7 @@ eval(V(slice('const NOW = ', '\n')));
 var chainHeight = async () => NOW;
 eval(slice('function notFound(', '\n'));
 var store = {get:()=>null, set:()=>{}};
-var location = {hash:"#/c/orem/1/board"};
+var location = {hash:"#/c/bedford/1/board"};
 // courtCrumb first: crumbs' court entries are built through it now.
 eval(V(slice('const courtCrumb = (slug, name) =>', '\n};') + '\n};'));
 eval(V(slice('const crumbs = parts =>', '\n};') + '\n};'));
@@ -82,17 +82,17 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // If this fails, every assertion below is testing an empty page and passing
   // for the wrong reason.
   ok("the sample carries boards on both specimen claims",
-     !!DEMO.claims["orem/1"].board && !!DEMO.claims["orem/2"].board);
+     !!DEMO.claims["bedford/1"].board && !!DEMO.claims["bedford/2"].board);
 
-  // ---- orem/1: three comments, one reply, only the author has spoken -------
-  await boardView("orem", "1", false);
-  ok("orem/1 paints every row the board holds", count(/class="boardrow"/g) === 4);
+  // ---- bedford/1: three comments, one reply, only the author has spoken -------
+  await boardView("bedford", "1", false);
+  ok("bedford/1 paints every row the board holds", count(/class="boardrow"/g) === 4);
   ok("...including the reply, indented under its parent", count(/class="boardkids"/g) === 1);
   ok("...and badges the author in place", /class="pill">author</.test(painted));
   ok("...but not an answerer, who has not commented", !/class="pill">answerer</.test(painted));
   ok("the state line agrees with BoardSize", painted.includes("4 comments · open for comments"));
   ok("the page names the claim it belongs to", painted.includes("12,412 mail ballots"));
-  ok("...and links back to it", painted.includes('href="#/c/orem/1"'));
+  ok("...and links back to it", painted.includes('href="#/c/bedford/1"'));
   // The reply count in the meta line is the ordering's own field. A parent with
   // one reply and a parent with none must not read the same.
   ok("a parent with replies says so, a parent without says nothing",
@@ -100,12 +100,12 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // Nothing is capped here, so nothing may claim to be.
   ok("an uncapped board mentions no cap", !/of \d+ (replies )?shown/.test(painted));
 
-  // ---- orem/2: both parties, a tombstone, and a real ranking ---------------
-  await boardView("orem", "2", false);
+  // ---- bedford/2: both parties, a tombstone, and a real ranking ---------------
+  await boardView("bedford", "2", false);
   // THREE, not four: the sample's hidden row is dropped from the draw rather
   // than stubbed. The wire still carries it — boardview_test holds that — and
   // the header's count is what tells a reader it exists.
-  ok("orem/2 paints only the rows it can show", count(/class="boardrow"/g) === 3);
+  ok("bedford/2 paints only the rows it can show", count(/class="boardrow"/g) === 3);
   ok("...badges BOTH parties", /class="pill">author</.test(painted) && /class="pill">answerer</.test(painted));
   // NOTHING is said about the hidden row here — not a tombstone, not an actor,
   // not a link. A moderator clearing a griefing run should leave a shorter page,
@@ -116,19 +116,25 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
 
   // The toggle is offered only because the sample has a nonzero score. On a
   // board nobody upvoted, Top is byte-for-byte Newest and a toggle between two
-  // identical pages is worse than none — orem/1 above proves that branch.
+  // identical pages is worse than none — bedford/1 above proves that branch.
   ok("a board with a real ranking offers the ranked view", painted.includes("best first"));
 
-  await boardView("orem", "1", false);
+  await boardView("bedford", "1", false);
   ok("a board with no ranking offers no toggle", !painted.includes("best first"));
 
   // ---- the ranked view ----------------------------------------------------
-  await boardView("orem", "2", true);
+  await boardView("bedford", "2", true);
   ok("the ranked page paints only the rows the score index holds",
      count(/class="boardrow"/g) === 2);
   ok("...so the hidden row is absent, not tombstoned",
      !painted.includes("Hidden from this list"));
-  ok("...ranks the highest score first", painted.indexOf("g1answ") < painted.indexOf("g1orem"));
+  // The needles are the SHORTENED forms the page paints — seven leading
+  // characters, an ellipsis, then the last four. A needle longer than seven
+  // finds nothing, and indexOf's -1 sorts before every real position, so the
+  // comparison would pass while proving the opposite of what it says.
+  ok("...ranks the highest score first",
+     painted.includes("g1answe…") && painted.includes("g1bedfo…")
+     && painted.indexOf("g1answe…") < painted.indexOf("g1bedfo…"));
   ok("...shows the score as a score", painted.includes("score 4,712"));
   ok("...and offers the way back to newest", painted.includes("newest first"));
   // Top carries no reply count, so the thread reads on the Newest page.
@@ -140,22 +146,22 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
      painted.includes("2 of 4 shown") && painted.includes("neither replies nor withheld rows"));
 
   // ---- the empty and missing cases ----------------------------------------
-  await boardView("orem", "9", false);
+  await boardView("bedford", "9", false);
   ok("an open board with no comments invites the first",
      painted.includes("No comments yet"));
   ok("...and paints no rows at all", count(/class="boardrow"/g) === 0);
 
-  await boardView("orem", "999", false);
+  await boardView("bedford", "999", false);
   ok("a claim id that does not exist is not found, not an empty board",
      painted.includes("No claim by that id"));
 
   // ---- hostile text survives the whole path -------------------------------
   // The sample cannot carry an attack, so this drives the real view with one:
   // a comment whose text is markup, arriving through the same parser.
-  DEMO.claims["orem/9"] = Object.assign({}, DEMO.claims["orem/9"], {board:{
+  DEMO.claims["bedford/9"] = Object.assign({}, DEMO.claims["bedford/9"], {board:{
     size:1, open:true, parties:"",
     newest:'42|g1attacker000000000000000000000000000000|0|.|4799999|<img src=x onerror=alert(1)> & "quoted"'}});
-  await boardView("orem", "9", false);
+  await boardView("bedford", "9", false);
   ok("a comment made of markup reaches the page as text",
      !painted.includes("<img src=x") && painted.includes("&lt;img"));
   ok("...and the row around it still renders", count(/class="boardrow"/g) === 1);
@@ -226,7 +232,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   ok("...while the exact block stays recoverable in the title",
      !!meta && /title="block \d+"/.test(meta[0]));
   // No height: the row falls back rather than inventing an elapsed time.
-  const noH = boardRowHtml("orem", 1, {id: 9, author: "g1abc", at: 130460, text: "x"}, "", "", null);
+  const noH = boardRowHtml("bedford", 1, {id: 9, author: "g1abc", at: 130460, text: "x"}, "", "", null);
   ok("with no height known, the row states the block instead",
      /block 130460/.test(noH) && !/\bago\b/.test(noH));
 }

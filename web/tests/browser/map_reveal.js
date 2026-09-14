@@ -37,7 +37,7 @@ const SHUT_MARK = "\u{1307C}";  // 𓁼 — concealed
   await new Promise(r => setTimeout(r, 800));
   /* EVERY DEMO COURT, not the ones the directory links. `annex` is the only
      offline court with a claim-born set and it is not on the front page — the
-     first version of this check read the directory's links, found orem and
+     first version of this check read the directory's links, found bedford and
      ledger, and reported that no court on this chain draws a set. */
   const slugs = await page.evaluate(() =>
     typeof DEMO_OVERLAY !== "undefined" ? Object.keys(DEMO_OVERLAY.courts) : []);

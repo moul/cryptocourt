@@ -90,7 +90,7 @@ func TestDiagReportsTheDaysSpendAgainstTheCeiling(t *testing.T) {
 
 func TestDiagPublishesCountsAndNothingElse(t *testing.T) {
 	srv, s, _ := newServer(t)
-	if _, err := post(t, s, "orem", "ip-a", "a message in the room"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-a", "a message in the room"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := s.SetBotKeyOnce("sk-ant-secret-key-do-not-leak-me"); err != nil {
@@ -165,7 +165,7 @@ func TestDiagCountsTheRoomAndTheHour(t *testing.T) {
 	if got := diagOf(t, srv)["messages_last_hour"]; got != float64(0) {
 		t.Fatalf("a fresh store has nothing in the last hour: %v", got)
 	}
-	for _, court := range []string{"orem", "ledger"} {
+	for _, court := range []string{"bedford", "ledger"} {
 		if _, err := post(t, s, court, "ip-"+court, "something said here"); err != nil {
 			t.Fatal(err)
 		}
@@ -297,8 +297,8 @@ func TestHereCountsTheAskerAndTheHelper(t *testing.T) {
 	if got := srv.here(); got != 2 {
 		t.Fatalf("the helper is one more participant, got %d", got)
 	}
-	a := holder{cc: "DE", net: "net-a", room: "dev\x00orem"}
-	b := holder{cc: "US", net: "net-b", room: "dev\x00orem"}
+	a := holder{cc: "DE", net: "net-a", room: "dev\x00bedford"}
+	b := holder{cc: "US", net: "net-b", room: "dev\x00bedford"}
 	srv.hold.enter(a)
 	srv.hold.enter(b)
 	if got := srv.here(); got != 4 {
@@ -339,10 +339,10 @@ func TestHereCountsTheAskerAndTheHelper(t *testing.T) {
 func TestPollReplyCarriesHereAndDoesNotDecomposeIt(t *testing.T) {
 	srv, s, _ := newServer(t)
 	srv.BotEnabled = true
-	if _, err := post(t, s, "orem", "ip-a", "hello there everyone"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-a", "hello there everyone"); err != nil {
 		t.Fatal(err)
 	}
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("poll returned %d", rec.Code)
 	}
@@ -434,7 +434,7 @@ func TestAFailingHelperIsDistinguishableFromAnIdleOne(t *testing.T) {
 		TypeCPS: 1e9, TypeMax: time.Nanosecond, MinGap: time.Minute}
 
 	for i := 0; i < 3; i++ {
-		if _, err := post(t, s, "orem", "ip-a", "how do i stake on a claim?"); err != nil {
+		if _, err := post(t, s, "bedford", "ip-a", "how do i stake on a claim?"); err != nil {
 			t.Fatal(err)
 		}
 		_ = b.once(ctx)
@@ -522,7 +522,7 @@ func TestAnUndeliveredReplyIsNotCountedAsAPass(t *testing.T) {
 	b.MinGap = time.Minute
 	b.GreetAfter = 30 * time.Minute
 
-	for _, court := range []string{"orem", "ledger", "annex"} {
+	for _, court := range []string{"bedford", "ledger", "annex"} {
 		if _, err := post(t, s, court, "ip-r"+court, "hi"); err != nil {
 			t.Fatal(err)
 		}
@@ -623,10 +623,10 @@ A REAL HELD POLL SHOWS UP IN THE COUNT, and this is the arm that was missing.
 func TestARealHeldPollIsCountedAsAConnection(t *testing.T) {
 	srv, s, _ := newServer(t)
 	ctx := context.Background()
-	if _, err := post(t, s, "orem", "ip-a", "something to poll past"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-a", "something to poll past"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil || len(msgs) == 0 {
 		t.Fatal(err)
 	}
@@ -641,7 +641,7 @@ func TestARealHeldPollIsCountedAsAConnection(t *testing.T) {
 	for i := 0; i < readers; i++ {
 		go func() {
 			defer func() { done <- struct{}{} }()
-			r, err := http.Get(fmt.Sprintf("%s/api/chat/dev/orem?wait=%d&seen=%d",
+			r, err := http.Get(fmt.Sprintf("%s/api/chat/dev/bedford?wait=%d&seen=%d",
 				ts.URL, int(wait.Seconds()), top))
 			if err == nil {
 				io.Copy(io.Discard, r.Body)
@@ -690,10 +690,10 @@ A READER WHO NAVIGATES AWAY STOPS BEING COUNTED, which is the commonest exit
 func TestAReaderWhoHangsUpStopsBeingCounted(t *testing.T) {
 	srv, s, _ := newServer(t)
 	ctx := context.Background()
-	if _, err := post(t, s, "orem", "ip-a", "something to poll past"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-a", "something to poll past"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil || len(msgs) == 0 {
 		t.Fatal(err)
 	}
@@ -706,7 +706,7 @@ func TestAReaderWhoHangsUpStopsBeingCounted(t *testing.T) {
 	// if the count falls, it is the disconnect that did it.
 	rctx, cancel := context.WithCancel(context.Background())
 	req, err := http.NewRequestWithContext(rctx, http.MethodGet,
-		fmt.Sprintf("%s/api/chat/dev/orem?wait=8&seen=%d", ts.URL, top), nil)
+		fmt.Sprintf("%s/api/chat/dev/bedford?wait=8&seen=%d", ts.URL, top), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -754,7 +754,7 @@ A REQUEST THAT DOES NOT WAIT IS NOT A HELD CONNECTION, which is the claim the
 */
 func TestARequestThatDoesNotWaitIsNotCounted(t *testing.T) {
 	srv, s, _ := newServer(t)
-	if _, err := post(t, s, "orem", "ip-a", "a message to read"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-a", "a message to read"); err != nil {
 		t.Fatal(err)
 	}
 	ts := httptest.NewServer(srv.Routes())
@@ -763,7 +763,7 @@ func TestARequestThatDoesNotWaitIsNotCounted(t *testing.T) {
 	// Twenty ordinary reads, none of them asking to wait — the shape of an older
 	// client, and of the first poll of any busy court.
 	for i := 0; i < 20; i++ {
-		r, err := http.Get(ts.URL + "/api/chat/dev/orem")
+		r, err := http.Get(ts.URL + "/api/chat/dev/bedford")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -801,10 +801,10 @@ func TestTheGaugeSurvivesManyWaitersAtOnce(t *testing.T) {
 	// A baseline, so a reader asking for "anything after this" actually WAITS.
 	// Without it HasSince is true, the wait block is skipped, and nothing is held
 	// at all — which is how the first version of this measured a peak of zero.
-	if _, err := post(t, s, "orem", "ip-seed", "a seed message"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-seed", "a seed message"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil || len(msgs) == 0 {
 		t.Fatal(err)
 	}
@@ -823,7 +823,7 @@ func TestTheGaugeSurvivesManyWaitersAtOnce(t *testing.T) {
 				// landing together: hang-ups and timeouts mixed.
 				rctx, c := context.WithTimeout(ctx, time.Duration(60+n*11)*time.Millisecond)
 				req, err := http.NewRequestWithContext(rctx, http.MethodGet,
-					fmt.Sprintf("%s/api/chat/dev/orem?wait=2&seen=%d", ts.URL, top), nil)
+					fmt.Sprintf("%s/api/chat/dev/bedford?wait=2&seen=%d", ts.URL, top), nil)
 				if err == nil {
 					if r, err := http.DefaultClient.Do(req); err == nil {
 						io.Copy(io.Discard, r.Body)
@@ -1042,10 +1042,10 @@ func TestHereTalliesComeFromTheHeldConnections(t *testing.T) {
 		"203.0.113.2":  "DE",
 		"198.51.100.9": "US",
 	}
-	if _, err := post(t, s, "orem", "ip-seed", "a seed message"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-seed", "a seed message"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(context.Background(), "dev", "orem", 0, 50)
+	msgs, err := s.Recent(context.Background(), "dev", "bedford", 0, 50)
 	if err != nil || len(msgs) == 0 {
 		t.Fatal(err)
 	}
@@ -1063,7 +1063,7 @@ func TestHereTalliesComeFromTheHeldConnections(t *testing.T) {
 		go func(remote string) {
 			defer wg.Done()
 			req := httptest.NewRequest(http.MethodGet,
-				fmt.Sprintf("/api/chat/dev/orem?wait=20&seen=%d", top), nil).WithContext(ctx)
+				fmt.Sprintf("/api/chat/dev/bedford?wait=20&seen=%d", top), nil).WithContext(ctx)
 			req.RemoteAddr = remote
 			srv.Routes().ServeHTTP(httptest.NewRecorder(), req)
 		}(remote)
@@ -1132,10 +1132,10 @@ func TestHereTalliesComeFromTheHeldConnections(t *testing.T) {
 func TestHereCountsKeysWithoutPublishingThem(t *testing.T) {
 	srv, s, _ := newServer(t)
 	srv.Geo = geoStub{"203.0.113.1": "DE"}
-	if _, err := post(t, s, "orem", "ip-seed", "a seed message"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-seed", "a seed message"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, _ := s.Recent(context.Background(), "dev", "orem", 0, 50)
+	msgs, _ := s.Recent(context.Background(), "dev", "bedford", 0, 50)
 	top := msgs[len(msgs)-1].ID
 
 	ctx, release := context.WithCancel(context.Background())
@@ -1145,7 +1145,7 @@ func TestHereCountsKeysWithoutPublishingThem(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		req := httptest.NewRequest(http.MethodGet,
-			fmt.Sprintf("/api/chat/dev/orem?wait=20&seen=%d", top), nil).WithContext(ctx)
+			fmt.Sprintf("/api/chat/dev/bedford?wait=20&seen=%d", top), nil).WithContext(ctx)
 		req.RemoteAddr = "203.0.113.1:1111"
 		srv.Routes().ServeHTTP(httptest.NewRecorder(), req)
 	}()
@@ -1166,7 +1166,7 @@ func TestHereCountsKeysWithoutPublishingThem(t *testing.T) {
 	// The hashes this connection is counted under, computed the same way the
 	// server computes them, and looked for in the raw payload.
 	_, netHash := HashPair(srv.Hasher, netip.MustParseAddr("203.0.113.1"))
-	for _, secret := range []string{netHash, "orem", "203.0.113.1"} {
+	for _, secret := range []string{netHash, "bedford", "203.0.113.1"} {
 		if strings.Contains(body, secret) {
 			t.Errorf("the payload published %q, which is a key and not a count: %s", secret, body)
 		}
@@ -1251,7 +1251,7 @@ func TestHerePublishesAChangeCountAndNothingAboutTheChange(t *testing.T) {
 	   counter that never moved, which is the same gap that once left the site's
 	   answerer deaf to every message. Posting the way a reader does is the only
 	   version of this test worth having. */
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice",
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice",
 		"something happened in here")); rec.Code != 200 {
 		t.Fatalf("post: %d %s", rec.Code, rec.Body)
 	}
@@ -1265,7 +1265,7 @@ func TestHerePublishesAChangeCountAndNothingAboutTheChange(t *testing.T) {
 	   not carry. */
 	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/here", nil))
 	body := rec.Body.String()
-	for _, forbidden := range []string{"orem", "alice", "something happened"} {
+	for _, forbidden := range []string{"bedford", "alice", "something happened"} {
 		if strings.Contains(body, forbidden) {
 			t.Fatalf("the presence payload named %q: %s", forbidden, body)
 		}
@@ -1285,7 +1285,7 @@ func TestHereLongPollWaitsOnlyWhenThereIsNothingNew(t *testing.T) {
 	   `since=0` on a fresh server and expected an immediate answer — but a fresh
 	   server's count IS zero, so the client was up to date and holding was
 	   correct. The test was wrong, not the handler. */
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice",
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice",
 		"so the count is not zero")); rec.Code != 200 {
 		t.Fatalf("post: %d %s", rec.Code, rec.Body)
 	}
@@ -1322,7 +1322,7 @@ func TestHereLongPollWaitsOnlyWhenThereIsNothingNew(t *testing.T) {
 	case <-time.After(300 * time.Millisecond):
 	}
 	*clock = clock.Add(3 * time.Second)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "bob",
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "bob",
 		"and this releases the waiter")); rec.Code != 200 {
 		t.Fatalf("post: %d %s", rec.Code, rec.Body)
 	}

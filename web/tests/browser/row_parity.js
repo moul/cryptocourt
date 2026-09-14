@@ -71,7 +71,7 @@ const {PAGE, demoPage} = require('./harness');
 
   // A claim filed directly in a set, so the set page has a folder page for it
   // AND the court page lists it under that folder's name.
-  await page.goto(PAGE + "#/c/orem/f/0", {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + "#/c/bedford/f/0", {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1200));
   const id = await page.evaluate(() => {
     const r = document.querySelector(".main .crow.claimrow");
@@ -81,7 +81,7 @@ const {PAGE, demoPage} = require('./harness');
   if (!Number.isFinite(id)) { console.log("\n1 FAILURES"); await browser.close(); process.exit(1); }
 
   const set = await rowOf(id);
-  await page.goto(PAGE + "#/c/orem", {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + "#/c/bedford", {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1200));
   const court = await rowOf(id);
 

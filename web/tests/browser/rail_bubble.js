@@ -15,7 +15,7 @@
 //
 // ABLATED, AND ONLY WHAT WAS ACTUALLY RUN IS CLAIMED. Removing the
 // railChatMarkSeen from railChatPoll fails "opening the room clears its badge"
-// with orem still at 3 — and the About total with it, at 4 instead of 1, which
+// with bedford still at 3 — and the About total with it, at 4 instead of 1, which
 // is the same defect seen from the other end. Returning [] instead of
 // CHATPULSEKNOWN when the rail names no court fails the About arm alone, with no
 // total at all.
@@ -29,12 +29,12 @@ const {PAGE} = require('./harness');
 const puppeteer = require('puppeteer');
 
 const now = Math.floor(Date.now() / 1000);
-/* THREE ROOMS, THREE CASES, named for the demo register's own courts. orem is
+/* THREE ROOMS, THREE CASES, named for the demo register's own courts. bedford is
    loud and unseen; ledger has one; meta's only message is a day old, which is the
    case that separates "unseen" from "recent" — the count is both, and a room
    nobody has opened for a day must not badge just for existing. */
 const ROOMS = {
-  orem: {here: 4, now, messages: [1, 2, 3].map(i => ({id: 100 + i, created_at: now - 60 * i, body: 'm' + i}))},
+  bedford: {here: 4, now, messages: [1, 2, 3].map(i => ({id: 100 + i, created_at: now - 60 * i, body: 'm' + i}))},
   ledger: {here: 2, now, messages: [{id: 500, created_at: now - 120, body: 'one'}]},
   meta: {here: 1, now, messages: [{id: 900, created_at: now - 86400, body: 'yesterday'}]},
 };
@@ -95,7 +95,7 @@ const read = () => {
   const dir = await page.evaluate(read);
 
   ok(`the directory polls the courts it names (${hits} requests)`, hits > 0, JSON.stringify(dir));
-  ok("a loud room carries its count", dir.orem === "3", JSON.stringify(dir));
+  ok("a loud room carries its count", dir.bedford === "3", JSON.stringify(dir));
   ok("...and a quieter one its own", dir.ledger === "1", JSON.stringify(dir));
   /* THE ROOM NOBODY HAS OPENED AND NOBODY IS IN. Its message is a day old, so it
      is unseen but not recent — the pair of conditions railChatCounts has always
@@ -107,7 +107,7 @@ const read = () => {
      dir.DIRECTORY === null, JSON.stringify(dir));
 
   // ---- walking into the room ----------------------------------------------
-  await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1500));
   await wake(page);
   await page.goto(PAGE + '#/', {waitUntil: 'domcontentloaded'});
@@ -118,7 +118,7 @@ const read = () => {
      watermark on arrival, but RAILCHATTOP is reset to 0 by the route change and
      only filled when the poll returns — so on a first visit it marked nothing
      and the badge survived being read. */
-  ok("opening the room clears its badge", after.orem === null, JSON.stringify(after));
+  ok("opening the room clears its badge", after.bedford === null, JSON.stringify(after));
   ok("...and leaves the other rooms alone", after.ledger === "1", JSON.stringify(after));
 
   // ---- a page that is not a court at all -----------------------------------

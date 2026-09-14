@@ -1,0 +1,189 @@
+<!-- The COURT page (#/c/orem, demo, dark). Captured because the claim page cannot
+     demonstrate a table: no stats strip and no stacked column of multi-digit
+     numbers, so tabular figures and ruled cells were untestable against it.
+     Regenerate with mockups/_capture-docket.js. Not committed. -->
+<aside class="rail">
+  <div class="brand">
+    <a class="mark" href="#/">
+      <span class="scale">⚖️</span>
+      <span><h1>Kourt</h1></span>
+    </a>
+    <div class="tag">Stake on claims of fact. Your principal always returns 1×.</div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="#/" data-k="dir" class="on"><span class="g">▤</span> Directory</a>
+    <div class="sec">You</div>
+    <a href="#/me" data-k="me"><span class="g">◈</span> Your positions</a>
+    <a href="#/needs" data-k="needs"><span class="g">!</span> What needs you</a>
+    <div class="sec">Reference</div>
+    <a href="#/about" data-k="about"><span class="g">?</span> How it works</a>
+  </nav>
+  <div class="foot">
+    <div class="node">
+      <div class="row"><span class="dot demo" id="dot"></span> <b id="nodelab">Demo data</b></div>
+      <a class="small" id="gwrealm" target="_blank" rel="noopener" style="display:none; margin:2px 0 4px" title="the chain's own view — every screen here can be served by the realm's Render" href="https://gno.land/r/kourt/kourtv2">⚖ this realm on gnoweb →</a>
+      <label for="modesel">Source</label>
+      <select id="modesel">
+        <option value="demo">Demo (offline sample)</option>
+        <option value="live">Live node (RPC)</option>
+      </select>
+      <div id="rpcwrap" hidden="">
+        <label for="preset">Preset</label>
+        <select id="preset">
+          <option value="">Custom</option>
+          <option value="gnodev">Local gnodev</option>
+          <option value="sapphire">Sapphire testnet</option>
+        </select>
+        <label for="rpc">RPC endpoint</label>
+        <input id="rpc" class="mono" placeholder="http://127.0.0.1:26657" spellcheck="false">
+        <label for="gnoweb">gnoweb (for tx links)</label>
+        <input id="gnoweb" class="mono" placeholder="https://gno.land" spellcheck="false">
+        <label for="chainid">chain id (for CLI commands)</label>
+        <input id="chainid" class="mono" placeholder="dev" spellcheck="false">
+        <label for="chat">court chat (optional)</label>
+        <input id="chat" class="mono" placeholder="http://127.0.0.1:8788  (this site)" spellcheck="false">
+      </div>
+    </div>
+    <button class="themebtn" id="walletbtn"><span class="g">◇</span> <span id="walletlab">Connect Adena</span></button>
+    <div class="small muted" id="wallethint" role="status" hidden=""></div>
+    <button class="themebtn" id="themebtn"><span class="g">◐</span> <span id="themelab">Light mode</span></button>
+  </div>
+</aside>
+<main class="main" id="main"><div class="crumbs"><a href="#/">Directory</a><span class="sep">/</span><span>Orem Truth Court</span></div><div class="lead-row"><div>
+        <h1 class="page-h">Orem Truth Court <span class="seal">orem</span></h1>
+        <p class="sub">Claims of fact from Orem's public record — certifications, inspections, filings. The court decides only what it is asked to decide.<span class="small muted"> · demo copy — the chain stores only a name</span></p>
+        <div class="tagrow">
+          <span class="tfacts"><span class="pill open">★ Featured</span><span class="tfact mono">/orem</span></span>
+          <span class="tacts"><a class="tlink" href="#/c/orem/map">map<span aria-hidden="true">→</span></a><a class="tlink" href="#/c/orem/curate">curate<span aria-hidden="true">→</span></a><a class="tlink" href="#/raw/orem/mod">moderation log<span aria-hidden="true">→</span></a>
+<a class="tlink" href="#/raw/orem">view as the chain serves it<span aria-hidden="true">→</span></a></span>
+          </div>
+       </div>
+       </div><section><div class="grid stats">
+        <div class="stat"><div class="k">coin price</div><div class="v tnum">118<small> µGNOT/unit</small></div><div class="sub">one-way curve — the GNOT is burned. 1 KOURT:OREM = 1,000,000 units</div></div>
+        <div class="stat"><div class="k">coin supply</div><div class="v tnum">118,500 KOURT:OREM</div><div class="sub">8.90 KOURT:OREM of it earned as rewards</div></div>
+        <div class="stat"><div class="k">reward reservoir</div><div class="v tnum">2.10 KOURT:OREM</div><div class="sub">available to claims crystallizing — settling and paying out</div></div>
+        <div class="stat"><div class="k">senior queue owed</div><div class="v tnum">0.64 KOURT:OREM</div><div class="sub">earned payouts (comps, bounties, voter rewards), paid as budget accrues</div></div>
+       </div></section><div class="cols"><div id="qscope"><section data-qfold=""><div class="sec-h">Folders <span class="count">3</span></div>
+       <div class="docket"><a class="crow folderrow" href="#/c/orem/f/0">
+    <span class="id"><svg class="icn" viewBox="0 0 14 12" aria-hidden="true"><path d="M1 1.5h4.2l1.4 1.8H13a.6.6 0 0 1 .6.6v6.6a.9.9 0 0 1-.9.9H1.3a.9.9 0 0 1-.9-.9V2.1a.6.6 0 0 1 .6-.6z" fill="currentColor"></path></svg></span>
+    <span><span class="t">Municipal record</span><span class="m" style="display:block">4 claims · 1 subfolder</span></span>
+    <span class="px"><b>4</b><small>claims</small></span>
+    <span class="pill void">folder</span></a><a class="crow folderrow" href="#/c/orem/f/1">
+    <span class="id"><svg class="icn" viewBox="0 0 14 12" aria-hidden="true"><path d="M1 1.5h4.2l1.4 1.8H13a.6.6 0 0 1 .6.6v6.6a.9.9 0 0 1-.9.9H1.3a.9.9 0 0 1-.9-.9V2.1a.6.6 0 0 1 .6-.6z" fill="currentColor"></path></svg></span>
+    <span><span class="t">Infrastructure</span><span class="m" style="display:block">3 claims</span></span>
+    <span class="px"><b>3</b><small>claims</small></span>
+    <span class="pill void">folder</span></a><a class="crow folderrow" href="#/c/orem/f/2">
+    <span class="id"><svg class="icn" viewBox="0 0 14 12" aria-hidden="true"><path d="M1 1.5h4.2l1.4 1.8H13a.6.6 0 0 1 .6.6v6.6a.9.9 0 0 1-.9.9H1.3a.9.9 0 0 1-.9-.9V2.1a.6.6 0 0 1 .6-.6z" fill="currentColor"></path></svg></span>
+    <span><span class="t">Filings &amp; audits</span><span class="m" style="display:block">3 claims</span></span>
+    <span class="px"><b>3</b><small>claims</small></span>
+    <span class="pill void">folder</span></a></div></section><div class="pager"><span class="mono small">all 11 claims · newest first</span>
+    <span class="chips"><span class="schips" role="group" aria-label="sort order"><button class="pill void" data-sort="new" aria-pressed="true">newest</button><button class="pill void" data-sort="old" aria-pressed="false">oldest</button><button class="pill void" data-sort="yes" aria-pressed="false">%YES now</button></span></span></div><div class="addrbar qbar"><input id="q" type="search" class="mono" placeholder="title or #id" spellcheck="false" autocomplete="off" aria-label="filter loaded titles or jump to a claim id" aria-describedby="qcap">
+    <span id="qcap" class="mono small muted" role="status">searches all 11 claim titles — the sample is complete</span></div><section data-qsec="" style="margin-top:22px"><div class="sec-h">Open docket <span class="count">8</span></div><div class="docket" data-sortable="" data-sortkind="dk"><a class="crow" data-id="11" data-yes="53.6" data-q="#11 The county's posted inspection log lists the north span as 'load-restricted' for the same period." href="#/c/orem/11">
+    <span class="id">#11</span>
+    <span><span class="t">The county's posted inspection log lists the north span as 'load-restricted' for the same period.</span><span class="m" style="display:block">Infrastructure</span><span class="m" style="display:block" id="clk-orem-11"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,7.4 30.0,7.8 58.0,7.6"></polyline></svg><b>53.6%</b><small>YES now</small></span>
+    <span class="pill void">open</span></a><a class="crow" data-id="10" data-yes="71" data-q="#10 The mayor's Oct 12 email to the planning director opposed the rezoning." href="#/c/orem/10">
+    <span class="id">#10</span>
+    <span><span class="t">The mayor's Oct 12 email to the planning director opposed the rezoning.</span><span class="m" style="display:block">Municipal record</span><span class="m" style="display:block" id="clk-orem-10"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,5.1 30.0,5.7 58.0,5.5"></polyline></svg><b>71.0%</b><small>YES now</small></span>
+    <span class="pill void">open</span></a><a class="crow" data-id="9" data-yes="53.1" data-q="#9 The city's 2025 annual report is accurate on its headline claims." href="#/c/orem/9">
+    <span class="id">#9</span>
+    <span><span class="t">The city's 2025 annual report is accurate on its headline claims.</span><span class="m" style="display:block">Filings &amp; audits</span><span class="m" style="display:block" id="clk-orem-9"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,7.6 30.0,7.6 58.0,7.6"></polyline></svg><b>53.1%</b><small>YES now</small></span>
+    <span class="pill void">open</span></a><a class="crow" data-id="7" data-yes="52.2" data-q="#7 The reservoir release logs match the stated schedule." href="#/c/orem/7">
+    <span class="id">#7</span>
+    <span><span class="t">The reservoir release logs match the stated schedule.</span><span class="m" style="display:block">Infrastructure</span><span class="m" style="display:block" id="clk-orem-7">reopenable until ≈block 4,805,000 — in about 6 hours</span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,7.7 30.0,7.4 58.0,7.7"></polyline></svg><b>52.2%</b><small>YES now</small></span>
+    <span class="pill escrow">settling</span></a><a class="crow" data-id="6" data-yes="93.2" data-q="#6 The vendor's audit found zero critical findings." href="#/c/orem/6">
+    <span class="id">#6</span>
+    <span><span class="t">The vendor's audit found zero critical findings.</span><span class="m" style="display:block">Filings &amp; audits</span><span class="m" style="display:block" id="clk-orem-6">the settle window has passed — anyone may settle it now</span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,2.8 30.0,3.0 58.0,2.8"></polyline></svg><b>93.2%</b><small>YES now</small></span>
+    <span class="pill open">answered</span></a><a class="crow" data-id="3" data-yes="52.2" data-q="#3 The bridge inspection rated the north span 'serviceable'." href="#/c/orem/3">
+    <span class="id">#3</span>
+    <span><span class="t">The bridge inspection rated the north span 'serviceable'.</span><span class="m" style="display:block">Infrastructure</span><span class="m" style="display:block" id="clk-orem-3">a sealed vote is deciding — no close height is published</span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,7.7 30.0,7.8 58.0,7.7"></polyline></svg><b>52.2%</b><small>YES now</small></span>
+    <span class="pill escrow">in dispute</span></a><a class="crow" data-id="2" data-yes="93.5" data-q="#2 SpaceX Starship Flight 12 reached orbital velocity." href="#/c/orem/2">
+    <span class="id">#2</span>
+    <span><span class="t">SpaceX Starship Flight 12 reached orbital velocity.</span><span class="m" style="display:block" id="clk-orem-2">settles undisputed at ≈block 4,809,000 — in about 12 hours unless disputed</span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,2.8 30.0,2.8 58.0,2.8"></polyline></svg><b>93.5%</b><small>YES now</small></span>
+    <span class="pill open">answered</span></a><a class="crow" data-id="1" data-yes="77.4" data-q="#1 The county certified 12,412 mail ballots on Nov 6, 2025." href="#/c/orem/1">
+    <span class="id">#1</span>
+    <span><span class="t">The county certified 12,412 mail ballots on Nov 6, 2025.</span><span class="m" style="display:block">Municipal record · Elections</span><span class="m" style="display:block" id="clk-orem-1"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,4.7 30.0,5.1 58.0,4.7"></polyline></svg><b>77.4%</b><small>YES now</small></span>
+    <span class="pill void">open</span></a></div><div class="actions" style="margin-top:10px"><span class="act"><button class="btn  inert" data-inert="1"><span class="g">↗</span> Open a claim</button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;OpenClaim&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;Your claim of fact&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span></div></section><section data-qsec="" style="margin-top:22px"><div class="sec-h">Recently settled <span class="count">3</span></div><div class="docket" data-sortable="" data-sortkind="dk"><a class="crow" data-id="8" data-yes="57.1" data-q="#8 The archived forum post predates the patent filing." href="#/c/orem/8">
+    <span class="id">#8</span>
+    <span><span class="t">The archived forum post predates the patent filing.</span><span class="m" style="display:block">Filings &amp; audits</span><span class="m" style="display:block" id="clk-orem-8"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,7.1 30.0,7.2 58.0,7.1"></polyline></svg><b>57.1%</b><small>YES now</small></span>
+    <span class="pill void">never answered</span></a><a class="crow" data-id="5" data-yes="52" data-q="#5 The mayor privately opposed the rezoning before the vote." href="#/c/orem/5">
+    <span class="id">#5</span>
+    <span><span class="t">The mayor privately opposed the rezoning before the vote.</span><span class="m" style="display:block">Municipal record</span><span class="m" style="display:block" id="clk-orem-5"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,7.8 30.0,7.8 58.0,7.8"></polyline></svg><b>52.0%</b><small>YES now</small></span>
+    <span class="pill void">no decision</span></a><a class="crow" data-id="4" data-yes="90" data-q="#4 Q3 city revenue exceeded the June forecast." href="#/c/orem/4">
+    <span class="id">#4</span>
+    <span><span class="t">Q3 city revenue exceeded the June forecast.</span><span class="m" style="display:block">Municipal record</span><span class="m" style="display:block" id="clk-orem-4"></span></span>
+    <span class="px"><svg class="spark" viewBox="0 0 60 16" aria-hidden="true"><line class="base" x1="2" y1="8" x2="58" y2="8"></line><polyline points="2.0,3.2 30.0,3.2 58.0,3.2"></polyline></svg><b>90.0%</b><small>YES now</small></span>
+    <span class="pill good">settled</span></a></div></section><section data-qfold="" style="margin-top:22px"><div class="sec-h">Needs review <span class="count">4 · the chain's own list</span></div>
+        <p class="small muted" style="margin:0 0 8px">answered and not yet settled — nearest deadline first. This list ignores moderation: a claim hidden from the docket above still appears here while it can still be flagged.</p>
+        <div class="docket"><a class="crow argrow" href="#/c/orem/7">
+        <span class="id">#7</span>
+        <span><span class="t">The reservoir release logs match the stated schedule.</span><span class="m" style="display:block">settles at height 4,550,000</span></span>
+        <span class="pill escrow">settling</span></a><a class="crow argrow" href="#/c/orem/3">
+        <span class="id">#3</span>
+        <span><span class="t">The bridge inspection rated the north span 'serviceable'.</span><span class="m" style="display:block">settles at height 4,690,000</span></span>
+        <span class="pill escrow">in dispute</span></a><a class="crow argrow" href="#/c/orem/6">
+        <span class="id">#6</span>
+        <span><span class="t">The vendor's audit found zero critical findings.</span><span class="m" style="display:block">settles at height 4,797,800</span></span>
+        <span class="pill open">answered</span></a><a class="crow argrow" href="#/c/orem/2">
+        <span class="id">#2</span>
+        <span><span class="t">SpaceX Starship Flight 12 reached orbital velocity.</span><span class="m" style="display:block">settles at height 4,809,000</span></span>
+        <span class="pill open">answered</span></a></div>
+        </section><div id="qempty" class="empty qhide"><div class="g">◌</div><p>No loaded title matches.</p><p class="small muted">clear to browse, or go to a claim by id</p></div></div><aside><div class="panel"><h4>Join this court</h4>
+        <p class="small" style="margin:0 0 10px"><b>Buying KOURT:OREM is permanent</b> — the GNOT is burned: spent, held by no one. There is no sell-back, now or ever.</p>
+        <div class="ticket buyrcpt">
+          <div class="line"><span class="l"><label for="buyamt">You send</label></span>
+            <span class="r tnum"><input id="buyamt" type="text" inputmode="decimal" value="100" autocomplete="off" aria-describedby="buynote"> GNOT
+              <small id="buyugnot">= 100,000,000 µGNOT</small></span></div>
+          <div id="buyrows" aria-live="polite"><div class="line"><span class="l">You receive</span><span class="r tnum">0.84 KOURT:OREM <small>843,942 units</small></span></div><div class="line"><span class="l">Average price you pay</span><span class="r tnum">118.4915 <small>µGNOT/unit</small></span></div><div class="line"><span class="l">Returned to you</span><span class="r tnum">27 <small>µGNOT, sent back in the same transaction</small></span></div><div class="line"><span class="l">Price after your buy</span><span class="r tnum">118 <small>µGNOT/unit · now 118</small></span></div><div class="line"><span class="l">Your voice share</span><span class="r tnum">&lt;0.1%</span></div></div>
+        </div>
+        <p id="buynote" class="small muted" style="margin:8px 0 0">Sample data — computed from the demo court, no chain involved.</p>
+        <label class="ack small"><input type="checkbox" id="buyack"> I understand KOURT:OREM cannot be sold back to the court.</label>
+        <div class="actions" style="margin-top:10px" id="buyactions"><span class="act"><button class="btn primary inert" data-inert="1"><span class="g">↗</span> Buy 0.84 KOURT:OREM <small>GNOT in, one-way</small></button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+# one-way: the GNOT is burned; no sell-back
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;Buy&quot; \
+  --args &quot;orem&quot; \
+  --send 100000000ugnot \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span></div>
+        <p class="small muted" style="margin:10px 0 0">The only way out is a private buyer, and there may not be one. Treat this as GNOT spent for a voice, not GNOT moved.</p>
+       </div><div class="panel"><h4>Court record</h4>
+        <p class="small muted" style="margin:0 0 10px" id="cr-scope">of this court's 11 claims</p>
+        <div class="kv"><div class="k">settled undisputed</div><div class="v tnum"><span id="cr-undis">0</span></div></div>
+        <div class="kv"><div class="k">settled by vote</div><div class="v tnum"><span id="cr-vote">1</span> <small><span id="cr-ov">1 overturned the answer</span></small></div></div>
+        <div class="kv"><div class="k">closed without a decision</div><div class="v tnum"><span id="cr-nodec">1</span></div></div>
+        <div class="kv"><div class="k">expired unanswered</div><div class="v tnum"><span id="cr-unans">1</span></div></div>
+        <div class="kv"><div class="k">live now</div><div class="v tnum"><span id="cr-live">8</span></div></div>
+        <div class="kv"><div class="k">dispute rounds failed</div><div class="v tnum"><span id="cr-failed">6</span> <small><span id="cr-dec">· 1 ended in a verdict</span></small></div></div>
+        <div class="kv"><div class="k">GNOT burned here</div><div class="v tnum"><span id="cr-burn">7,020,070 GNOT</span> <small>destroyed at a keyless address, not held; nothing redeems it</small></div></div>
+        <p class="small muted" style="margin:10px 0 0">Published because they are the only reason to trust a verdict: a court that hides its record has nothing behind its decisions.</p>
+       </div><div class="panel"><h4>Senior queue</h4>
+        <p class="small" style="margin:0 0 10px">Earned payouts (comps, bounties, voter rewards) are pulled, not pushed — bring your queue ticket.</p>
+        <div class="actions"><span class="act"><button class="btn  inert" data-inert="1"><span class="g">↗</span> Pull senior payout <small>seq = your queue ticket</small></button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;PullSenior&quot; \
+  --args &quot;orem&quot; \
+  --args &quot;1&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span></div>
+       </div><section><div class="primer"><h3>Four things, before any button</h3><ol>
+    <li>Buying the coin is <b>permanent</b> — GNOT flows one way and is burned; there is no sell-back.</li>
+    <li>Staked coin comes back <b>1×, win or lose</b>; only the <b>reward</b> rides on the verdict. (The GNOT that minted the coin was already burned — that part was spent, not staked.)</li>
+    <li>The reward is <b>conviction</b> — stake × time on the winning side — drawn from newly-minted coin, capped so it can never be farmed.</li>
+    <li>Anyone may <b>answer</b> (with a bond; seasoned courts reserve the first day for qualified answerers), anyone but the answerer may <b>dispute</b>, and anyone may <b>flag</b>; bonds spend real tokens with no undo — staking is the one act you can unwind, until an answer posts.</li>
+  </ol></div></section></aside></div><div id="courtchat" class="chatpanel"><div class="chathead"><b>Chat</b> <span class="chatslug">orem</span><span class="chatwarn">names are unverified — nobody here is staff, and nobody can move funds for you</span><span class="chatdemo">Sample conversation — this panel is not connected to a server, and every message below is invented.</span></div><ol class="chatlog" aria-live="polite"><li class="chatmsg"><span class="chatwho"><span class="chatflag" title="GB">🇬🇧</span><span class="chatname">ellery</span><span class="chatsuf" title="derived from the sender's connection, rotates daily">·9c14ab</span></span><span class="chatbody">is the settle window on this one still open?</span><span class="chatage">2h</span></li><li class="chatmsg"><span class="chatwho"><span class="chatflag" title="JP">🇯🇵</span><span class="chatname">tosh</span><span class="chatsuf" title="derived from the sender's connection, rotates daily">·40de71</span></span><span class="chatbody">closed about an hour ago, the answer stood</span><span class="chatage">55m</span></li><li class="chatmsg"><span class="chatwho"><span class="chatflag" title="GB">🇬🇧</span><span class="chatname">ellery</span><span class="chatsuf" title="derived from the sender's connection, rotates daily">·9c14ab</span></span><span class="chatbody">thanks. the wording of the claim was ambiguous imo</span><span class="chatage">40m</span></li><li class="chatmsg"><span class="chatwho"><span class="chatflag" title="BR">🇧🇷</span><span class="chatname">rho</span><span class="chatsuf" title="derived from the sender's connection, rotates daily">·77b0e2</span></span><span class="chatbody">agreed, "substantially complete" is doing a lot of work there</span><span class="chatage">10m</span></li></ol><div class="chatstate" hidden=""></div><form class="chatform" autocomplete="off"><input class="chatmoniker" maxlength="96" placeholder="name" aria-label="your name" value=""><input class="chatinput" maxlength="400" placeholder="say something" aria-label="message"><button class="chatsend" type="submit">send</button></form><div class="chatnote">Chat is not configured for this page.</div></div></main>

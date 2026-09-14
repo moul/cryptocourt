@@ -280,6 +280,15 @@ STAMPED="$(mktemp -t kourt-index).html"   # removed by cleanup(), which sees it 
 SITE_MODE="${SITE_MODE:-live}"
 SITE_RPC="${SITE_RPC:-https://rpc.gno.land}"
 SITE_CHAINID="${SITE_CHAINID:-gnoland-1}"
+# THE NAME ADENA FILES THE CHAIN UNDER, and it has to be the chain's name rather
+# than this site's. adenaSign calls AddNetwork({chainId, chainName: CHAIN_LABEL,
+# rpcUrl}) when a SwitchNetwork fails, so a label of "Kourt" asks a wallet to
+# register gno.land MAINNET under the name of one realm that happens to live on
+# it. Adena ships gnoland-1 already, so that is a duplicate chain id under a
+# conflicting name. This was hardcoded and unstamped while RPC, chain id, PKG and
+# gnoweb all moved with the deploy — the same drift class as the /r/kourt/kourtv2
+# regexes, and it survives for the same reason: nothing compared it to the chain.
+SITE_CHAINLABEL="${SITE_CHAINLABEL:-gno.land}"
 # gnoweb is where every action button sends a reader to sign: tx() builds
 # CFG.gnoweb + "/r/kourt/kourtv2$help&func=…". There is no gnoweb on this host,
 # so the honest default is the repo's — and that points at gno.land, which does
@@ -326,6 +335,13 @@ out = pkgpat.sub(lambda _: 'const PKG = "%s";' % pkg, out, count=1)
 # chain id and chat — a way to point this page at another node and then read the
 # answer as though it came from this court. The repo copy keeps it, because
 # choosing a node is what that copy is for.
+# CHAIN_LABEL names the chain to the WALLET (AddNetwork's chainName), so it
+# tracks SITE_CHAINID, not this site. See the note beside SITE_CHAINLABEL.
+lblpat = re.compile(r'^const CHAIN_LABEL = "[^"]*";$', re.M)
+if len(lblpat.findall(out)) != 1:
+    sys.exit("deploy: expected exactly one CHAIN_LABEL line to stamp")
+out = lblpat.sub(lambda _: 'const CHAIN_LABEL = "$SITE_CHAINLABEL";', out, count=1)
+
 lockpat = re.compile(r'^const LOCKED = false;$', re.M)
 if len(lockpat.findall(out)) != 1:
     sys.exit("deploy: expected exactly one LOCKED line to stamp")

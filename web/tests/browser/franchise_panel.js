@@ -40,7 +40,7 @@ const {PAGE, demoPage} = require('./harness');
   };
 
   /* AN ORDINARY COURT: the rule, stated where it is earned. */
-  const onCourt = await panel("orem");
+  const onCourt = await panel("bedford");
   ok("a court page fills the franchise panel", !!onCourt, "(never filled)");
   ok("...saying the burn here also earns coin in the meta court",
      /also earns you the meta court's coin/.test(onCourt), onCourt.slice(0, 110));
@@ -83,7 +83,7 @@ const {PAGE, demoPage} = require('./harness');
      which is both where the burn happens and where a reader returns to claim —
      and "the element exists somewhere on the page" stayed true across that
      move, so only the containment can fail. */
-  await page.goto(PAGE + '#/c/orem', {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + '#/c/bedford', {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 2500));
   const placed = await page.evaluate(() => {
     const f = document.getElementById("franchise");
@@ -102,7 +102,7 @@ const {PAGE, demoPage} = require('./harness');
   const dlg = await page.evaluate(async () => {
     try { localStorage.removeItem("cc.franchise"); } catch (e) {}
     if (typeof franchiseFollowup !== "function") return {err: "NO franchiseFollowup IN THE PAGE"};
-    await franchiseFollowup("orem");
+    await franchiseFollowup("bedford");
     const d = document.getElementById("frdlg");
     return {open: !!(d && d.open), text: d ? d.textContent.replace(/\s+/g, " ") : ""};
   });
@@ -143,7 +143,7 @@ const {PAGE, demoPage} = require('./harness');
     const flag = (() => { try { return localStorage.getItem("cc.franchise"); } catch (e) { return null; } })();
     const gone = !document.getElementById("frdlg");
     // A SECOND BURN MUST NOT BRING IT BACK: the panel is the copy that persists.
-    await franchiseFollowup("orem");
+    await franchiseFollowup("bedford");
     return {flag, gone, again: !!document.getElementById("frdlg")};
   });
   ok("dismissing it closes and removes it", !!(after && after.gone), JSON.stringify(after));

@@ -515,11 +515,11 @@ const {PAGE, demoPage} = require('./harness');
      A CLUSTER SAYS WHAT IT IS. Dots a reader cannot read are decoration; the
      <title> is what makes seven dots "4 comments in 3 threads" on hover, and
      it must be the FIRST child because that is the one a browser shows. */
-  /* OREM'S MAP FOR THESE, because annex carries no board fixtures. Only orem/1
-     and orem/2 have comments in the sample, so on annex there is nothing to
+  /* BEDFORD'S MAP FOR THESE, because annex carries no board fixtures. Only bedford/1
+     and bedford/2 have comments in the sample, so on annex there is nothing to
      draw — and asserting a cluster there would be asserting the shape of the
      sample rather than the behaviour of the code. */
-  await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1400));
   const cmtSaid = await page.evaluate(() => {
     const filled = [...document.querySelectorAll("g.mcmt")].filter(g => g.children.length);

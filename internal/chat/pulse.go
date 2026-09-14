@@ -150,5 +150,5 @@ func (p *pulse) fireAll() {
 }
 
 // pulseKey names a court. The chain is part of it because a court slug is only
-// unique within one — "orem" on dev and "orem" on kourt-1 are two rooms.
+// unique within one — "bedford" on dev and "bedford" on kourt-1 are two rooms.
 func pulseKey(chain, court string) string { return chain + "\x00" + court }

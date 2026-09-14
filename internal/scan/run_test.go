@@ -114,7 +114,7 @@ func TestRunDrainsABacklogWithoutWaitingOutTheInterval(t *testing.T) {
 	for i := 0; i < total; i++ {
 		who := fmt.Sprintf("poster%02d", i)
 		if _, err := s.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: who,
+			Chain: "dev", Court: "bedford", Moniker: who,
 			Body: "a message that needs a look", IPHash: who, NetHash: "net",
 		}); err != nil {
 			t.Fatal(err)

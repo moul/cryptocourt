@@ -52,24 +52,24 @@ s.expect("TestClockActive", [], "false")
 s.arm_clock(at=1780000000)
 
 s.note("a court with real coin behind it")
-s.court(alice, "orem", "Orem Truth Court")
-s.buy(alice, "orem", 400_000_000)
-s.buy(bob, "orem", 400_000_000)
-s.buy(carol, "orem", 400_000_000)
+s.court(alice, "bedford", "Bedford Truth Court")
+s.buy(alice, "bedford", 400_000_000)
+s.buy(bob, "bedford", 400_000_000)
+s.buy(carol, "bedford", 400_000_000)
 
 s.note("BOTH claims open now, so one mine matures both rings")
 # Maturity is per-claim but measured in HEIGHT, so two claims opened together
 # ripen on the same 2,200 blocks. Opening the second one later would cost a
 # second 2,200-block run for nothing.
-s.claim(alice, "orem", "The county certified 12,412 mail ballots on Nov 6, 2025.")
-s.claim(alice, "orem", "The Center St. bridge inspection was completed in 2025.")
+s.claim(alice, "bedford", "The county certified 12,412 mail ballots on Nov 6, 2025.")
+s.claim(alice, "bedford", "The Center St. bridge inspection was completed in 2025.")
 # ALICE stakes; BOB and CAROL do not, and that is load-bearing. PostAnswer and
 # OpenDispute both take a bond through mustSpendable (lock.gno:73), and staked
 # coin is committed: it keeps voting but cannot also back a bond. An earlier run
 # had bob stake and then fail to answer with "not enough unstaked CC" — a real
 # rule, found only because the seed ran against a chain.
-s.stake(alice, "orem", 1, YES, 400_000_000)
-s.stake(alice, "orem", 2, YES, 300_000_000)
+s.stake(alice, "bedford", 1, YES, 400_000_000)
+s.stake(alice, "bedford", 2, YES, 300_000_000)
 
 s.note("the twenty minutes: three 720-block buckets of stake history")
 # 2,200 not 2,160 — the ring is read at the CURRENT height, and a scenario that
@@ -78,26 +78,26 @@ s.note("the twenty minutes: three 720-block buckets of stake history")
 # not predictable to the block (ruling O1); the margin absorbs that.
 s.mine(2200, "answerWindow is 2,160 blocks and maturity needs all three buckets",
        with_time=True)  # ~3h of chain time, so the ladder reads honestly
-s.stake(alice, "orem", 1, YES, 1_000_000)
-s.stake(alice, "orem", 2, YES, 1_000_000)
+s.stake(alice, "bedford", 1, YES, 1_000_000)
+s.stake(alice, "bedford", 2, YES, 1_000_000)
 
 s.note("both claims answered — the state no live run had ever reached")
-s.answer(bob, "orem", 1, YES)
-s.answer(bob, "orem", 2, YES)
-s.expect("HasAnswer", ["orem", 1], "true")
-s.expect("Answerer", ["orem", 1], "g1")
+s.answer(bob, "bedford", 1, YES)
+s.answer(bob, "bedford", 2, YES)
+s.expect("HasAnswer", ["bedford", 1], "true")
+s.expect("Answerer", ["bedford", 1], "g1")
 
 s.note("claim 2 disputed BEFORE the window closes — a sealed vote, mid-flight")
 # OpenDispute refuses once settleSecs has passed (dispute.gno:27-29), so this
 # has to happen before the advance below. The vote itself resolves on HEIGHT
 # (votingBlocks = 120,960, ~3.4h of mining), so the claim stays mid-vote — which
 # is exactly the state the page renders and nothing had ever served it live.
-s.dispute(carol, "orem", 2)
-s.expect("DisputeOpen", ["orem", 2], "true")
+s.dispute(carol, "bedford", 2)
+s.expect("DisputeOpen", ["bedford", 2], "true")
 
 s.note("settle is wall-clock gated: 72 hours, crossed by moving the date")
 s.advance(72 * 3600 + 60, "just past the settle window")
-s.settle(alice, "orem", 1)
-s.expect("Settled", ["orem", 1], "true")
-s.expect("Verdict", ["orem", 1], "int")
-s.expect("DisputeOpen", ["orem", 2], "true")
+s.settle(alice, "bedford", 1)
+s.expect("Settled", ["bedford", 1], "true")
+s.expect("Verdict", ["bedford", 1], "int")
+s.expect("DisputeOpen", ["bedford", 2], "true")

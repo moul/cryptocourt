@@ -1374,7 +1374,7 @@ func (s *Store) Freeze(ctx context.Context, chain, court string) error {
 //
 // The document draws the line that matters — "'Stop showing this' and 'destroy the evidence' are
 // different decisions and only one of them cannot be undone" — and then there was no way to undo
-// the first. `freeze dev/oren` for `dev/orem` withdrew a live court permanently: 410 to every
+// the first. `freeze dev/oren` for `dev/bedford` withdrew a live court permanently: 410 to every
 // reader, posts refused, moderation stopped, and nothing in the tool to reverse it. A compliance
 // control a typo can aim at an innocent room, with recovery only by hand-editing SQLite, is not
 // the reversible half of that sentence.

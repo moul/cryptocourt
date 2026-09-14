@@ -800,7 +800,7 @@ function chatDemoThread(slug) {
 // configured issued real requests against sample data:
 //
 //     GET http://…/api/chat/health
-//     GET http://…/api/chat/dev/orem?limit=50
+//     GET http://…/api/chat/dev/bedford?limit=50
 //
 // The four assertions that prove this guard works kept passing, because the
 // harness slices this file alone and never sees the collision.

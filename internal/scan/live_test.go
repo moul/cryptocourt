@@ -128,7 +128,7 @@ func TestLiveWindowCannotTalkAScamDown(t *testing.T) {
 
 	for _, body := range append(setup, payload) {
 		if _, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: "framer", Body: body,
+			Chain: "dev", Court: "bedford", Moniker: "framer", Body: body,
 			IPHash: "ip-frame", NetHash: "net-frame",
 		}); err != nil {
 			t.Fatal(err)

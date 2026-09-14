@@ -61,10 +61,10 @@ func postReq(t *testing.T, path, moniker, body string) *http.Request {
 
 func TestPostThenGet(t *testing.T) {
 	srv, _, _ := newServer(t)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "hello court")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "hello court")); rec.Code != 200 {
 		t.Fatalf("post: %d %s", rec.Code, rec.Body)
 	}
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if rec.Code != 200 {
 		t.Fatalf("get: %d %s", rec.Code, rec.Body)
 	}
@@ -90,7 +90,7 @@ func TestCSRF(t *testing.T) {
 
 	// A CORS-safelisted content type sends with no preflight and would execute.
 	b, _ := json.Marshal(postBody{Moniker: "alice", Body: "posted by a third party"})
-	r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/orem", bytes.NewReader(b))
+	r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/bedford", bytes.NewReader(b))
 	r.Header.Set("Content-Type", "text/plain")
 	if rec := do(t, srv, r); rec.Code != http.StatusUnsupportedMediaType {
 		t.Fatalf("text/plain must be refused with 415, got %d", rec.Code)
@@ -98,7 +98,7 @@ func TestCSRF(t *testing.T) {
 
 	// A real cross-site fetch announces itself, and browsers will not let script
 	// forge the header.
-	r = postReq(t, "/api/chat/dev/orem", "alice", "posted from another site")
+	r = postReq(t, "/api/chat/dev/bedford", "alice", "posted from another site")
 	r.Header.Set("Sec-Fetch-Site", "cross-site")
 	if rec := do(t, srv, r); rec.Code != http.StatusForbidden {
 		t.Fatalf("cross-site must be refused with 403, got %d", rec.Code)
@@ -109,7 +109,7 @@ func TestCSRF(t *testing.T) {
 	// allowed on purpose — the header only reaches potentially-trustworthy
 	// origins, so on plain HTTP it never arrives, and refusing it would block
 	// curl and the operator CLI for nothing.
-	r = postReq(t, "/api/chat/dev/orem", "alice", "posted from our own page")
+	r = postReq(t, "/api/chat/dev/bedford", "alice", "posted from our own page")
 	r.Header.Set("Sec-Fetch-Site", "same-origin")
 	if rec := do(t, srv, r); rec.Code != 200 {
 		t.Fatalf("same-origin must be accepted, got %d %s", rec.Code, rec.Body)
@@ -118,7 +118,7 @@ func TestCSRF(t *testing.T) {
 
 func TestPreflight(t *testing.T) {
 	srv, _, _ := newServer(t)
-	rec := do(t, srv, httptest.NewRequest(http.MethodOptions, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodOptions, "/api/chat/dev/bedford", nil))
 	if rec.Code != http.StatusNoContent {
 		t.Fatalf("preflight: %d", rec.Code)
 	}
@@ -136,14 +136,14 @@ func TestUnknownChainAndCourt(t *testing.T) {
 	srv, _, _ := newServer(t)
 	// A client-chosen chain with no allowlist would be a fresh partition and a
 	// fresh budget per made-up name.
-	if rec := do(t, srv, postReq(t, "/api/chat/nosuchchain/orem", "a", "hello there")); rec.Code != 404 {
+	if rec := do(t, srv, postReq(t, "/api/chat/nosuchchain/bedford", "a", "hello there")); rec.Code != 404 {
 		t.Fatalf("unknown chain must 404, got %d", rec.Code)
 	}
 	if rec := do(t, srv, postReq(t, "/api/chat/dev/NotACourt", "a", "hello there")); rec.Code != 404 {
 		t.Fatalf("malformed court must 404, got %d", rec.Code)
 	}
 	// Paired positive.
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "a", "hello there")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "a", "hello there")); rec.Code != 200 {
 		t.Fatalf("a known chain and court must work, got %d", rec.Code)
 	}
 }
@@ -151,14 +151,14 @@ func TestUnknownChainAndCourt(t *testing.T) {
 func TestGetClampsSinceAndLimit(t *testing.T) {
 	srv, _, clock := newServer(t)
 	for i := 0; i < 5; i++ {
-		if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "message here now")); rec.Code != 200 {
+		if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "message here now")); rec.Code != 200 {
 			t.Fatalf("seed %d: %d %s", i, rec.Code, rec.Body)
 		}
 		*clock = clock.Add(MinInterval)
 	}
 	// A negative cursor and an absurd limit must not become a whole-table dump.
 	rec := do(t, srv, httptest.NewRequest(http.MethodGet,
-		"/api/chat/dev/orem?since=-1&limit=999999999", nil))
+		"/api/chat/dev/bedford?since=-1&limit=999999999", nil))
 	if rec.Code != 200 {
 		t.Fatalf("get: %d", rec.Code)
 	}
@@ -185,7 +185,7 @@ func TestRejectsBadInput(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", c.moniker, c.body)); rec.Code != 400 {
+			if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", c.moniker, c.body)); rec.Code != 400 {
 				t.Fatalf("want 400, got %d %s", rec.Code, rec.Body)
 			}
 		})
@@ -206,12 +206,12 @@ func TestRejectsBadInput(t *testing.T) {
 func TestABlankNameIsAnon(t *testing.T) {
 	srv, _, clock := newServer(t)
 	for i, blank := range []string{"", "   ", "\t\n"} {
-		if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", blank, "hello court")); rec.Code != 200 {
+		if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", blank, "hello court")); rec.Code != 200 {
 			t.Fatalf("blank %d: want 200, got %d %s", i, rec.Code, rec.Body)
 		}
 		*clock = clock.Add(MinInterval)
 	}
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if rec.Code != 200 {
 		t.Fatalf("get: %d", rec.Code)
 	}
@@ -269,7 +269,7 @@ func TestLongPollHoldsUntilSomethingHappens(t *testing.T) {
 	// time is not involved in that rule and must not be: a test that slept for it
 	// would be two seconds slower and no more truthful.
 	post := func(body string) {
-		if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", body)); rec.Code != 200 {
+		if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", body)); rec.Code != 200 {
 			t.Fatalf("seed: %d %s", rec.Code, rec.Body)
 		}
 		clockMu.Lock()
@@ -278,7 +278,7 @@ func TestLongPollHoldsUntilSomethingHappens(t *testing.T) {
 	}
 	get := func(q string) (*httptest.ResponseRecorder, time.Duration) {
 		start := time.Now()
-		rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem"+q, nil))
+		rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford"+q, nil))
 		return rec, time.Since(start)
 	}
 	post("the first thing said here")
@@ -362,13 +362,13 @@ func TestLongPollHoldsUntilSomethingHappens(t *testing.T) {
 // millisecond of SQLite.
 func TestAPollAnswersAtOnceWhenARowTheReaderHasSeenIsGone(t *testing.T) {
 	srv, _, clock := newServer(t)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "take this back")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "take this back")); rec.Code != 200 {
 		t.Fatalf("seed: %d %s", rec.Code, rec.Body)
 	}
 	*clock = clock.Add(MinInterval)
 
 	var seen getReply
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if err := json.Unmarshal(rec.Body.Bytes(), &seen); err != nil {
 		t.Fatal(err)
 	}
@@ -378,13 +378,13 @@ func TestAPollAnswersAtOnceWhenARowTheReaderHasSeenIsGone(t *testing.T) {
 
 	// The same address as the poster, so the withdrawal is allowed. The pulse this
 	// fires is spent immediately: nobody is holding, which is the whole point.
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", WithdrawCommand)); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", WithdrawCommand)); rec.Code != 200 {
 		t.Fatalf("withdraw: %d %s", rec.Code, rec.Body)
 	}
 
 	start := time.Now()
 	rec = do(t, srv, httptest.NewRequest(http.MethodGet,
-		fmt.Sprintf("/api/chat/dev/orem?seen=%d&wait=2", seen.Next), nil))
+		fmt.Sprintf("/api/chat/dev/bedford?seen=%d&wait=2", seen.Next), nil))
 	took := time.Since(start)
 	if rec.Code != 200 {
 		t.Fatalf("expected 200, got %d %s", rec.Code, rec.Body)
@@ -439,17 +439,17 @@ A HIDDEN MESSAGE IS NOT NEWS. It is the wake-up path that has to carry a hide
 func TestHasSinceIgnoresHiddenRows(t *testing.T) {
 	srv, st, _ := newServer(t)
 	ctx := context.Background()
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "a visible thing")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "a visible thing")); rec.Code != 200 {
 		t.Fatalf("seed: %d", rec.Code)
 	}
-	fresh, err := st.HasSince(ctx, "dev", "orem", 0)
+	fresh, err := st.HasSince(ctx, "dev", "bedford", 0)
 	if err != nil || !fresh {
 		t.Fatalf("a posted message is news: %v %v", fresh, err)
 	}
 	if err := st.HideMessage(ctx, 1); err != nil {
 		t.Fatal(err)
 	}
-	fresh, err = st.HasSince(ctx, "dev", "orem", 0)
+	fresh, err = st.HasSince(ctx, "dev", "bedford", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -471,7 +471,7 @@ func TestKickedCallerIsToldBeforeTyping(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	var reply getReply
 	if err := json.Unmarshal(rec.Body.Bytes(), &reply); err != nil {
 		t.Fatal(err)
@@ -483,17 +483,17 @@ func TestKickedCallerIsToldBeforeTyping(t *testing.T) {
 		t.Fatal("an appeal needs a reference to quote")
 	}
 	// And a post is refused with the same information rather than silence.
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "let me in")); rec.Code != 403 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "let me in")); rec.Code != 403 {
 		t.Fatalf("want 403, got %d %s", rec.Code, rec.Body)
 	}
 }
 
 func TestThrottleReturns429WithRetryAfter(t *testing.T) {
 	srv, _, _ := newServer(t)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "first one here")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "first one here")); rec.Code != 200 {
 		t.Fatal(rec.Body)
 	}
-	rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "immediately again"))
+	rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "immediately again"))
 	if rec.Code != http.StatusTooManyRequests {
 		t.Fatalf("want 429, got %d", rec.Code)
 	}
@@ -520,13 +520,13 @@ func trustHeaders(srv *Server) {
 func TestCountryHeaderIsValidated(t *testing.T) {
 	srv, st, _ := newServer(t)
 	trustHeaders(srv)
-	r := postReq(t, "/api/chat/dev/orem", "alice", "where am i from")
+	r := postReq(t, "/api/chat/dev/bedford", "alice", "where am i from")
 	r.Header.Set("X-Country", "<script>x</script>")
 	r.RemoteAddr = "198.51.100.6:2222"
 	if rec := do(t, srv, r); rec.Code != 200 {
 		t.Fatal(rec.Body)
 	}
-	msgs, err := st.Recent(context.Background(), "dev", "orem", 0, 10)
+	msgs, err := st.Recent(context.Background(), "dev", "bedford", 0, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -534,13 +534,13 @@ func TestCountryHeaderIsValidated(t *testing.T) {
 		t.Fatalf("a malformed country must be dropped, got %q", msgs[0].Country)
 	}
 	// Paired positive.
-	r = postReq(t, "/api/chat/dev/orem", "bob", "and now a real one")
+	r = postReq(t, "/api/chat/dev/bedford", "bob", "and now a real one")
 	r.Header.Set("X-Country", "de")
 	r.RemoteAddr = "198.51.100.7:2222"
 	if rec := do(t, srv, r); rec.Code != 200 {
 		t.Fatal(rec.Body)
 	}
-	msgs, _ = st.Recent(context.Background(), "dev", "orem", 0, 10)
+	msgs, _ = st.Recent(context.Background(), "dev", "bedford", 0, 10)
 	if msgs[1].Country != "DE" {
 		t.Fatalf("a real country must be kept and upper-cased, got %q", msgs[1].Country)
 	}
@@ -564,13 +564,13 @@ func TestHealthReportsNoScanner(t *testing.T) {
 // A message never leaves the server carrying a model's opinion about its author.
 func TestVerdictNeverReachesTheWire(t *testing.T) {
 	srv, st, _ := newServer(t)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "a scanned message")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "a scanned message")); rec.Code != 200 {
 		t.Fatal(rec.Body)
 	}
 	if err := st.RecordVerdict(context.Background(), 1, "scam"); err != nil {
 		t.Fatal(err)
 	}
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if strings.Contains(rec.Body.String(), "scam") {
 		t.Fatalf("a verdict must never be published: %s", rec.Body)
 	}
@@ -640,7 +640,7 @@ func TestCountryPrecedenceAndValidation(t *testing.T) {
 			if c.geo != "" {
 				srv.Geo = stubGeo{cc: c.geo}
 			}
-			r := postReq(t, "/api/chat/dev/orem", "alice", "where am i from")
+			r := postReq(t, "/api/chat/dev/bedford", "alice", "where am i from")
 			if c.header != "" {
 				r.Header.Set("X-Country", c.header)
 			}
@@ -650,7 +650,7 @@ func TestCountryPrecedenceAndValidation(t *testing.T) {
 			if rec := do(t, srv, r); rec.Code != 200 {
 				t.Fatalf("post: %d %s", rec.Code, rec.Body)
 			}
-			msgs, err := st.Recent(context.Background(), "dev", "orem", 0, 10)
+			msgs, err := st.Recent(context.Background(), "dev", "bedford", 0, 10)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -682,9 +682,9 @@ func TestAFrozenCourtIsNeitherReadNorWritten(t *testing.T) {
 	// Three partitions: the one to be frozen, another court on the same chain, and the
 	// same court name on another chain.
 	for _, c := range []struct{ path, body string }{
-		{"/api/chat/dev/orem", "something that must stop being served"},
+		{"/api/chat/dev/bedford", "something that must stop being served"},
 		{"/api/chat/dev/ledger", "an unrelated court on the same chain"},
-		{"/api/chat/test/orem", "the same court name on another chain"},
+		{"/api/chat/test/bedford", "the same court name on another chain"},
 	} {
 		*clk = clk.Add(MinInterval + time.Second)
 		if rec := do(t, srv, postReq(t, c.path, "alice", c.body)); rec.Code != 200 {
@@ -692,16 +692,16 @@ func TestAFrozenCourtIsNeitherReadNorWritten(t *testing.T) {
 		}
 	}
 	// Precondition, asserted: it IS served before the freeze, or the test proves nothing.
-	if rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil)); rec.Code != 200 {
+	if rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil)); rec.Code != 200 {
 		t.Fatalf("precondition: the court must be served before freezing, got %d", rec.Code)
 	}
 
-	if err := store.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := store.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
 
 	// THE FIX: reading is refused, with the same 410 the write path already gave.
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if rec.Code != http.StatusGone {
 		t.Fatalf("a frozen court must not be read: got %d %s", rec.Code, rec.Body)
 	}
@@ -714,12 +714,12 @@ func TestAFrozenCourtIsNeitherReadNorWritten(t *testing.T) {
 		t.Errorf("a frozen court must not answer with a messages list at all: %s", rec.Body)
 	}
 	*clk = clk.Add(MinInterval + time.Second)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "and posting is refused")); rec.Code != http.StatusGone {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "and posting is refused")); rec.Code != http.StatusGone {
 		t.Fatalf("a frozen court must not be written: got %d", rec.Code)
 	}
 
 	// THE BYSTANDERS. Same chain different court, and same court name different chain.
-	for _, p := range []string{"/api/chat/dev/ledger", "/api/chat/test/orem"} {
+	for _, p := range []string{"/api/chat/dev/ledger", "/api/chat/test/bedford"} {
 		if rec := do(t, srv, httptest.NewRequest(http.MethodGet, p, nil)); rec.Code != 200 {
 			t.Errorf("%s must still be served: got %d %s", p, rec.Code, rec.Body)
 		}
@@ -733,7 +733,7 @@ func TestAFrozenCourtIsNeitherReadNorWritten(t *testing.T) {
 	// who needs them, and the pruner is the separate, irreversible step.
 	var n int
 	if err := store.r.QueryRow(
-		`SELECT count(*) FROM messages WHERE chain='dev' AND court='orem'`).Scan(&n); err != nil {
+		`SELECT count(*) FROM messages WHERE chain='dev' AND court='bedford'`).Scan(&n); err != nil {
 		t.Fatal(err)
 	}
 	if n == 0 {
@@ -760,14 +760,14 @@ func TestAFrozenCourtIsNotScannedOrQueued(t *testing.T) {
 	// both are queue candidates, plus one left unscanned in each for the backlog.
 	type seed struct{ path, court, body string }
 	for _, c := range []seed{
-		{"/api/chat/dev/orem", "orem", "flagged in the court that will be frozen"},
-		{"/api/chat/dev/orem", "orem", "unscanned in the court that will be frozen"},
+		{"/api/chat/dev/bedford", "bedford", "flagged in the court that will be frozen"},
+		{"/api/chat/dev/bedford", "bedford", "unscanned in the court that will be frozen"},
 		{"/api/chat/dev/ledger", "ledger", "flagged in the court that stays live"},
 		{"/api/chat/dev/ledger", "ledger", "unscanned in the court that stays live"},
 		// The SAME court name on another chain. frozen is keyed on both, so this is the
 		// row that catches a predicate matching on court alone — which it did not, until
 		// this line existed.
-		{"/api/chat/test/orem", "orem", "flagged in the same name on another chain"},
+		{"/api/chat/test/bedford", "bedford", "flagged in the same name on another chain"},
 	} {
 		*clk = clk.Add(MinInterval + time.Second)
 		if rec := do(t, srv, postReq(t, c.path, "someone", c.body)); rec.Code != 200 {
@@ -801,7 +801,7 @@ func TestAFrozenCourtIsNotScannedOrQueued(t *testing.T) {
 		t.Fatalf("precondition: all three flagged messages should be queued, got %d", len(q))
 	}
 
-	if err := store.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := store.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -811,7 +811,7 @@ func TestAFrozenCourtIsNotScannedOrQueued(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, p := range claimed {
-		if p.Chain == "dev" && p.Court == "orem" {
+		if p.Chain == "dev" && p.Court == "bedford" {
 			t.Errorf("a frozen court must not be scanned: offered id=%d %q", p.ID, p.Body)
 		}
 	}
@@ -832,9 +832,9 @@ func TestAFrozenCourtIsNotScannedOrQueued(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, r := range q {
-		// chain AND court: `test/orem` shares the name and is NOT frozen, so matching on
+		// chain AND court: `test/bedford` shares the name and is NOT frozen, so matching on
 		// the court alone would fail this test on a row that belongs there.
-		if r.Chain == "dev" && r.Court == "orem" {
+		if r.Chain == "dev" && r.Court == "bedford" {
 			t.Errorf("a frozen court must not fill the review queue: id=%d %q", r.ID, r.Body)
 		}
 	}
@@ -845,12 +845,12 @@ func TestAFrozenCourtIsNotScannedOrQueued(t *testing.T) {
 	}
 	sawOtherChain := false
 	for _, r := range q {
-		if r.Chain == "test" && r.Court == "orem" {
+		if r.Chain == "test" && r.Court == "bedford" {
 			sawOtherChain = true
 		}
 	}
 	if !sawOtherChain {
-		t.Error("freezing dev/orem must not freeze test/orem: frozen is keyed on both")
+		t.Error("freezing dev/bedford must not freeze test/bedford: frozen is keyed on both")
 	}
 	// The grouped view collapses by AUTHOR, and every message here comes from httptest's
 	// single address, so one group is the right answer — its COUNT is what shows the frozen
@@ -892,7 +892,7 @@ func TestAFrozenCourtIsNotScannedOrQueued(t *testing.T) {
 			"Backlog=%d, Claim=%d", h.Backlog, len(fresh))
 	}
 	for _, p := range fresh {
-		if p.Chain == "dev" && p.Court == "orem" {
+		if p.Chain == "dev" && p.Court == "bedford" {
 			t.Errorf("still offering the frozen court after a reclaim: id=%d", p.ID)
 		}
 	}
@@ -914,7 +914,7 @@ func TestPublicHealthWithholdsOperatorTelemetry(t *testing.T) {
 	ctx := context.Background()
 
 	// Give it something to leak: a backlog, a heartbeat, and an unscannable row.
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "an unscanned message")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "an unscanned message")); rec.Code != 200 {
 		t.Fatal("setup post failed")
 	}
 	if err := store.Heartbeat(ctx, true, 5*time.Second); err != nil {
@@ -1090,14 +1090,14 @@ func TestAStaleCursorRecoversInsteadOfShowingAnEmptyRoom(t *testing.T) {
 
 	var ids []int64
 	for i := 0; i < 8; i++ {
-		id, err := post(t, s, "orem", "ip-a", "message "+string(rune('a'+i))+" about the docket")
+		id, err := post(t, s, "bedford", "ip-a", "message "+string(rune('a'+i))+" about the docket")
 		if err != nil {
 			t.Fatal(err)
 		}
 		ids = append(ids, id)
 		*clock = clock.Add(MinInterval)
 	}
-	first, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	first, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1105,7 +1105,7 @@ func TestAStaleCursorRecoversInsteadOfShowingAnEmptyRoom(t *testing.T) {
 
 	// THE PAIRED POSITIVE, and it is the one that keeps this from being a full fetch every poll:
 	// an idle client's cursor equals the newest visible id, and must still receive nothing.
-	if m, err := s.Recent(ctx, "dev", "orem", cursor, 50); err != nil {
+	if m, err := s.Recent(ctx, "dev", "bedford", cursor, 50); err != nil {
 		t.Fatal(err)
 	} else if len(m) != 0 {
 		t.Fatalf("an idle poll must return nothing, got %d — the fallback is firing on the "+
@@ -1125,20 +1125,20 @@ func TestAStaleCursorRecoversInsteadOfShowingAnEmptyRoom(t *testing.T) {
 		t.Fatalf("precondition: the court must empty, deleted %d of %d", res.Deleted, len(ids))
 	}
 	for i := 0; i < 2; i++ {
-		if _, err := post(t, s, "orem", "ip-b", "fresh message "+string(rune('a'+i))); err != nil {
+		if _, err := post(t, s, "bedford", "ip-b", "fresh message "+string(rune('a'+i))); err != nil {
 			t.Fatal(err)
 		}
 		*clock = clock.Add(MinInterval)
 	}
 
-	room, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	room, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(room) != 2 {
 		t.Fatalf("precondition: the room holds two new messages, got %d", len(room))
 	}
-	got, err := s.Recent(ctx, "dev", "orem", cursor, 50)
+	got, err := s.Recent(ctx, "dev", "bedford", cursor, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1150,7 +1150,7 @@ func TestAStaleCursorRecoversInsteadOfShowingAnEmptyRoom(t *testing.T) {
 
 	// And an idle poll on the NEW ids is still quiet, so the fallback did not become permanent.
 	newCursor := room[len(room)-1].ID
-	if m, err := s.Recent(ctx, "dev", "orem", newCursor, 50); err != nil {
+	if m, err := s.Recent(ctx, "dev", "bedford", newCursor, 50); err != nil {
 		t.Fatal(err)
 	} else if len(m) != 0 {
 		t.Errorf("after re-syncing, an idle poll must be quiet again, got %d", len(m))
@@ -1161,7 +1161,7 @@ func TestAStaleCursorRecoversInsteadOfShowingAnEmptyRoom(t *testing.T) {
 //
 // §9 draws the line this rests on — "'Stop showing this' and 'destroy the evidence' are different
 // decisions and only one of them cannot be undone" — and then nothing could undo the first. There
-// was no Unfreeze in the store and no command in the tool, so `freeze dev/oren` for `dev/orem`
+// was no Unfreeze in the store and no command in the tool, so `freeze dev/oren` for `dev/bedford`
 // withdrew a live court for good: 410 to every reader, posts refused, moderation stopped, recovery
 // only by hand-editing SQLite.
 //
@@ -1180,19 +1180,19 @@ func TestUnfreezeRestoresReadsWritesAndModeration(t *testing.T) {
 	ctx := context.Background()
 
 	// A live court with something in it.
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "before the freeze")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "before the freeze")); rec.Code != 200 {
 		t.Fatal(rec.Body)
 	}
 	*clock = clock.Add(MinInterval + time.Second)
-	if err := s.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := s.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
 
 	// Frozen: all three off. Asserted so the restoration below is not vacuous.
-	if rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil)); rec.Code != http.StatusGone {
+	if rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil)); rec.Code != http.StatusGone {
 		t.Fatalf("precondition: a frozen court reads 410, got %d", rec.Code)
 	}
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "during the freeze")); rec.Code == 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "during the freeze")); rec.Code == 200 {
 		t.Fatal("precondition: a frozen court must refuse writes")
 	}
 	if pend, err := s.Claim(ctx, 10); err != nil {
@@ -1201,7 +1201,7 @@ func TestUnfreezeRestoresReadsWritesAndModeration(t *testing.T) {
 		t.Fatalf("precondition: a frozen court is not scanned, got %d claimable", len(pend))
 	}
 
-	lifted, err := s.Unfreeze(ctx, "dev", "orem")
+	lifted, err := s.Unfreeze(ctx, "dev", "bedford")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1210,13 +1210,13 @@ func TestUnfreezeRestoresReadsWritesAndModeration(t *testing.T) {
 	}
 
 	// 1. The read.
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if rec.Code != 200 {
 		t.Errorf("the history must be served again, got %d %s", rec.Code, rec.Body)
 	}
 	// 2. The write.
 	*clock = clock.Add(MinInterval + time.Second)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "after the thaw")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "after the thaw")); rec.Code != 200 {
 		t.Errorf("posts must be accepted again, got %d %s", rec.Code, rec.Body)
 	}
 	// 3. MODERATION, the one a partial fix leaves behind.
@@ -1232,7 +1232,7 @@ func TestUnfreezeRestoresReadsWritesAndModeration(t *testing.T) {
 	// The row stays, stamped, so a later operator can see it was frozen at all.
 	var at, liftedAt int64
 	if err := s.r.QueryRow(`SELECT at, coalesce(lifted_at,0) FROM frozen
-	   WHERE chain='dev' AND court='orem'`).Scan(&at, &liftedAt); err != nil {
+	   WHERE chain='dev' AND court='bedford'`).Scan(&at, &liftedAt); err != nil {
 		t.Fatalf("the freeze must be recorded as lifted rather than deleted: %v", err)
 	}
 	if at == 0 || liftedAt == 0 {
@@ -1246,7 +1246,7 @@ func TestUnfreezeReportsWhenThereWasNothingToLift(t *testing.T) {
 	ctx := context.Background()
 
 	// Never frozen: nothing to lift, and the caller must be able to tell.
-	if lifted, err := s.Unfreeze(ctx, "dev", "orem"); err != nil {
+	if lifted, err := s.Unfreeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	} else if lifted {
 		t.Error("a court that was never frozen must not report a lift; the CLI turns this into " +
@@ -1255,7 +1255,7 @@ func TestUnfreezeReportsWhenThereWasNothingToLift(t *testing.T) {
 	}
 
 	// Two courts, one frozen. Lifting the other must not touch it.
-	if err := s.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := s.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
 	if lifted, err := s.Unfreeze(ctx, "dev", "other"); err != nil {
@@ -1263,16 +1263,16 @@ func TestUnfreezeReportsWhenThereWasNothingToLift(t *testing.T) {
 	} else if lifted {
 		t.Error("lifting a different court must not report a change")
 	}
-	if frozen, err := s.IsFrozen(ctx, "dev", "orem"); err != nil {
+	if frozen, err := s.IsFrozen(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	} else if !frozen {
 		t.Error("and must not thaw the court that IS frozen")
 	}
 	// A second lift of an already-lifted court is also nothing.
-	if _, err := s.Unfreeze(ctx, "dev", "orem"); err != nil {
+	if _, err := s.Unfreeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
-	if lifted, err := s.Unfreeze(ctx, "dev", "orem"); err != nil {
+	if lifted, err := s.Unfreeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	} else if lifted {
 		t.Error("lifting twice must report nothing the second time")
@@ -1287,18 +1287,18 @@ func TestACourtCanBeFrozenAgainAfterBeingLifted(t *testing.T) {
 	ctx := context.Background()
 
 	for round := 0; round < 2; round++ {
-		if err := s.Freeze(ctx, "dev", "orem"); err != nil {
+		if err := s.Freeze(ctx, "dev", "bedford"); err != nil {
 			t.Fatal(err)
 		}
-		if frozen, err := s.IsFrozen(ctx, "dev", "orem"); err != nil {
+		if frozen, err := s.IsFrozen(ctx, "dev", "bedford"); err != nil {
 			t.Fatal(err)
 		} else if !frozen {
 			t.Fatalf("round %d: freeze must take effect", round)
 		}
-		if _, err := s.Unfreeze(ctx, "dev", "orem"); err != nil {
+		if _, err := s.Unfreeze(ctx, "dev", "bedford"); err != nil {
 			t.Fatal(err)
 		}
-		if frozen, err := s.IsFrozen(ctx, "dev", "orem"); err != nil {
+		if frozen, err := s.IsFrozen(ctx, "dev", "bedford"); err != nil {
 			t.Fatal(err)
 		} else if frozen {
 			t.Fatalf("round %d: the lift must take effect", round)
@@ -1397,7 +1397,7 @@ func TestARefusalQuotesTheLimitThatIsActuallyEnforced(t *testing.T) {
 func TestTheComposedRefusalIsWhatTheCallerReceives(t *testing.T) {
 	srv, _, _ := newServer(t)
 	long := strings.Repeat("ab", MaxMonikerRunes) // well over the letter limit, no identical run
-	rec := do(t, srv, postReq(t, "/api/chat/dev/orem", long, "hello there"))
+	rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", long, "hello there"))
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("want 400, got %d %s", rec.Code, rec.Body)
 	}
@@ -1410,7 +1410,7 @@ func TestTheComposedRefusalIsWhatTheCallerReceives(t *testing.T) {
 	}
 	// The paired positive: an acceptable name and body are not refused, so none of the above is
 	// passing for a server that rejects everything.
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "an ordinary message")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "an ordinary message")); rec.Code != 200 {
 		t.Errorf("an ordinary post must succeed, got %d %s", rec.Code, rec.Body)
 	}
 }
@@ -1431,7 +1431,7 @@ func TestAnOversizeRequestSaysSoRatherThanBlamingTheJSON(t *testing.T) {
 	srv, _, _ := newServer(t)
 
 	post := func(raw string) *httptest.ResponseRecorder {
-		r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/orem", strings.NewReader(raw))
+		r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/bedford", strings.NewReader(raw))
 		r.Header.Set("Content-Type", "application/json")
 		return do(t, srv, r)
 	}
@@ -1499,7 +1499,7 @@ func TestARefusedClientIsLoggedOncePerCause(t *testing.T) {
 		return &b
 	}
 	post := func(srv *Server, remote, xff string) *httptest.ResponseRecorder {
-		r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/orem",
+		r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/bedford",
 			strings.NewReader(`{"moniker":"alice","body":"hello there"}`))
 		r.Header.Set("Content-Type", "application/json")
 		r.RemoteAddr = remote
@@ -1604,14 +1604,14 @@ func TestADirectClientCannotChooseItsOwnFlag(t *testing.T) {
 	srv, st, _ := newServer(t)
 	// No proxy configuration: the documented default, and the one where X-Forwarded-For is
 	// already "not consulted at all". The country header now gets the same treatment.
-	r := postReq(t, "/api/chat/dev/orem", "alice", "i would like a flag please")
+	r := postReq(t, "/api/chat/dev/bedford", "alice", "i would like a flag please")
 	r.Header.Set("X-Country", "DE")
 	r.RemoteAddr = "203.0.113.9:5555"
 	if rec := do(t, srv, r); rec.Code != 200 {
 		t.Fatalf("the post itself must still succeed — only the flag is refused: %d %s",
 			rec.Code, rec.Body)
 	}
-	msgs, err := st.Recent(context.Background(), "dev", "orem", 0, 10)
+	msgs, err := st.Recent(context.Background(), "dev", "bedford", 0, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1628,13 +1628,13 @@ func TestADirectClientCannotChooseItsOwnFlag(t *testing.T) {
 	// header on proxy mode must not turn flags off for a deployment that resolves them itself.
 	srv2, st2, _ := newServer(t)
 	srv2.Geo = stubGeo{cc: "FR"}
-	r2 := postReq(t, "/api/chat/dev/orem", "bob", "and i get mine from the table")
+	r2 := postReq(t, "/api/chat/dev/bedford", "bob", "and i get mine from the table")
 	r2.Header.Set("X-Country", "DE") // ignored; the table answers
 	r2.RemoteAddr = "203.0.113.10:5555"
 	if rec := do(t, srv2, r2); rec.Code != 200 {
 		t.Fatalf("post: %d %s", rec.Code, rec.Body)
 	}
-	msgs2, err := st2.Recent(context.Background(), "dev", "orem", 0, 10)
+	msgs2, err := st2.Recent(context.Background(), "dev", "bedford", 0, 10)
 	if err != nil {
 		t.Fatal(err)
 	}

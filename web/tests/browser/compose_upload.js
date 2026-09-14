@@ -63,7 +63,7 @@ if (!BASE) { console.log("usage: compose_upload.js <base-url>"); process.exit(2)
     const div = document.createElement("div");
     document.body.appendChild(div);
     window.__host = div;
-    mountCompose(div, "orem");
+    mountCompose(div, "bedford");
     // The panel is behind "Open a claim with evidence", which is the first
     // thing a person clicks — so the harness clicks it too rather than
     // reaching past it.

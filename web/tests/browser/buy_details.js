@@ -38,7 +38,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
 
   const measure = async (w, h) => {
     await page.setViewport({width: w, height: h});
-    await page.goto(PAGE + '#/c/orem', {waitUntil: 'networkidle0'});
+    await page.goto(PAGE + '#/c/bedford', {waitUntil: 'networkidle0'});
     await new Promise(r => setTimeout(r, 900));
     return page.evaluate(() => {
       const amt = document.querySelector('#buyamt');
@@ -102,7 +102,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
   // And it really opens: a link that is positioned well and inert is worse than
   // one that is merely in the wrong place.
   await page.setViewport({width: 390, height: 844});
-  await page.goto(PAGE + '#/c/orem', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford', {waitUntil: 'networkidle0'});
   await new Promise(r => setTimeout(r, 900));
   const opened = await page.evaluate(async () => {
     const link = document.querySelector('[data-help="help-buy"]');

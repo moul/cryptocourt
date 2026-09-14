@@ -164,7 +164,7 @@ def main():
         return argv[argv.index(n) + 1] if n in argv and argv.index(n) + 1 < len(argv) else d
     remote = flag("--remote", "http://127.0.0.1:26657")
     check = "--check" in argv
-    slugs = (flag("--courts") or "orem").split(",")
+    slugs = (flag("--courts") or "bedford").split(",")
 
     page = open(PAGE, encoding="utf-8").read()
     if page.count(BEGIN) != 1 or page.count(END) != 1:

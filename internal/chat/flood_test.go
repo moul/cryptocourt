@@ -36,7 +36,7 @@ func flood(t *testing.T, s *Store, ctx context.Context, tick func(time.Duration)
 		tick(MinInterval + 100*time.Millisecond)
 		body := fmt.Sprintf("beware everyone, someone asked me for my seed phrase, incident %d", i)
 		id, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: moniker,
+			Chain: "dev", Court: "bedford", Moniker: moniker,
 			Body: body, IPHash: ip, NetHash: "net-" + ip,
 		})
 		if err != nil {
@@ -57,7 +57,7 @@ func TestOneAddressCannotBuryTheReviewQueue(t *testing.T) {
 	// A genuine report, first, so burying it is the attacker's job rather than an
 	// accident of ordering.
 	good, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "goodcitizen",
+		Chain: "dev", Court: "bedford", Moniker: "goodcitizen",
 		Body:   "careful, someone asked me for my seed phrase in DMs",
 		IPHash: "ip-good", NetHash: "net-good",
 	})
@@ -159,7 +159,7 @@ func TestClearingOneAuthorLeavesTheOthersAlone(t *testing.T) {
 	s, ctx, tick := reviewStore(t)
 
 	good, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "goodcitizen",
+		Chain: "dev", Court: "bedford", Moniker: "goodcitizen",
 		Body:   "careful, someone asked me for my seed phrase in DMs",
 		IPHash: "ip-good", NetHash: "net-good",
 	})
@@ -202,7 +202,7 @@ func TestClearingOneAuthorLeavesTheOthersAlone(t *testing.T) {
 		}
 	}
 	// The flood is still visible in the court, too: dismissing is not hiding.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 200)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 200)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +228,7 @@ func TestClearingOneAuthorLeavesTheOthersAlone(t *testing.T) {
 func TestAGroupedRowShowsNamesAndCourts(t *testing.T) {
 	s, ctx, tick := reviewStore(t)
 	for i, name := range []string{"alice", "bob", "carol"} {
-		court := "orem"
+		court := "bedford"
 		if i == 2 {
 			court = "ledger"
 		}
@@ -265,7 +265,7 @@ func TestAGroupedRowShowsNamesAndCourts(t *testing.T) {
 	// The single-author, single-name case must NOT claim a pattern — the paired negative,
 	// because a row that always says "3 names" is as useless as one that never does.
 	s2, ctx2, _ := reviewStore(t)
-	id, err := s2.Post(ctx2, PostInput{Chain: "dev", Court: "orem", Moniker: "solo",
+	id, err := s2.Post(ctx2, PostInput{Chain: "dev", Court: "bedford", Moniker: "solo",
 		Body: "someone asked me for my seed phrase", IPHash: "ip-solo", NetHash: "net-solo"})
 	if err != nil {
 		t.Fatal(err)

@@ -72,7 +72,7 @@ func TestWhatIsAllowedToPost(t *testing.T) {
 			"application/json; charset=utf-8", "", "", false},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			r := httptest.NewRequest(http.MethodPost, "http://"+host+"/api/chat/dev/orem",
+			r := httptest.NewRequest(http.MethodPost, "http://"+host+"/api/chat/dev/bedford",
 				strings.NewReader(`{"moniker":"a","body":"b"}`))
 			r.Host = host
 			if c.contentType != "" {
@@ -133,14 +133,14 @@ func TestNoSharedCacheMayStoreAPerRequesterReply(t *testing.T) {
 	srv, st, _ := newServer(t)
 	ctx := context.Background()
 	if _, err := st.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "alice", Body: "an ordinary message here",
+		Chain: "dev", Court: "bedford", Moniker: "alice", Body: "an ordinary message here",
 		IPHash: "ip-a", NetHash: "net-a",
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	for _, c := range []struct{ name, method, path string }{
-		{"the transcript, which carries the `you` block", http.MethodGet, "/api/chat/dev/orem"},
+		{"the transcript, which carries the `you` block", http.MethodGet, "/api/chat/dev/bedford"},
 		{"health, which carries enforcing and appeal_to", http.MethodGet, "/api/chat/health"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestNoSharedCacheMayStoreAPerRequesterReply(t *testing.T) {
 	// browser may remember the answer; no-store there would argue with it and cost a round trip
 	// on every post.
 	t.Run("the preflight keeps its cacheability", func(t *testing.T) {
-		r := httptest.NewRequest(http.MethodOptions, "/api/chat/dev/orem", nil)
+		r := httptest.NewRequest(http.MethodOptions, "/api/chat/dev/bedford", nil)
 		r.Header.Set("Origin", "https://example.com")
 		r.Header.Set("Access-Control-Request-Method", "POST")
 		rec := do(t, srv, r)
@@ -184,7 +184,7 @@ func TestNoSharedCacheMayStoreAPerRequesterReply(t *testing.T) {
 	t.Run("two requesters really do get different bodies", func(t *testing.T) {
 		bodies := map[string]string{}
 		for _, ip := range []string{"198.51.100.1:1111", "203.0.113.9:2222"} {
-			r := httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil)
 			r.RemoteAddr = ip
 			rec := do(t, srv, r)
 			if rec.Code != 200 {

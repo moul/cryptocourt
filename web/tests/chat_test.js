@@ -323,7 +323,7 @@ function mkDoc() {
     FETCHES = [];
     const el = mkRoot();
     const doc = mkDoc();
-    const stop = mountChat(el, {cfg: {mode: "demo"}, court: "orem", doc: doc});
+    const stop = mountChat(el, {cfg: {mode: "demo"}, court: "bedford", doc: doc});
     await tickMicro();
     ok("demo mode calls nothing over the network", FETCHES.length === 0);
     // Mounting must install the stylesheet and tag the container, or the panel ships
@@ -350,7 +350,7 @@ function mkDoc() {
       you: {state: "ok"}, next: 1})});
     const el = mkRoot();
     const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"},
-                                court: "orem", chain: "dev"});
+                                court: "bedford", chain: "dev"});
     await tickMicro(); await tickMicro();
     ok("a live mount paints the transcript", /still here/.test(el.k[".chatlog"].innerHTML));
     const before = el.k[".chatlog"].innerHTML;
@@ -383,7 +383,7 @@ function mkDoc() {
       return {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
     };
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem"});
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford"});
     await tickMicro(); await tickMicro();
     el.k[".chatmoniker"].value = "alice";
     el.k[".chatinput"].value = "hello";
@@ -413,7 +413,7 @@ function mkDoc() {
     };
     delete STORE["kourt.chat.moniker"];
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem"});
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford"});
     await tickMicro(); await tickMicro();
     ok("an unnamed reader is shown the default rather than given it",
        el.k[".chatmoniker"].value === "" &&
@@ -452,7 +452,7 @@ function mkDoc() {
         created_at: 1}], you: {state: "ok"}, next: 7})};
     };
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem"});
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford"});
     await tickMicro(); await tickMicro();
     // The health request goes out first and is not a transcript read; picking by
     // `limit` rather than by position keeps this pinned to the read under test.
@@ -470,7 +470,7 @@ function mkDoc() {
        must ride `seen` — `since` is the endpoint's CONTENT cursor, so asking with
        that one returns the rows after it and empties the panel. That was the first
        version of this feature, and the server's own test caught it. */
-    const held = chatFetchUrl("http://x", "dev", "orem", 50, CHATHOLDFOR, 7);
+    const held = chatFetchUrl("http://x", "dev", "bedford", 50, CHATHOLDFOR, 7);
     ok("a poll asks the server to hold", /[?&]wait=\d+/.test(held));
     ok("...for no longer than the server will allow",
        +( /[?&]wait=(\d+)/.exec(held) || [0,999] )[1] <= 20);
@@ -490,7 +490,7 @@ function mkDoc() {
       messages: [{id: 1, moniker: "stale", body: "from the old mount", country: "",
                   suffix: "", created_at: 1000}], you: {state: "ok"}, next: 1})}); });
     const oldEl = mkRoot();
-    mountChat(oldEl, {cfg: {mode: "live", chat: "http://x"}, court: "orem"});
+    mountChat(oldEl, {cfg: {mode: "live", chat: "http://x"}, court: "bedford"});
     await tickMicro();               // the first tick is now waiting on fetch
 
     const newEl = mkRoot();          // a re-render replaces the panel
@@ -516,7 +516,7 @@ function mkDoc() {
       messages: [{id: 1, moniker: "tosh", body: "readable", country: "JP",
                   suffix: "40de71", created_at: now}], you: {state: "ok"}, next: 1})});
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                 interval: 5});
     await tickMicro(); await tickMicro();
     ok("the transcript is on screen", /readable/.test(el.k[".chatlog"].innerHTML));
@@ -548,7 +548,7 @@ function mkDoc() {
     // its stop function, so the global listener list is not empty here and asserting that it is
     // would fail on somebody else's leak.
     const before = document.listeners("visibilitychange").length;
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                 interval: 5});
     // The fixture's own precondition. If the guard in mountChat decides this document cannot
     // listen, every arm below passes without exercising anything.
@@ -615,7 +615,7 @@ function mkDoc() {
   {
     FETCHES = [];
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "demo"}, court: "orem", doc: mkDoc()});
+    const stop = mountChat(el, {cfg: {mode: "demo"}, court: "bedford", doc: mkDoc()});
     await tickMicro(); await tickMicro();
     ok("the health check does not fire in demo mode", FETCHES.length === 0);
     stop();
@@ -635,7 +635,7 @@ function mkDoc() {
                     suffix: "40de71", created_at: now}], you: {state: "ok"}, next: 1})};
     };
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                 interval: 5});
     await tickMicro(); await tickMicro();
     ok("the transcript is on screen before the freeze",
@@ -694,7 +694,7 @@ function mkDoc() {
       // exists and that one fetch happened — so a 30s interval measures the
       // same thing and cannot race.
       const el = mkRoot();
-      const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+      const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                   interval: 30000});
       // Only setImmediate is used to yield here, so nothing but the poller can be
       // holding a setTimeout at the point it is counted.
@@ -709,7 +709,7 @@ function mkDoc() {
       // this stricter, never flakier.
       calls = 0;
       const el2 = mkRoot();
-      const stop2 = mountChat(el2, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+      const stop2 = mountChat(el2, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                     interval: 5});
       await tickMicro(); await tickMicro();
       stop2();
@@ -744,7 +744,7 @@ function mkDoc() {
     // Ten minutes fast, so an uncorrected answer is "10m" and unmistakable.
     FETCH = async () => reply(true);
     const el = mkRoot();
-    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+    const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                 chain: "dev", now: () => (serverNow + 600) * 1000});
     await tickMicro(); await tickMicro();
     const age = (el.k[".chatlog"].innerHTML.match(/chatage">([^<]*)</) || [])[1] || "";
@@ -757,7 +757,7 @@ function mkDoc() {
     // would pass for a panel that ignored the clock entirely.
     FETCH = async () => reply(false);
     const el2 = mkRoot();
-    const stop2 = mountChat(el2, {cfg: {mode: "live", chat: "http://x"}, court: "orem",
+    const stop2 = mountChat(el2, {cfg: {mode: "live", chat: "http://x"}, court: "bedford",
                                   chain: "dev", now: () => (serverNow + 600) * 1000});
     await tickMicro(); await tickMicro();
     const age2 = (el2.k[".chatlog"].innerHTML.match(/chatage">([^<]*)</) || [])[1] || "";
@@ -779,7 +779,7 @@ function mkDoc() {
       ? {ok: false, status: 413, json: async () => ({
           error: "the request is too large; a message may be up to 4096 bytes"})}
       : {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
-    const r = await chatPost("http://x", "dev", "orem", "alice", "x".repeat(50));
+    const r = await chatPost("http://x", "dev", "bedford", "alice", "x".repeat(50));
     ok("a 413 shows the server's sentence", /request is too large/.test(r.error));
     ok("...and names the limit rather than a status code", /4096/.test(r.error));
     ok("...and does not fall back to \"could not send\"", !/could not send/.test(r.error));
@@ -790,7 +790,7 @@ function mkDoc() {
     FETCH = async (url, init) => (init && init.method === "POST")
       ? {ok: false, status: 413, json: async () => ({})}
       : {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
-    const bare = await chatPost("http://x", "dev", "orem", "alice", "x");
+    const bare = await chatPost("http://x", "dev", "bedford", "alice", "x");
     ok("without a server sentence it still says something", typeof bare.error === "string" &&
        bare.error.length > 0);
   }
@@ -812,7 +812,7 @@ function mkDoc() {
     FETCH = async (url, init) => (init && init.method === "POST")
       ? {ok: false, status: 403, json: async () => { throw new Error("Unexpected token '<'"); }}
       : {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
-    const waf = await chatPost("http://x", "dev", "orem", "alice", "/delete");
+    const waf = await chatPost("http://x", "dev", "bedford", "alice", "/delete");
     ok("an HTML 403 says the message never reached the chat",
        /never reached|before it reached/.test(waf.error), waf.error);
     ok("...and tells the reader what they can do about it",
@@ -827,7 +827,7 @@ function mkDoc() {
     FETCH = async (url, init) => (init && init.method === "POST")
       ? {ok: false, status: 403, json: async () => ({})}
       : {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
-    const empty = await chatPost("http://x", "dev", "orem", "alice", "x");
+    const empty = await chatPost("http://x", "dev", "bedford", "alice", "x");
     ok("a JSON 403 with no sentence keeps the plain fallback",
        /could not send \(403\)/.test(empty.error), empty.error);
   }
@@ -861,7 +861,7 @@ function mkDoc() {
                                        you: {state: "ok"}, next: 7})};
     const el = mkRoot();
     const stop = mountChat(el, {cfg: {mode: "live", chat: "http://x"},
-                                court: "orem", chain: "dev"});
+                                court: "bedford", chain: "dev"});
     await tickMicro(); await tickMicro();
     const n0 = polls().length;
     el.k[".chatinput"].value = "/delete";
@@ -880,7 +880,7 @@ function mkDoc() {
     {
       const last = after[after.length - 1] || "";
       ok("...that does not hold for a message which will never come",
-         /\/api\/chat\/dev\/orem\?limit=50/.test(last) && !/[?&]wait=/.test(last), last);
+         /\/api\/chat\/dev\/bedford\?limit=50/.test(last) && !/[?&]wait=/.test(last), last);
     }
     ok("...and the composer is cleared like any other send",
        el.k[".chatinput"].value === "");
@@ -908,7 +908,7 @@ function mkDoc() {
                                        you: {state: "ok"}, next: 9})};
     const el2 = mkRoot();
     const stop2 = mountChat(el2, {cfg: {mode: "live", chat: "http://x"},
-                                  court: "orem", chain: "dev"});
+                                  court: "bedford", chain: "dev"});
     await tickMicro(); await tickMicro();
     el2.k[".chatinput"].value = "/delete";
     el2.k[".chatform"].fire("submit");
@@ -946,7 +946,7 @@ function mkDoc() {
     // poll has to actually run.
     const el3 = mkRoot();
     const stop3 = mountChat(el3, {cfg: {mode: "live", chat: "http://x"},
-                                  court: "orem", chain: "dev", interval: 5});
+                                  court: "bedford", chain: "dev", interval: 5});
     await tickMicro(); await tickMicro();
     el3.k[".chatinput"].value = "/delete";
     el3.k[".chatform"].fire("submit");
@@ -986,7 +986,7 @@ function mkDoc() {
     };
     const el4 = mkRoot();
     const stop4 = mountChat(el4, {cfg: {mode: "live", chat: "http://x"},
-                                  court: "orem", chain: "dev", interval: 5});
+                                  court: "bedford", chain: "dev", interval: 5});
     await new Promise(r => setTimeout(r, 40));
     ok("a failed read says the service is unreachable",
        /unreachable/i.test(el4.k[".chatnote"].textContent),
@@ -1004,12 +1004,12 @@ function mkDoc() {
     FETCH = async (url, init) => (init && init.method === "POST")
       ? {ok: true, json: async () => ({deleted: 11})}
       : {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
-    const del = await chatPost("http://x", "dev", "orem", "alice", "/delete");
+    const del = await chatPost("http://x", "dev", "bedford", "alice", "/delete");
     ok("chatPost carries the withdrawal's id", del.ok === true && del.deleted === 11);
     FETCH = async (url, init) => (init && init.method === "POST")
       ? {ok: true, json: async () => ({id: 12})}
       : {ok: true, json: async () => ({messages: [], you: {state: "ok"}, next: 0})};
-    const msg = await chatPost("http://x", "dev", "orem", "alice", "an ordinary line");
+    const msg = await chatPost("http://x", "dev", "bedford", "alice", "an ordinary line");
     ok("...and a posted message carries none", msg.id === 12 && msg.deleted === undefined);
   }
 
@@ -1254,7 +1254,7 @@ function mkDoc() {
      asserting — and only a source test can, because chatPanelHtml is a pure
      function and the browser only ever shows its successor. */
   {
-    const shell = chatPanelHtml("orem", "anon", "", false);
+    const shell = chatPanelHtml("bedford", "anon", "", false);
     const btn = shell.slice(shell.indexOf('<button class="chatbell"'));
     ok("the shell renders the bell as a drawn glyph",
        /<svg[^>]*class="chatbellicn"/.test(btn), btn.slice(0, 200));

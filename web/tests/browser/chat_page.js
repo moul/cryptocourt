@@ -41,10 +41,10 @@ async function courtPage(browser, opts) {
      and `"" || "/chat"` is "/chat" — so asking for the docket silently got the
      room, and two arms failed on a view that has no docket to be intact. */
   const route = (opts && opts.route !== undefined) ? opts.route : "/chat";
-  await page.goto(PAGE + "#/c/orem" + route, {waitUntil: "load"});
+  await page.goto(PAGE + "#/c/bedford" + route, {waitUntil: "load"});
   // The heading is the page's own content; waiting for it rather than a fixed delay.
   await page.waitForFunction(
-    () => /Orem Truth Court/.test(document.getElementById("main").textContent),
+    () => /Bedford Truth Court/.test(document.getElementById("main").textContent),
     {timeout: 20000});
   return {page, errors};
 }
@@ -122,11 +122,11 @@ async function courtPage(browser, opts) {
     {
       const inRoom = await railState();
       const chatRow = inRoom.trail.find(t => t.chat);
-      const courtRow = inRoom.trail.find(t => /OREM/.test(t.label));
+      const courtRow = inRoom.trail.find(t => /BEDFORD/.test(t.label));
       ok("the rail hangs the room under the court",
          !!chatRow && chatRow.deep === true, JSON.stringify(inRoom.trail));
       ok("...linking to the room it names",
-         !!chatRow && chatRow.href === "#/c/orem/chat", JSON.stringify(chatRow));
+         !!chatRow && chatRow.href === "#/c/bedford/chat", JSON.stringify(chatRow));
       ok("...lit while you are in it, so the rail says where you are",
          !!chatRow && chatRow.lit === true, JSON.stringify(chatRow));
       /* THE COURT GIVES THE MARKER UP, for the same reason navTrail takes it off
@@ -143,7 +143,7 @@ async function courtPage(browser, opts) {
     }
 
     {
-      await page.evaluate(() => { location.hash = "#/c/orem"; });
+      await page.evaluate(() => { location.hash = "#/c/bedford"; });
       await page.waitForFunction(() => !document.getElementById("chatview"), {timeout: 20000});
       await new Promise(r => setTimeout(r, 700));
       const onCourt = await railState();
@@ -153,11 +153,11 @@ async function courtPage(browser, opts) {
          which was right while the row meant "you are here" and is exactly
          backwards now that it means "this court has one". */
       ok("on the court page the room still hangs under the court",
-         !!chatRow && chatRow.href === "#/c/orem/chat", JSON.stringify(onCourt.trail));
+         !!chatRow && chatRow.href === "#/c/bedford/chat", JSON.stringify(onCourt.trail));
       ok("...unlit, because you are not in it", !!chatRow && chatRow.lit === false,
          JSON.stringify(chatRow));
       ok("...with the court itself lit instead",
-         onCourt.trail.some(t => /OREM/.test(t.label) && t.lit),
+         onCourt.trail.some(t => /BEDFORD/.test(t.label) && t.lit),
          JSON.stringify(onCourt.trail));
       ok("...and still no standalone section duplicating it",
          onCourt.lineShown === false, JSON.stringify(onCourt));
@@ -171,14 +171,14 @@ async function courtPage(browser, opts) {
          changes it — so anything that depends on the route rather than the court
          has to happen before that return. Walking the round trip is the only way
          to catch a marker that only moves on a reload. */
-      await page.evaluate(() => { location.hash = "#/c/orem/chat"; });
+      await page.evaluate(() => { location.hash = "#/c/bedford/chat"; });
       await page.waitForFunction(
         () => !!document.querySelector("#chatview .chatlog"), {timeout: 20000});
       await new Promise(r => setTimeout(r, 700));
       const again = await railState();
       ok("and the marker moves back to the room on the way in",
          !!again.trail.find(t => t.chat && t.lit)
-           && !again.trail.some(t => /OREM/.test(t.label) && t.lit),
+           && !again.trail.some(t => /BEDFORD/.test(t.label) && t.lit),
          JSON.stringify(again.trail));
     }
 
@@ -239,10 +239,10 @@ async function courtPage(browser, opts) {
     const r = await page.evaluate(() => {
       const main = document.getElementById("main");
       return {
-        court: /Orem Truth Court/.test(main.textContent),
+        court: /Bedford Truth Court/.test(main.textContent),
         // The court's own substance, not just its heading.
         stats: /coin price/.test(main.textContent),
-        docketRows: main.querySelectorAll("a[href*='#/c/orem/']").length,
+        docketRows: main.querySelectorAll("a[href*='#/c/bedford/']").length,
         // Nothing may be mounted anywhere: the rail no longer holds a slot and
         // the court page never did.
         panel: !!document.querySelector(".chatlog"),
@@ -269,11 +269,11 @@ async function courtPage(browser, opts) {
     /* ...BETWEEN CHAT ROUTES, because the panel only exists on one. Walking
        court-to-court used to carry the rail's panel along with it; now each hop
        has to land on a room for there to be a panel to leak. */
-    for (const slug of ["ledger", "orem", "ledger", "orem"]) {
+    for (const slug of ["ledger", "bedford", "ledger", "bedford"]) {
       await page.evaluate(s => { location.hash = "#/c/" + s + "/chat"; }, slug);
       await page.waitForFunction(s =>
-        document.getElementById("main").textContent.includes(s === "orem"
-          ? "Orem Truth Court" : "The Ledger of Denver"), {timeout: 20000}, slug);
+        document.getElementById("main").textContent.includes(s === "bedford"
+          ? "Bedford Truth Court" : "The Ledger of Denver"), {timeout: 20000}, slug);
     }
     const r = await page.evaluate(() => ({
       panels: document.querySelectorAll(".chatlog").length,
@@ -309,7 +309,7 @@ async function courtPage(browser, opts) {
     const local = u => u.startsWith("file:") || u.startsWith("data:");
     page.on("request", r => { if (!local(r.url())) external.push(r.url()); });
     // THE ROOM: the panel this block waits for lives on its own page now.
-    await page.goto(PAGE + "#/c/orem/chat", {waitUntil: "load"});
+    await page.goto(PAGE + "#/c/bedford/chat", {waitUntil: "load"});
     await page.waitForFunction(
       () => !!document.querySelector("#chatview .chatlog"), {timeout: 20000});
     // Give a poller a chance to fire if one were wrongly running.
@@ -329,7 +329,7 @@ async function courtPage(browser, opts) {
   {
     const page = await browser.newPage();
     // THE ROOM: the panel this block waits for lives on its own page now.
-    await page.goto(PAGE + "#/c/orem/chat", {waitUntil: "load"});
+    await page.goto(PAGE + "#/c/bedford/chat", {waitUntil: "load"});
     await page.waitForFunction(
       () => !!document.querySelector("#chatview .chatlog"), {timeout: 20000});
     const saved = await page.evaluate(() => {
@@ -408,7 +408,7 @@ async function courtPage(browser, opts) {
        esc('&<>"') === "&amp;&lt;&gt;&quot;");
     ok("esc now escapes a single quote", esc("it's") === "it&#39;s");
     ok("esc now escapes a backtick", esc("a`b") === "a&#96;b");
-    ok("esc leaves ordinary text alone", esc("Orem Truth Court") === "Orem Truth Court");
+    ok("esc leaves ordinary text alone", esc("Bedford Truth Court") === "Bedford Truth Court");
   }
 
   // DEMO MODE MUST NOT TOUCH THE NETWORK, and only a check that loads BOTH files
@@ -419,7 +419,7 @@ async function courtPage(browser, opts) {
   // guard was unreachable. Measured before the fix, a demo court page issued
   //
   //     GET http://…/api/chat/health
-  //     GET http://…/api/chat/dev/orem?limit=50
+  //     GET http://…/api/chat/dev/bedford?limit=50
   //
   // against sample data. The harness that slices chat.js alone cannot see a
   // collision that needs the other file to exist, which is why this lives here.
@@ -436,7 +436,7 @@ async function courtPage(browser, opts) {
       localStorage.setItem("cc.cfg", JSON.stringify({mode: "demo", chat: "http://chat.invalid:8791"}));
       localStorage.setItem("cc.intro", "1");
     });
-    await page.goto(PAGE + "#/c/orem", {waitUntil: "domcontentloaded"});
+    await page.goto(PAGE + "#/c/bedford", {waitUntil: "domcontentloaded"});
     await new Promise(r => setTimeout(r, 1800));
     ok("a demo court page asks the chat endpoint for nothing",
        asked.length === 0, asked.slice(0, 2).join(" "));

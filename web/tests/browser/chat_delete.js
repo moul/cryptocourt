@@ -64,7 +64,7 @@ const AFTER = [BEFORE[1]];
       document.body.appendChild(host);
       window.__stop = mountChat(host, {
         cfg: {mode: "live", chat: "http://chat.invalid"},
-        chain: "dev", court: "orem", heading: false,
+        chain: "dev", court: "bedford", heading: false,
       });
     });
     return p;

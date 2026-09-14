@@ -96,7 +96,7 @@ const {PAGE, demoPage} = require('./harness');
      A reader reaches it from the site's own navigation now rather than from
      inside the room. If a pointer is ever put back in the panel, the arms that
      checked it are in this file's history. */
-  await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1400));
   // check-web-selectors: gone chatwarn — the names notice, removed in 736accc
   // The selector is named here precisely BECAUSE the class should not exist:

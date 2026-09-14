@@ -131,7 +131,7 @@ ok("a court that was never read links nothing",
    body("see #19 and " + S + " Fauci") === "see #19 and " + S + " Fauci");
 COURT = covid;
 ok("a DIFFERENT court links nothing — the wrong answer that would look right",
-   body("see #19", "orem") === "see #19");
+   body("see #19", "bedford") === "see #19");
 ok("no slug at all links nothing", body("see #19", "") === "see #19");
 ok("empty text stays empty", linkRefs("", "covid") === "");
 

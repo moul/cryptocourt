@@ -57,7 +57,7 @@ the feature, and calling out to a guessed origin would be worse.</small>
   <div class="row">
     <div><label for="ep">endpoint</label><input id="ep" placeholder="http://127.0.0.1:8791"></div>
     <div><label for="ch">chain</label><input id="ch" placeholder="dev" style="max-width:7rem"></div>
-    <div><label for="ct">court</label><input id="ct" placeholder="orem" style="max-width:9rem"></div>
+    <div><label for="ct">court</label><input id="ct" placeholder="bedford" style="max-width:9rem"></div>
     <div style="flex:0 0 auto"><button id="go">connect</button></div>
   </div>
   <small class="note">Kept in <code>localStorage</code> so a reload keeps it.
@@ -97,7 +97,7 @@ what a reader sees. See the header of <code>web/chat.js</code>.</small>
 
   // Demo mode: cfg with no `chat` endpoint means no network, by design.
   window.__stopDemo = mountChat(document.getElementById("demochat"),
-    {cfg: {mode: "demo"}, court: "orem"});
+    {cfg: {mode: "demo"}, court: "bedford"});
 
   const $ = id => document.getElementById(id);
   const KEY = "kourt.chat.demo";
@@ -105,13 +105,13 @@ what a reader sees. See the header of <code>web/chat.js</code>.</small>
     const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
     $("ep").value = saved.ep || "";
     $("ch").value = saved.ch || "dev";
-    $("ct").value = saved.ct || "orem";
+    $("ct").value = saved.ct || "bedford";
   } catch (e) {}
 
   let stopLive = null;
   function connect() {
     const ep = $("ep").value.trim(), ch = $("ch").value.trim() || "dev",
-          ct = $("ct").value.trim() || "orem";
+          ct = $("ct").value.trim() || "bedford";
     try { localStorage.setItem(KEY, JSON.stringify({ep, ch, ct})); } catch (e) {}
     // The stop function MUST be called before the container is replaced, or the old
     // poller keeps painting into a panel nobody is looking at. Same rule the overlay

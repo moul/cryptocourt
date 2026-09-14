@@ -15,7 +15,7 @@
 // there, so without them the file renders as invisible strokes on white.
 //
 //   node scripts/map-preview.js --remote http://127.0.0.1:26657 --court covid
-//   node scripts/map-preview.js --demo --court orem --mode ids
+//   node scripts/map-preview.js --demo --court bedford --mode ids
 //   rsvg-convert -w 1100 map-preview.svg -o map-preview.png   # then look at it
 //
 // It reads index.html by slicing, exactly as the harnesses do, so it cannot drift
@@ -125,7 +125,7 @@ function fromDemo(){
   const ns = {};
   new Function("g", code + ";g.DEMO=DEMO;g.statusText=statusText;")(ns);
   const c = ns.DEMO.courts[SLUG];
-  if(!c) throw new Error(`no demo court "${SLUG}" — try --court orem`);
+  if(!c) throw new Error(`no demo court "${SLUG}" — try --court bedford`);
   const claims = {};
   c.claims.forEach(id => { const d = ns.DEMO.claims[SLUG+"/"+id];
     claims[id] = {title:d.title, statusText:ns.statusText(d)}; });

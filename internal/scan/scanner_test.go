@@ -49,7 +49,7 @@ func newScanner(t *testing.T, cls Classifier, enforce bool) (*Scanner, *chat.Sto
 func seed(t *testing.T, st *chat.Store, clock *time.Time, ip, body string) int64 {
 	t.Helper()
 	id, err := st.Post(context.Background(), chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "alice", Body: body,
+		Chain: "dev", Court: "bedford", Moniker: "alice", Body: body,
 		IPHash: ip, NetHash: "net-" + ip,
 	})
 	if err != nil {
@@ -568,7 +568,7 @@ func TestADisclosedSecretIsHiddenWithoutPunishingAnybody(t *testing.T) {
 	const seed = "legal winner thank year wave sausage worth useful legal winner thank yellow"
 	// Reporting-shaped, and carrying a real phrase.
 	reported, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "helper",
+		Chain: "dev", Court: "bedford", Moniker: "helper",
 		Body:   "fyi someone sent me this, here are the words: " + seed,
 		IPHash: "ip-helper", NetHash: "net-helper",
 	})
@@ -579,7 +579,7 @@ func TestADisclosedSecretIsHiddenWithoutPunishingAnybody(t *testing.T) {
 	// An ordinary message from the same person, which must be untouched: the hide is scoped to
 	// the one message, not to them.
 	other, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "helper",
+		Chain: "dev", Court: "bedford", Moniker: "helper",
 		Body:   "and the settle window closes tonight I think",
 		IPHash: "ip-helper", NetHash: "net-helper",
 	})
@@ -610,7 +610,7 @@ func TestADisclosedSecretIsHiddenWithoutPunishingAnybody(t *testing.T) {
 	}
 
 	// AND THE PHRASE IS GONE.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -644,7 +644,7 @@ func TestADryRunHidesNothingEither(t *testing.T) {
 
 	const seed = "legal winner thank year wave sausage worth useful legal winner thank yellow"
 	if _, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "helper",
+		Chain: "dev", Court: "bedford", Moniker: "helper",
 		Body:   "fyi someone sent me this: " + seed,
 		IPHash: "ip-helper", NetHash: "net-helper",
 	}); err != nil {
@@ -656,7 +656,7 @@ func TestADryRunHidesNothingEither(t *testing.T) {
 	if _, err := sc.Tick(ctx); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -686,7 +686,7 @@ func TestAWarningThatQuotesALinkStaysVisible(t *testing.T) {
 	ctx := context.Background()
 
 	if _, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "helper",
+		Chain: "dev", Court: "bedford", Moniker: "helper",
 		Body:   "careful everyone, that t.me/kourtsupport account is fake",
 		IPHash: "ip-helper", NetHash: "net-helper",
 	}); err != nil {
@@ -697,7 +697,7 @@ func TestAWarningThatQuotesALinkStaysVisible(t *testing.T) {
 	if _, err := sc.Tick(ctx); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -836,7 +836,7 @@ func TestADisclosedPhraseIsHiddenAndNotPunished(t *testing.T) {
 				t.Errorf("a disclosure must not be punished, got %d consequence(s)", n)
 			}
 			// And it must be gone from the room, which is the half that makes the above safe.
-			msgs, err := st.Recent(context.Background(), "dev", "orem", 0, 10)
+			msgs, err := st.Recent(context.Background(), "dev", "bedford", 0, 10)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -894,7 +894,7 @@ func TestADryRunDoesNotHideADisclosedPhrase(t *testing.T) {
 	if n := mustCount(t, st); n != 0 {
 		t.Errorf("a dry run punishes nobody, got %d", n)
 	}
-	msgs, err := st.Recent(context.Background(), "dev", "orem", 0, 10)
+	msgs, err := st.Recent(context.Background(), "dev", "bedford", 0, 10)
 	if err != nil {
 		t.Fatal(err)
 	}

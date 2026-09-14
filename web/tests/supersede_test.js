@@ -31,7 +31,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // — those re-file this one. The direction is the whole point: getting it
   // backwards renders a claim as its own predecessor.
   ARGS = "out:;in:"; SUP = "of:5;by:9,11";
-  let rows = await chainAssociations("orem", 7);
+  let rows = await chainAssociations("bedford", 7);
   ok("`of` reads as superseded-by-this",
      rows.some(r=>r[0]===5 && r[1]==="superseded by this"));
   ok("`by` reads as supersedes this",
@@ -41,13 +41,13 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // Empty halves are the common case and must produce no rows at all, not a row
   // with a NaN id — the realm answers "of:;by:" for most claims alive.
   ARGS = "out:;in:"; SUP = "of:;by:";
-  rows = await chainAssociations("orem", 7);
+  rows = await chainAssociations("bedford", 7);
   ok("an empty edge set draws nothing", rows === null || rows.length===0);
 
   // Both kinds ride together, one round trip each.
   ARGS = "out:2:s;in:3:c"; SUP = "of:5;by:";
   CALLS = [];
-  rows = await chainAssociations("orem", 7);
+  rows = await chainAssociations("bedford", 7);
   ok("associations survive alongside re-filings",
      rows.some(r=>r[1]==="supported by this") && rows.some(r=>r[1]==="contradicts this")
      && rows.some(r=>r[1]==="superseded by this"));
@@ -57,15 +57,15 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // associations because a newer entrypoint is missing would make deploying
   // this overlay against an older realm strictly worse than not deploying it.
   ARGS = "out:2:s;in:"; SUP = null;
-  rows = await chainAssociations("orem", 7);
+  rows = await chainAssociations("bedford", 7);
   ok("no ClaimSupersedes: associations still render",
      rows && rows.length===1 && rows[0][1]==="supported by this");
   ARGS = null; SUP = "of:5;by:";
-  rows = await chainAssociations("orem", 7);
+  rows = await chainAssociations("bedford", 7);
   ok("no ClaimAssociations: re-filings still render",
      rows && rows.length===1 && rows[0][1]==="superseded by this");
   ARGS = null; SUP = null;
-  rows = await chainAssociations("orem", 7);
+  rows = await chainAssociations("bedford", 7);
   ok("neither read: no chain rows at all", rows === null);
 
   /* EVERY CHIP NAMES ITS OBJECT. Asked of covid/19: it says SUPPORTS, but which
@@ -76,7 +76,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
      infer the missing word. Asserted over BOTH directions of both kinds at once,
      because the ambiguity was the asymmetry rather than any single string. */
   ARGS = "out:2:s,4:c;in:3:s,6:c"; SUP = "of:5;by:9";
-  rows = await chainAssociations("orem", 7);
+  rows = await chainAssociations("bedford", 7);
   ok("no chip is left as a bare verb",
      rows.every(r=>/\b(this)$/.test(r[1])));
   ok("...and both directions are still distinguishable",
@@ -86,7 +86,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
 
   // Demo mode must not point a live read at sample ids.
   CFG.mode='demo';
-  ok("demo mode reads nothing", (await chainAssociations("orem", 7)) === null);
+  ok("demo mode reads nothing", (await chainAssociations("bedford", 7)) === null);
   CFG.mode='live';
 
   console.log(fail? "\n"+fail+" FAILURES" : "\nALL PASS");

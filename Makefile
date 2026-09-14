@@ -353,17 +353,23 @@ vet:
 gotest:
 	go test -race ./internal/... ./cmd/...
 
-# The off-chain chat service: an HTTP server, an Ollama-backed scanner, and the
-# operator CLI. Three binaries into ./bin, which is not committed.
+# The off-chain services: the chat HTTP server, an Ollama-backed scanner, the chat
+# operator CLI, and the Discord bridge's operator CLI. Into ./bin, not committed.
+#
+# THE COUNT IS NOT WRITTEN DOWN HERE ANY MORE. This comment said "Three binaries"
+# and the @echo listed three by name, so adding a fourth meant a prose number and
+# a hand-kept list to update in step with the recipe — the same shape as the
+# stale-enumeration failures that check-browser-checks-registered.py and
+# deploy.sh:174 exist to catch. The echo now reports what was actually built.
 #
 # Nothing here touches a realm: chat needs a client address, a wall clock and a
-# mutable moderation record, none of which a deterministic VM has.
+# mutable moderation record, none of which a deterministic VM has. kourtguildctl
+# talks to Discord, which a VM has even less of.
+CMDS = kourtchat kourtmod kourtchatctl kourtguildctl
 chat:
 	@mkdir -p bin
-	go build -o bin/kourtchat    ./cmd/kourtchat
-	go build -o bin/kourtmod     ./cmd/kourtmod
-	go build -o bin/kourtchatctl ./cmd/kourtchatctl
-	@echo "built bin/kourtchat bin/kourtmod bin/kourtchatctl"
+	@for c in $(CMDS); do go build -o bin/$$c ./cmd/$$c || exit 1; done
+	@echo "built $(addprefix bin/,$(CMDS))"
 
 # The realms' own tests, plus the three guards that hold the documentation to
 # the code.

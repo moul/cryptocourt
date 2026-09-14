@@ -49,34 +49,34 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // pager math
   QP={};
   // D4: one-window listings now STATE their order (caption always; nav only when actionable)
-  const pg1 = pagerHtml("/c/orem",1,11,11,"claims");
+  const pg1 = pagerHtml("/c/bedford",1,11,11,"claims");
   ok("one window states its order", pg1.includes("all 11 claims · newest first"));
   ok("one window has no nav pills", !pg1.includes("older ›") && !pg1.includes("‹ newer"));
-  ok("empty ledger renders nothing", pagerHtml("/c/orem",1,0,0,"claims")==="");
+  ok("empty ledger renders nothing", pagerHtml("/c/bedford",1,0,0,"claims")==="");
   ok("singular label at total 1", pagerHtml("/",1,1,1,"courts","ranked by GNOT burned").includes("all 1 court · ranked by GNOT burned"));
   // "ctv" rather than the retired "yes": a test that carries a sort key the app
   // no longer accepts still passes, and stops describing anything.
   QP={sort:"ctv"};
-  const pgS = pagerHtml("/c/orem", 2, 25, 214, "claims");
-  ok("links carry the active sort", pgS.includes('href="#/c/orem?sort=ctv"') && (pgS.includes("sort=ctv&amp;p=3") || pgS.includes("p=3&amp;sort=ctv")));
+  const pgS = pagerHtml("/c/bedford", 2, 25, 214, "claims");
+  ok("links carry the active sort", pgS.includes('href="#/c/bedford?sort=ctv"') && (pgS.includes("sort=ctv&amp;p=3") || pgS.includes("p=3&amp;sort=ctv")));
   QP={at:"resolution",focus:"7"};
-  const pgX = pagerHtml("/c/orem", 2, 25, 214, "claims");
+  const pgX = pagerHtml("/c/bedford", 2, 25, 214, "claims");
   ok("links never carry at/focus", !pgX.includes("at=") && !pgX.includes("focus="));
   QP={};
-  const pgC = pagerHtml("/c/orem", 1, 25, 214, "claims", undefined, '<span class="schips">CHIPS</span>');
+  const pgC = pagerHtml("/c/bedford", 1, 25, 214, "claims", undefined, '<span class="schips">CHIPS</span>');
   ok("chips render inside the pager", pgC.includes('<span class="schips">CHIPS</span>'));
   QP={p:"2"};
   ok("pageOf parses ?p=2", pageOf()===2);
   QP={p:"0"}; ok("pageOf clamps 0→1", pageOf()===1);
   QP={p:"x"}; ok("pageOf clamps junk→1", pageOf()===1);
   QP={};
-  const pg = pagerHtml("/c/orem", 2, 25, 214, "claims");
+  const pg = pagerHtml("/c/bedford", 2, 25, 214, "claims");
   ok("caption 26–50 of 214", pg.includes("showing 26–50 of 214 claims · newest first"));
-  ok("newer chip links p1 (no ?p)", pg.includes('href="#/c/orem"'));
-  ok("older chip links p3", pg.includes('href="#/c/orem?p=3"'));
-  const pgLast = pagerHtml("/c/orem", 9, 14, 214, "claims");
+  ok("newer chip links p1 (no ?p)", pg.includes('href="#/c/bedford"'));
+  ok("older chip links p3", pg.includes('href="#/c/bedford?p=3"'));
+  const pgLast = pagerHtml("/c/bedford", 9, 14, 214, "claims");
   ok("last page: older chip disabled", pgLast.includes('class="pill void off pnav">older ›'));
-  const pgCur = pagerHtml("/c/orem/f/0", 1, 25, 30, "claims", "curated order");
+  const pgCur = pagerHtml("/c/bedford/f/0", 1, 25, 30, "claims", "curated order");
   ok("curated order caption", pgCur.includes("curated order"));
   // pageSlice
   const L=[...Array(60).keys()];
@@ -84,28 +84,28 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   ok("pageSlice tail short", pageSlice(L,3).length===10);
 
   // demo list order: newest first
-  const cl = await listClaims("orem");
+  const cl = await listClaims("bedford");
   ok("demo docket newest-first (11 first)", cl[0].id===11 && cl[cl.length-1].id===1);
   ok("demo docket 11 rows", cl.length===11);
 
   // footer parse: synthesize a live-shaped md through the regexes
   CFG.mode='live';
-  global.qrender = async ()=> "# Orem\n\n## Claims\n\n- [T](/r/kourt/kourtv2:orem/60) — open — stake YES or NO\n\n…and 35 older; open any by id\n";
-  const clL = await listClaims("orem");
+  global.qrender = async ()=> "# Bedford\n\n## Claims\n\n- [T](/r/kourt/kourtv2:bedford/60) — open — stake YES or NO\n\n…and 35 older; open any by id\n";
+  const clL = await listClaims("bedford");
   ok("live footer parsed: more=35", clL.more===35 && clL.length===1);
   global.qrender = async ()=> "## Featured\n\n- [A](/r/kourt/kourtv2:aaa) · AAA — 3 claims\n\n…and 12 more\n\n## Courts\n\n- [B](/r/kourt/kourtv2:bbb) · BBB — 5 claims\n";
   const co = await listCourtsX();
   ok("featured footer attributed to moreFeatured, never listed", co.moreFeatured===12 && co.more===undefined && co.length===2);
   CFG.mode='demo';
 
-  // demoRender cap+footer fidelity (orem 11 → no footer; synthetic 60 → footer)
-  const md = demoRender("orem");
-  ok("demoRender: newest-first docket", md.indexOf("kourtv2:orem/11") < md.indexOf("kourtv2:orem/1\)") || md.indexOf("orem/11") < md.indexOf("orem/1)"));
+  // demoRender cap+footer fidelity (bedford 11 → no footer; synthetic 60 → footer)
+  const md = demoRender("bedford");
+  ok("demoRender: newest-first docket", md.indexOf("kourtv2:bedford/11") < md.indexOf("kourtv2:bedford/1\)") || md.indexOf("bedford/11") < md.indexOf("bedford/1)"));
   ok("demoRender: no footer at 11 claims", !md.includes("older; open any by id"));
-  DEMO.courts.orem.claims = Array.from({length:60},(_,i)=>i+1);
-  for(let i=12;i<=60;i++) DEMO.claims["orem/"+i]=DEMO.claims["orem/1"];
-  const md60 = demoRender("orem");
-  ok("demoRender: caps at 50 + footer at 60 claims", md60.includes("…and 10 older; open any by id") && (md60.split("## Needs review")[0].split("[Moderation log]")[0].match(/kourtv2:orem\/\d/g)||[]).length===50);
+  DEMO.courts.bedford.claims = Array.from({length:60},(_,i)=>i+1);
+  for(let i=12;i<=60;i++) DEMO.claims["bedford/"+i]=DEMO.claims["bedford/1"];
+  const md60 = demoRender("bedford");
+  ok("demoRender: caps at 50 + footer at 60 claims", md60.includes("…and 10 older; open any by id") && (md60.split("## Needs review")[0].split("[Moderation log]")[0].match(/kourtv2:bedford\/\d/g)||[]).length===50);
 
 
   // F5/F7 fix assertions
@@ -115,7 +115,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   ok("F1: deep directory pages use ListedCourtsBy burn", srcF.includes('ListedCourtsBy("burn"'));
   ok("F4: directory order label", srcF.includes('"ranked by GNOT burned"'));
   QP={};
-  const pgOver = pagerHtml("/c/orem", 3, 0, 30, "claims");
+  const pgOver = pagerHtml("/c/bedford", 3, 0, 30, "claims");
   ok("F7: past-the-end caption", pgOver.includes("page 3 is past the end — 30 claims in all"));
 
   console.log(fail? "\n"+fail+" FAILURES" : "\nALL PASS");

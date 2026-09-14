@@ -117,7 +117,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
 (async ()=>{
   // parse: per-element uint64 tokens must not leak their 64s
   global.FCOUNT=3; CALLS=[]; QSHAPE="tokens";
-  const cf = await chainFolders("orem");
+  const cf = await chainFolders("bedford");
   ok("3 folders read", cf.folders.length===3 && cf.count===3 && !cf.capped);
   ok("ids parsed from (N uint64) tokens", JSON.stringify(cf.folders[0].claims)==="[1,11]" && JSON.stringify(cf.folders[2].claims)==="[3,13]");
   ok("no 64 leakage", !cf.folders.some(f=>f.claims.includes(64)));
@@ -138,7 +138,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
      helper rather than by hand. 664 is the failure this asserts against: it is
      what "(6 uint64)" becomes when a reader strips non-digits, and the tree is
      full of that mistake's cousins. */
-  global.FBORN={2:6}; CALLS=[]; const cfb = await chainFolders("orem");
+  global.FBORN={2:6}; CALLS=[]; const cfb = await chainFolders("bedford");
   ok("a set carries the claim that affirmed it", cfb.folders[1].born===6, JSON.stringify(cfb.folders[1].born));
   ok("...and the type name's own 64 does not leak into it",
      cfb.folders[1].born!==664 && !cfb.folders.some(f=>f.born===664));
@@ -150,7 +150,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
      parentID — so the walk that collects affirmed claims has to recurse, or a
      subset's claim keeps its duplicate row while a root set's loses it.
      PINNED IN SOURCE, because the offline sample has no nested born set to walk:
-     giving one to annex or orem would move the fixtures three other harnesses
+     giving one to annex or bedford would move the fixtures three other harnesses
      measure, which is a worse trade than naming the gap here. The recursion is
      one line and this is what watches it. */
   /* THE WALK IS A FUNCTION NOW, so this runs it instead of reading it. It was a
@@ -180,7 +180,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
      bornClaimIds([]).size === 0 && bornClaimIds(undefined).size === 0
      && bornClaimIds(null).size === 0);
   // bare-bracket shape fallback
-  QSHAPE="bare"; const cf2 = await chainFolders("orem");
+  QSHAPE="bare"; const cf2 = await chainFolders("bedford");
   ok("bare-bracket shape also parses", JSON.stringify(cf2.folders[0].claims)==="[1,11]");
   QSHAPE="tokens";
   // ---- a folder's one picture (owner ruling, CLAIM_MEDIA §10.11) ----------
@@ -189,9 +189,9 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // field most folders never set. So the read count is pinned in BOTH
   // directions — paid where there is a picture, not paid where there is not.
   global.FCOUNT=3; global.FTREE="1:0:-:0,2:0:i:0,3:0:-:0"; global.FIMG=undefined; CALLS=[];
-  const cfi = await chainFolders("orem");
+  const cfi = await chainFolders("bedford");
   ok("only the flagged folder is asked for a picture",
-     CALLS.filter(e=>/FolderImage/.test(e)).length===1 && /FolderImage\("orem",2\)/.test(CALLS.find(e=>/FolderImage/.test(e))));
+     CALLS.filter(e=>/FolderImage/.test(e)).length===1 && /FolderImage\("bedford",2\)/.test(CALLS.find(e=>/FolderImage/.test(e))));
   // ...and the picture is still the only read that is CONDITIONAL: 3F is the
   // floor every folder pays, plus one for the single folder the tree flagged.
   ok("read count = 2 + 2F + 1 picture", CALLS.length===2+2*3+1);
@@ -202,7 +202,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // archive copy, because a map draw is fifty boxes fanning out to hosts the
   // filer picked. An item with mirrors and no sha256 must come back empty.
   global.FIMG='[{\\"kind\\":\\"img\\",\\"sha256\\":\\"\\",\\"mime\\":\\"image/png\\",\\"w\\":8,\\"h\\":8,\\"bytes\\":9,\\"caption\\":\\"\\",\\"mirrors\\":[\\"https://i.imgur.com/x.png\\"]}]';
-  const cfm = await chainFolders("orem");
+  const cfm = await chainFolders("bedford");
   ok("a mirror-only picture is not drawn on the map", cfm.folders[1].img==="");
 
   // ---- a realm that predates bornOf in the row ----------------------------
@@ -213,7 +213,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // right one. `born === null` means the tree did not say; only then is the read
   // spent, and the answer is the same either way.
   global.FCOUNT=2; global.FTREE="1:0:-,2:0:-"; global.FBORN={1:6}; global.FIMG=undefined; CALLS=[];
-  const cfo = await chainFolders("orem");
+  const cfo = await chainFolders("bedford");
   ok("a three-field row still parses", cfo.folders.length===2);
   ok("...and bornOf is fetched, not assumed zero",
      CALLS.filter(e=>/SetBornOf/.test(e)).length===2);
@@ -223,7 +223,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
 
   // ...and with the field present, the read is not spent at all.
   global.FTREE="1:0:-:6,2:0:-:0"; CALLS=[];
-  const cfn = await chainFolders("orem");
+  const cfn = await chainFolders("bedford");
   ok("a four-field row spends no SetBornOf read",
      CALLS.filter(e=>/SetBornOf/.test(e)).length===0);
   ok("...and carries the same bornOf the read would have returned",
@@ -231,12 +231,12 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   global.FBORN=undefined;
   // A purged slot: encodeMedia keeps the position and drops everything else.
   global.FIMG='[{\\"kind\\":\\"img\\",\\"purged\\":true}]';
-  const cfp = await chainFolders("orem");
+  const cfp = await chainFolders("bedford");
   ok("a purged picture is not drawn", cfp.folders[1].img==="");
   // The read itself failing must not take the folder with it — the name and the
   // claims are the page, and the picture is the decoration.
   global.FIMG=null;
-  const cff = await chainFolders("orem");
+  const cff = await chainFolders("bedford");
   ok("a failed picture read still yields the folder",
      cff.folders[1].name==="[purged:9.2]<img src=x onerror=alert(1)>" && cff.folders[1].img==="" && !cff.folders[1].failed);
   global.FTREE=undefined; global.FIMG=undefined;
@@ -249,19 +249,19 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // use — and no extra WALL TIME, since it is in flight beside the count.
   // What must not come back is the loop: no FolderName or FolderItems here.
   global.FCOUNT=0; CALLS=[];
-  const cf0 = await chainFolders("orem");
+  const cf0 = await chainFolders("bedford");
   ok("F=0 → the count and the tree, together, and nothing per folder",
      CALLS.length===2 && cf0.folders.length===0
      && !CALLS.some(c=>/FolderName|FolderItems/.test(c)));
   // cap
-  global.FCOUNT=150; const cfC = await chainFolders("orem");
+  global.FCOUNT=150; const cfC = await chainFolders("bedford");
   ok("cap at 100, capped flag", cfC.folders.length===100 && cfC.capped && cfC.count===150);
   global.FCOUNT=3;
 
   // purge tombstone escapes through folderRowHtml (no HTML injection)
-  const row = folderRowHtml("orem", (await chainFolders("orem")).folders[1], "2");
+  const row = folderRowHtml("bedford", (await chainFolders("bedford")).folders[1], "2");
   ok("purged name escaped", row.includes("[purged:9.2]&lt;img") && !row.includes("<img src=x"));
-  ok("chain fid path in href", row.includes('href="#/c/orem/f/2"'));
+  ok("chain fid path in href", row.includes('href="#/c/bedford/f/2"'));
 
   /* THE SUBSET ROW IS THE COURT PAGE'S ROW, and it was neither — it was invalid.
      The untoggled branch wrapped the whole row in an <a>, and the row's meta
@@ -275,7 +275,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   {
     const sub = {name:"Gain-of-function funding", claims:[10,22,24], folders:[],
                  fid:4, born:4, focus:false, path:"4"};
-    const r = folderRowHtml("orem", sub, "4");
+    const r = folderRowHtml("bedford", sub, "4");
     /* NESTING, NOT COUNTING. The row carries TWO anchors — the born reference and
        the way in — and that is correct: they are siblings. What is illegal is one
        INSIDE the other, so this walks the tags and checks the depth never passes
@@ -289,15 +289,15 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
     ok("a subset row is a div, so the links it carries are legal",
        r.trim().startsWith("<div") && depth === 1);
     ok("...with the born reference inline in the meta, not stranded after it",
-       /<span class="m">3 claims · <a class="foldopen" href="#\/c\/orem\/4">affirmed by #4<\/a><\/span>/.test(r));
+       /<span class="m">3 claims · <a class="foldopen" href="#\/c\/bedford\/4">affirmed by #4<\/a><\/span>/.test(r));
     ok("...and the way in is `open`, the same pill the court page uses",
-       /class="pill void foldopen" href="#\/c\/orem\/f\/4"/.test(r) && !/>set</.test(r));
+       /class="pill void foldopen" href="#\/c\/bedford\/f\/4"/.test(r) && !/>set</.test(r));
     /* THE SET'S OWN MARK. This drew EYE_CHAR, the D010 constant, so a subset the
        court voted to open CONCEALED wore the glyph for one that opens shown —
        the same defect already fixed on the map node and on the set heading. */
     ok("...drawing the mark the set was filed under, not the shown one",
        r.includes("\u{1307C}") && !r.includes("\u{13080}"));
-    const shown = folderRowHtml("orem", Object.assign({}, sub, {focus:true}), "4");
+    const shown = folderRowHtml("bedford", Object.assign({}, sub, {focus:true}), "4");
     ok("...and the other mark when it opens shown",
        shown.includes("\u{13080}") && !shown.includes("\u{1307C}"));
 
@@ -309,7 +309,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
        were already links, so the row offered a way two levels down and none into
        the set it was about. */
     ok("...and the set's own name is the way in",
-       /<span class="t"><a class="foldopen setopen" href="#\/c\/orem\/f\/4">Gain-of-function funding<\/a>/.test(r),
+       /<span class="t"><a class="foldopen setopen" href="#\/c\/bedford\/f\/4">Gain-of-function funding<\/a>/.test(r),
        r.slice(r.indexOf('class="t"'), r.indexOf('class="t"') + 90));
     /* .foldopen IS LOAD-BEARING, not decoration: it is the class the toggle
        row's own click handler steps over. Without it, the day this row becomes a
@@ -320,7 +320,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
     /* AND NOT ON THE COURT PAGE, where the same function draws a checkbox and a
        click ticks the filter. A link in the name there would fight the control
        it is part of, so the two branches pass their own name in. */
-    const tog = folderRowHtml("orem", sub, "4", true);
+    const tog = folderRowHtml("bedford", sub, "4", true);
     ok("...while the filter row's name stays plain text",
        !/setopen/.test(tog) && /<span class="t">Gain-of-function funding /.test(tog));
   }
@@ -441,16 +441,16 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   }
 
   // foldersFor precedence: local ?? chain ?? sample ?? none
-  const chainF = await chainFolders("orem");
+  const chainF = await chainFolders("bedford");
   CFG.mode='live';
-  ok("live: chain is default", foldersFor("orem", chainF).source==="chain");
-  ok("live: none when chain empty", foldersFor("orem", {folders:[],count:0})===null || (foldersFor("orem",{folders:[],count:0})||{}).source===undefined);
-  const local={kourtCuration:1,court:"orem",chain:"dev",desc:"",folders:[{name:"L",claims:[1],folders:[]}],relations:[]};
-  store.set("cc.cur.dev.orem", JSON.stringify(local));
-  ok("live: local overrides chain", foldersFor("orem", chainF).source==="local");
-  store.del("cc.cur.dev.orem");
+  ok("live: chain is default", foldersFor("bedford", chainF).source==="chain");
+  ok("live: none when chain empty", foldersFor("bedford", {folders:[],count:0})===null || (foldersFor("bedford",{folders:[],count:0})||{}).source===undefined);
+  const local={kourtCuration:1,court:"bedford",chain:"dev",desc:"",folders:[{name:"L",claims:[1],folders:[]}],relations:[]};
+  store.set("cc.cur.dev.bedford", JSON.stringify(local));
+  ok("live: local overrides chain", foldersFor("bedford", chainF).source==="local");
+  store.del("cc.cur.dev.bedford");
   CFG.mode='demo';
-  ok("demo: sample when no local", foldersFor("orem", null).source==="sample");
+  ok("demo: sample when no local", foldersFor("bedford", null).source==="sample");
   CFG.mode='live';
 
   // folderMeta first-wins on multi-membership; D3: values carry {label, path}
@@ -529,7 +529,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
     const two = [{name:"By evidence", claims:[7], folders:[]},
                  {name:"Cross-cut", claims:[7], folders:[]}];
     const d = {folders:two, all:[7], claims:{7:{title:"One claim, filed twice.", statusText:"open — stake YES or NO"}},
-               relations:[], courtName:"Orem Truth Court"};
+               relations:[], courtName:"Bedford Truth Court"};
     const L = mapLayout(d, "ids");
     ok("F1: a claim in two folders is drawn once", L.nodes.length===1);
     ok("F1: and the second folder is joined to it anyway",
@@ -562,20 +562,20 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
 // malformed state is a client a bad read can wedge.
   CFG.mode='live'; global.FCOUNT=3;
   global.FTREE = "1:0:-,2:1:-,3:0:-";
-  const r = await chainFolders("orem");
+  const r = await chainFolders("bedford");
   ok("chain folders nest", r.folders.length===2 && r.folders[0].folders.length===1);
   ok("the child hangs off its parent", r.folders[0].folders[0].fid===2);
 
   // A RETIRED FOLDER IS SKIPPED. The realm keeps its row so ids stay contiguous
   // for this very walk; it is struck from the tree, so it is not in the tree.
   global.FTREE = "1:0:-,2:1:r,3:0:-";
-  const r2 = await chainFolders("orem");
+  const r2 = await chainFolders("bedford");
   ok("a retired folder is not drawn", r2.folders.length===2 && r2.folders[0].folders.length===0);
 
   // A CYCLE CANNOT HANG THE CLIENT. The realm refuses to make one; this asserts
   // the overlay survives being told otherwise.
   global.FTREE = "1:2:-,2:1:-,3:0:-";
-  const r3 = await chainFolders("orem");
+  const r3 = await chainFolders("bedford");
   ok("a cyclic tree still terminates and keeps every folder",
      r3.folders.length + r3.folders.reduce((n,f)=>n+f.folders.length,0) === 3);
 
@@ -586,7 +586,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // list rendered correctly the whole time, which is why reading the row's label
   // proved nothing — the link had to be followed.
   global.FTREE = "1:0:-,2:1:-,3:0:-";
-  const r5 = await chainFolders("orem");
+  const r5 = await chainFolders("bedford");
   const kid = r5.folders[0].folders[0];
   ok("a subfolder keeps its own fid, not a positional path", kid && kid.fid===2);
   const findById = (list, fid) => {
@@ -606,7 +606,7 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // tree into a Map and then built its fetch list with `for(i=1;i<=F;i++)`,
   // which is id order, so the sequence survived the read and died one line later.
   global.FCOUNT=3; global.FTREE="3:0:-,1:0:-,2:0:-";
-  const ord = await chainFolders("orem");
+  const ord = await chainFolders("bedford");
   ok("chain folders are drawn in the order the realm sent them",
      ord.folders.map(f=>f.fid).join(",")==="3,1,2");
 
@@ -614,14 +614,14 @@ let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else conso
   // it would make a malformed or missing row invisible rather than merely last,
   // which is how a court loses a folder to a parse slip.
   global.FCOUNT=3; global.FTREE="3:0:-,1:0:-";
-  const gap = await chainFolders("orem");
+  const gap = await chainFolders("bedford");
   ok("an id the tree never named is drawn last, not dropped",
      gap.folders.map(f=>f.fid).join(",")==="3,1,2");
 
   // AND A REALM WITHOUT THE READ still gets the flat list it always got.
   global.FCOUNT=3;
   global.FTREE = null;
-  const r4 = await chainFolders("orem");
+  const r4 = await chainFolders("bedford");
   ok("no FolderTree degrades to a flat list", r4.folders.length===3);
   global.FTREE = undefined; CFG.mode='demo';
 

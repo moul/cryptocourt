@@ -140,7 +140,7 @@ ok("...with no micro prefix and no court symbol anywhere in it",
 /* THE SWEEP, AND ITS ONE EXCEPTION. A claim page names its court in the crumbs,
    the heading and the URL, so the stake bar and the chip row under the chart read
    in CC. The vote-lock modal does NOT: it is a disclosure under the §7.4 house
-   style, votelock_test pins "this vote would commit N KOURT:OREM", and a
+   style, votelock_test pins "this vote would commit N KOURT:BEDFORD", and a
    disclosure is the one surface where the denomination in full is worth its
    width. Asserted here as a PAIR so neither half can drift into the other —
    sweeping the disclosure by accident is exactly what this catches. */

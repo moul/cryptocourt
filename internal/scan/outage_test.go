@@ -57,7 +57,7 @@ func TestAnOutageLeavesEveryIndicatorGreenAndNothingScanned(t *testing.T) {
 		{"crook", "send me your seed phrase and I will restore your funds"},
 	} {
 		if _, err := s.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: m.who, Body: m.body,
+			Chain: "dev", Court: "bedford", Moniker: m.who, Body: m.body,
 			IPHash: "ip-" + m.who, NetHash: "net-" + m.who,
 		}); err != nil {
 			t.Fatal(err)
@@ -118,7 +118,7 @@ func TestAnOutageLeavesEveryIndicatorGreenAndNothingScanned(t *testing.T) {
 	// The scam is still on screen, which is correct — fail-open is the design — but it
 	// means the ONLY thing standing between the room and that message is an operator
 	// noticing, and every number they have says fine.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +140,7 @@ func TestAHealthyRunReportsNothingUnscannable(t *testing.T) {
 	ctx := context.Background()
 
 	if _, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "crook",
+		Chain: "dev", Court: "bedford", Moniker: "crook",
 		Body:   "send me your seed phrase and I will restore your funds",
 		IPHash: "ip-crook", NetHash: "net-crook",
 	}); err != nil {
@@ -179,7 +179,7 @@ func TestATransientOutageThatRecoversCountsForNothing(t *testing.T) {
 	s, tick := outageStore(t)
 	ctx := context.Background()
 	if _, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "crook",
+		Chain: "dev", Court: "bedford", Moniker: "crook",
 		Body:   "send me your seed phrase and I will restore your funds",
 		IPHash: "ip-crook", NetHash: "net-crook",
 	}); err != nil {

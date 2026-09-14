@@ -57,8 +57,8 @@ const ok = (n, c, d) => { checks++;
 
   // Demo mode needs no chain, which is the point: this is about the FILE, not
   // about a node being up.
-  const ROUTES = ["#/", "#/c/orem", "#/c/orem/1", "#/c/orem/map", "#/c/orem/curate",
-                  "#/about", "#/me", "#/needs", "#/raw/orem"];
+  const ROUTES = ["#/", "#/c/bedford", "#/c/bedford/1", "#/c/bedford/map", "#/c/bedford/curate",
+                  "#/about", "#/me", "#/needs", "#/raw/bedford"];
   for (const r of ROUTES) {
     await page.goto(base + r, { waitUntil: "networkidle0", timeout: 30000 });
     await new Promise(x => setTimeout(x, 500));

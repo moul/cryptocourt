@@ -27,17 +27,17 @@ const puppeteer = require('puppeteer');
 const PAGE = 'file://' + require('path').join(__dirname, '..', '..', 'index.html');
 
 const CASES = [
-  {name: "claim",  route: "#/embed/orem/1", w: 400, h: 500},
-  {name: "court",  route: "#/embed/orem",   w: 400, h: 210},
-  {name: "claim@320", route: "#/embed/orem/1", w: 320, h: 500},
-  {name: "court@320", route: "#/embed/orem",  w: 320, h: 210},
+  {name: "claim",  route: "#/embed/bedford/1", w: 400, h: 500},
+  {name: "court",  route: "#/embed/bedford",   w: 400, h: 210},
+  {name: "claim@320", route: "#/embed/bedford/1", w: 320, h: 500},
+  {name: "court@320", route: "#/embed/bedford",  w: 320, h: 210},
   // the tallest card in the sample, in the narrowest column
   {name: "tallest@320", route: "#/embed/ledger/2", w: 320, h: 500},
   // and a claim whose title is long enough to hit the 4-line clamp
-  {name: "clamped@320", route: "#/embed/orem/7", w: 320, h: 500},
+  {name: "clamped@320", route: "#/embed/bedford/7", w: 320, h: 500},
   // a card for something that is not there — the case where knowing WHICH
   // source was asked matters most
-  {name: "missing@320", route: "#/embed/orem/9999", w: 320, h: 500, missing: true},
+  {name: "missing@320", route: "#/embed/bedford/9999", w: 320, h: 500, missing: true},
 ];
 
 (async () => {
@@ -143,7 +143,7 @@ const CASES = [
   // changes in the field, so a real embed always gets the fresh load this forces.
   const bg = async (q) => {
     await page.setViewport({width: 500, height: 400});
-    await page.goto(PAGE + "#/embed/orem/1" + q, {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + "#/embed/bedford/1" + q, {waitUntil: 'domcontentloaded'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 400));
     return page.evaluate(() => ({
@@ -179,10 +179,10 @@ const CASES = [
   // (c) appear ONLY while the claim is open, since staking freezes the moment
   // an answer posts and the realm would refuse the transaction.
   await page.setViewport({width: 400, height: 500});
-  for(const [route, phase, want] of [["#/embed/orem/1", "open", true],
-                                     ["#/embed/orem/2", "answered", false],
-                                     ["#/embed/orem/4", "settled", false],
-                                     ["#/embed/orem/3", "disputed", false]]){
+  for(const [route, phase, want] of [["#/embed/bedford/1", "open", true],
+                                     ["#/embed/bedford/2", "answered", false],
+                                     ["#/embed/bedford/4", "settled", false],
+                                     ["#/embed/bedford/3", "disputed", false]]){
     await page.goto(PAGE + route, {waitUntil: 'domcontentloaded'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 450));
@@ -216,7 +216,7 @@ const CASES = [
 
   // ...and the side must actually land somewhere, or the button lied.
   await page.setViewport({width: 1200, height: 900});
-  await page.goto(PAGE + "#/c/orem/1?from=embed&side=no", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/c/bedford/1?from=embed&side=no", {waitUntil: 'domcontentloaded'});
   await page.reload({waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1200));
   const landed = await page.evaluate(() => {
@@ -231,7 +231,7 @@ const CASES = [
      landed.picked.length === 1 && /\bno\b/.test(landed.picked[0]), JSON.stringify(landed.picked));
   // A frozen claim has no panel to point at; the link must not throw.
   const errsBefore = errs.length;
-  await page.goto(PAGE + "#/c/orem/2?from=embed&side=yes", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/c/bedford/2?from=embed&side=yes", {waitUntil: 'domcontentloaded'});
   await page.reload({waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1000));
   ok("a side link to a frozen claim is harmless", errs.length === errsBefore,
@@ -242,9 +242,9 @@ const CASES = [
   // stake ended up says nothing about how the claim got there. It costs no
   // extra read — ClaimTimeline is already fetched for the chart's dates.
   await page.setViewport({width: 400, height: 500});
-  for(const [route, phase, want] of [["#/embed/orem/1", "open", ["opened"]],
-                                     ["#/embed/orem/2", "answered", ["opened","answered"]],
-                                     ["#/embed/orem/7", "provisional", ["opened","answered"]]]){
+  for(const [route, phase, want] of [["#/embed/bedford/1", "open", ["opened"]],
+                                     ["#/embed/bedford/2", "answered", ["opened","answered"]],
+                                     ["#/embed/bedford/7", "provisional", ["opened","answered"]]]){
     await page.goto(PAGE + route, {waitUntil: 'domcontentloaded'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 450));
@@ -272,7 +272,7 @@ const CASES = [
     ok(`${phase}: and the card still fits`, tr.over <= 0, `over=${tr.over}px`);
   }
   // The footer's "filed" would repeat the trail's own "opened".
-  await page.goto(PAGE + "#/embed/orem/1", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/embed/bedford/1", {waitUntil: 'domcontentloaded'});
   await page.reload({waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 450));
   const dup = await page.evaluate(() => ({
@@ -286,7 +286,7 @@ const CASES = [
   // that the stake moved. The spark is a fixed 52px so it cannot become a third
   // unbounded term next to the title and the court name.
   await page.setViewport({width: 500, height: 400});
-  await page.goto(PAGE + "#/embed/orem/1", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/embed/bedford/1", {waitUntil: 'domcontentloaded'});
   await page.reload({waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 600));
   const spark = await page.evaluate(() => {
@@ -315,7 +315,7 @@ const CASES = [
   // ...and when there is none, says so rather than dropping the chart silently,
   // which made a missing series look like a rendering fault. Same words as the clip.
   const nopath = await (async () => {
-    await page.goto(PAGE + "#/embed/orem/7", {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + "#/embed/bedford/7", {waitUntil: 'domcontentloaded'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 450));
     return page.evaluate(() => ({
@@ -346,10 +346,10 @@ const CASES = [
   // and pushed the card 9px past the iframe it was sized for. Measured, not
   // reasoned about: this injects the name and re-renders.
   await page.setViewport({width: 320, height: 500});  // the snippet's own claim height
-  await page.goto(PAGE + "#/embed/orem/1", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/embed/bedford/1", {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 500));
   const longName = await page.evaluate(async () => {
-    DEMO.courts.orem.name = "Salt Lake County Consolidated Election Canvass Review Board of Record";
+    DEMO.courts.bedford.name = "Salt Lake County Consolidated Election Canvass Review Board of Record";
     await render();
     // WAIT FOR THE ENTRY ANIMATION, or measure it instead of the layout.
     // `#main.vin` is 140ms of translateY(5px), so a measurement taken the
@@ -382,7 +382,7 @@ const CASES = [
   // suppressed; this forces the banner's markup in to prove the suppression is
   // real rather than a demo-mode accident.
   await page.setViewport({width: 500, height: 500});  // the snippet's own claim height
-  await page.goto(PAGE + "#/embed/orem/1", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/embed/bedford/1", {waitUntil: 'domcontentloaded'});
   await page.reload({waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 500));
   // The page banner is gone from the product entirely, so there is nothing left
@@ -430,8 +430,8 @@ const CASES = [
   });
   await rp.setViewport({width: 1280, height: 1000});
   for(const [route, want] of [["#/", ".card, .courtrow, .grid"],
-                              ["#/c/orem", ".docket a.crow"],
-                              ["#/c/orem/1", ".stakewrap"],
+                              ["#/c/bedford", ".docket a.crow"],
+                              ["#/c/bedford/1", ".stakewrap"],
                               ["#/me", "h1"],
                               ["#/needs", "h1"],
                               ["#/about", "h1"]]){
@@ -444,7 +444,7 @@ const CASES = [
     ok(`${route} painted something`, painted, `no ${want}`);
   }
   // The specific thing that broke: a sparkline is fed an array, not a Promise.
-  await rp.goto(PAGE + "#/c/orem", {waitUntil: 'domcontentloaded'});
+  await rp.goto(PAGE + "#/c/bedford", {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1000));
   const dock = await rp.evaluate(() => ({
     rows: document.querySelectorAll('.docket a.crow').length,

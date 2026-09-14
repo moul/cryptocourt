@@ -29,7 +29,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
     localStorage.setItem("cc.intro", "1");
   });
   await page.setViewport({width: 1280, height: 1100});
-  await page.goto(PAGE + '#/c/orem', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford', {waitUntil: 'networkidle0'});
   /* WAIT FOR THE PAGE, NOT FOR A DURATION. This was a flat 900ms and it made
      this file fail roughly one run in three — measured: three back-to-back runs
      on an unchanged tree gave pass, FAIL, pass, always on the first arm, always
@@ -71,7 +71,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
   ok("the Folders rows are the control", a.folders >= 2, JSON.stringify(a));
   /* NO CLAIM IS ON THIS PAGE TWICE. "Still flaggable" is the chain's own list
      and overlaps the docket by nature — a settled claim stays flaggable until
-     its rewards are opened — so it repeated four of orem's claims under a
+     its rewards are opened — so it repeated four of bedford's claims under a
      second heading. Narrowed to a folder of three that read as six. Reported. */
   const twice = await page.evaluate(() => {
     const ids = [...document.querySelectorAll("#qscope .crow.claimrow")]
@@ -229,7 +229,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
 
 
   /* THE CHAIN'S LIST, ON THE COURT THAT HAS SOMETHING TO PUT IN IT. Every row
-     of orem's was a claim from the docket above, so that list is gone from the
+     of bedford's was a claim from the docket above, so that list is gone from the
      page. annex keeps one — a claim hidden by moderation, absent from the
      docket and still policeable, which is the whole reason the section exists.
      Dedupe had to leave that standing, or the fix would have deleted the only

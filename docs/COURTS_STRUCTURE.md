@@ -203,7 +203,7 @@ reference CPU**, with output over **1 MiB not rendered at all**. Target 40 KB.
 A link whose web-query carries `help` becomes a signable transaction with
 arguments pre-filled:
 
-    [Vote yes](/r/courts:orem$help&func=Vote&id=188&choice=yes)
+    [Vote yes](/r/courts:bedford$help&func=Vote&id=188&choice=yes)
 
 `p/moul/txlink` builds them. **Every button in the interface is one of these**,
 which is what makes the overlay optional rather than load-bearing.

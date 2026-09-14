@@ -96,7 +96,7 @@ function freePort() {
     await page.evaluate(b => {
       document.getElementById("ep").value = b;
       document.getElementById("ch").value = "dev";
-      document.getElementById("ct").value = "orem";
+      document.getElementById("ct").value = "bedford";
       document.getElementById("go").click();
     }, base);
 
@@ -124,7 +124,7 @@ function freePort() {
 
     // Everything below drives the store directly, so it exercises the panel's polling
     // and enforcement display regardless of how the POST question came out.
-    const seeded = await fetch(base + "/api/chat/dev/orem", {
+    const seeded = await fetch(base + "/api/chat/dev/bedford", {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({moniker: "tosh", body: "seeded from the test harness"}),
     });
@@ -182,7 +182,7 @@ function freePort() {
     // for the right reason — everything in this fixture is posted from 127.0.0.1, and
     // Consequence hides the OFFENDER's recent messages. So the room going quiet here is
     // moderation working, and both halves are worth pinning separately.
-    const readAsKicked = await fetch(base + "/api/chat/dev/orem");
+    const readAsKicked = await fetch(base + "/api/chat/dev/bedford");
     ok("a kicked reader can still read the room", readAsKicked.status === 200);
     const asKicked = await readAsKicked.json();
     ok("...and their own messages were hidden by the consequence",
@@ -197,7 +197,7 @@ function freePort() {
 
     // The server must refuse a post from a kicked address even if a client ignores the
     // disabled box entirely — the composer being greyed out is a courtesy, not a control.
-    const sneak = await fetch(base + "/api/chat/dev/orem", {
+    const sneak = await fetch(base + "/api/chat/dev/bedford", {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({moniker: "ellery", body: "ignoring the disabled box"}),
     });
@@ -210,7 +210,7 @@ function freePort() {
       () => document.querySelector("#livechat .chatinput").disabled === false,
       {timeout: 20000});
     ok("the panel recovers on its own after the kick is lifted", true);
-    const back = await fetch(base + "/api/chat/dev/orem", {
+    const back = await fetch(base + "/api/chat/dev/bedford", {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({moniker: "ellery", body: "and posting works again"}),
     });
@@ -218,7 +218,7 @@ function freePort() {
 
     // `unban` promises to restore what it hid. An appeal that gave someone their voice
     // back but left everything they had said deleted would be half an apology.
-    const restored = await (await fetch(base + "/api/chat/dev/orem")).json();
+    const restored = await (await fetch(base + "/api/chat/dev/bedford")).json();
     ok("...and the hidden messages came back",
        JSON.stringify(restored.messages).includes("seeded from the test harness"));
     await page.waitForFunction(
@@ -260,7 +260,7 @@ function freePort() {
         await p2.evaluate(b => {
           document.getElementById("ep").value = b;
           document.getElementById("ch").value = "dev";
-          document.getElementById("ct").value = "orem";
+          document.getElementById("ct").value = "bedford";
           document.getElementById("go").click();
         }, base);
         await p2.waitForFunction(
@@ -365,16 +365,16 @@ function freePort() {
       if (!/settle window|posting works again|seeded/.test(before)) {
         ok("precondition: something is on screen to be withdrawn", false);
       }
-      const fz = ctl("freeze", "dev/orem");
+      const fz = ctl("freeze", "dev/bedford");
       ok("the operator froze the court: " + (fz.stdout || fz.stderr || "").trim().slice(0, 60),
          fz.status === 0);
 
       // Reading and writing both refused, at the HTTP layer.
-      const rd = await fetch(base + "/api/chat/dev/orem");
+      const rd = await fetch(base + "/api/chat/dev/bedford");
       ok("a frozen court is not read (410)", rd.status === 410);
       const body = await rd.text();
       ok("...and the refusal carries no transcript", !/settle window/.test(body));
-      const wr = await fetch(base + "/api/chat/dev/orem", {
+      const wr = await fetch(base + "/api/chat/dev/bedford", {
         method: "POST", headers: {"Content-Type": "application/json"},
         body: JSON.stringify({moniker: "x", body: "after the purge"}),
       });

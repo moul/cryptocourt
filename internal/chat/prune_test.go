@@ -26,7 +26,7 @@ func aged(t *testing.T, s *Store, ctx context.Context, id int64, ageDays int,
 	if _, err := s.w.ExecContext(ctx, `
 	  INSERT INTO messages(id, chain, court, moniker, body, skeleton, ip_hash, net_hash,
 	                       created_at, hidden, scan_state, verdict, reviewed_at)
-	  VALUES (?,'dev','orem',?,?,?,?,?,?,0,?,?,?)`,
+	  VALUES (?,'dev','bedford',?,?,?,?,?,?,0,?,?,?)`,
 		id, who, body, Skeleton(body), "ip-"+who, "net-"+who, created, state, verdict, reviewed); err != nil {
 		t.Fatal(err)
 	}
@@ -345,7 +345,7 @@ func TestPruningDoesNotStallReaders(t *testing.T) {
 	stmt, err := tx.PrepareContext(ctx, `
 	  INSERT INTO messages(id, chain, court, moniker, body, skeleton, ip_hash, net_hash,
 	                       created_at, hidden, scan_state, verdict, reviewed_at)
-	  VALUES (?,'dev','orem','alice',?,'',?,'net1',?,0,?,'clean',0)`)
+	  VALUES (?,'dev','bedford','alice',?,'',?,'net1',?,0,?,'clean',0)`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -379,7 +379,7 @@ func TestPruningDoesNotStallReaders(t *testing.T) {
 			default:
 			}
 			start := time.Now()
-			if _, err := s.Recent(ctx, "dev", "orem", 0, 50); err != nil {
+			if _, err := s.Recent(ctx, "dev", "bedford", 0, 50); err != nil {
 				t.Errorf("a read failed while pruning: %v", err)
 				return
 			}
@@ -428,7 +428,7 @@ func TestPruningDoesNotStallReaders(t *testing.T) {
 		deleted, sweep.Truncate(time.Millisecond), reads, worst.Truncate(time.Microsecond))
 
 	// And the recent message is still there, which is the point of a retention window.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -467,7 +467,7 @@ func TestPruneDoesNotLeaveACitationPointingAtSomebodyElsesMessage(t *testing.T) 
 
 			var old []int64
 			for i := 0; i < 3; i++ {
-				id, err := post(t, s, "orem", "ip-a",
+				id, err := post(t, s, "bedford", "ip-a",
 					"old message "+string(rune('a'+i))+" about the docket ordering")
 				if err != nil {
 					t.Fatal(err)
@@ -526,7 +526,7 @@ func TestPruneDoesNotLeaveACitationPointingAtSomebodyElsesMessage(t *testing.T) 
 			// Now walk new traffic onto the reused id and check both consumers.
 			var reused int64
 			for n := 1; n <= 3; n++ {
-				id, err := post(t, s, "orem", "ip-a", "fresh message number "+string(rune('0'+n)))
+				id, err := post(t, s, "bedford", "ip-a", "fresh message number "+string(rune('0'+n)))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -560,7 +560,7 @@ func TestPruneDoesNotLeaveACitationPointingAtSomebodyElsesMessage(t *testing.T) 
 			if err := s.Revoke(ctx, inf2, "operator"); err != nil {
 				t.Fatal(err)
 			}
-			msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+			msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -579,7 +579,7 @@ func TestPruneStillRefusesEvidenceForAConsequenceInForce(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-b", "send me your seed phrase and I will restore it")
+	id, err := post(t, s, "bedford", "ip-b", "send me your seed phrase and I will restore it")
 	if err != nil {
 		t.Fatal(err)
 	}

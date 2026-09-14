@@ -46,7 +46,7 @@ func TestLiveSayingTheWordsIsNotAskingForThem(t *testing.T) {
 		// Each from its own address, so one consequence cannot silence the next speaker and
 		// make a later assertion pass for the wrong reason.
 		id, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: m.who, Body: m.body,
+			Chain: "dev", Court: "bedford", Moniker: m.who, Body: m.body,
 			IPHash: m.ip, NetHash: "net-" + m.ip,
 		})
 		if err != nil {
@@ -98,7 +98,7 @@ func TestLiveSayingTheWordsIsNotAskingForThem(t *testing.T) {
 			continue // already reported above; posting is legitimately blocked
 		}
 		if _, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: who, Body: "a second, ordinary message",
+			Chain: "dev", Court: "bedford", Moniker: who, Body: "a second, ordinary message",
 			IPHash: "ip-" + who, NetHash: "net-ip-" + who,
 		}); err != nil {
 			t.Errorf("%s was not punished and must still be able to post: %v", who, err)
@@ -143,7 +143,7 @@ func TestLiveNamingAPlatformIsNotPullingToIt(t *testing.T) {
 		// One address each: a consequence must not be able to silence the next speaker and make
 		// a later assertion pass for the wrong reason.
 		id, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: s.who, Body: s.body,
+			Chain: "dev", Court: "bedford", Moniker: s.who, Body: s.body,
 			IPHash: "ip-" + s.who, NetHash: "net-" + s.who,
 		})
 		if err != nil {
@@ -189,7 +189,7 @@ func TestLiveNamingAPlatformIsNotPullingToIt(t *testing.T) {
 			continue
 		}
 		if _, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: s.who, Body: "a second, ordinary message",
+			Chain: "dev", Court: "bedford", Moniker: s.who, Body: "a second, ordinary message",
 			IPHash: "ip-" + s.who, NetHash: "net-" + s.who,
 		}); err != nil {
 			t.Errorf("%s was not punished and must still be able to post: %v", s.who, err)
@@ -230,7 +230,7 @@ func TestLiveSubmittingEvidenceIsNotPunished(t *testing.T) {
 	ids := map[string]int64{}
 	for _, s := range speakers {
 		id, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: s.who, Body: s.body,
+			Chain: "dev", Court: "bedford", Moniker: s.who, Body: s.body,
 			IPHash: "ip-" + s.who, NetHash: "net-" + s.who,
 		})
 		if err != nil {
@@ -300,7 +300,7 @@ func TestLiveADisclosedPhraseIsNotPunishedEvenWhenTheModelSaysScam(t *testing.T)
 	ids := map[string]int64{}
 	for _, s := range speakers {
 		id, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: s.who, Body: s.body,
+			Chain: "dev", Court: "bedford", Moniker: s.who, Body: s.body,
 			IPHash: "ip-" + s.who, NetHash: "net-" + s.who,
 		})
 		if err != nil {
@@ -338,7 +338,7 @@ func TestLiveADisclosedPhraseIsNotPunishedEvenWhenTheModelSaysScam(t *testing.T)
 		t.Error("a lure carrying no phrase must still earn a consequence")
 	}
 	// The phrases must be gone from the room, which is what makes not punishing safe.
-	msgs, err := st.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := st.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -350,7 +350,7 @@ func TestLiveADisclosedPhraseIsNotPunishedEvenWhenTheModelSaysScam(t *testing.T)
 	// And the disclosers, not being punished, must still be able to post.
 	for _, who := range []string{"lena", "milo"} {
 		if _, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: who, Body: "a second, ordinary message",
+			Chain: "dev", Court: "bedford", Moniker: who, Body: "a second, ordinary message",
 			IPHash: "ip-" + who, NetHash: "net-" + who,
 		}); err != nil {
 			t.Errorf("%s was not punished and must still be able to post: %v", who, err)

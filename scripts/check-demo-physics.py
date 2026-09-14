@@ -258,7 +258,7 @@ def check_settle_deadline(region, bad, now):
     Two relations, and the weaker one is the more useful. (a) When a claim's own
     timeline states a `settle` height, the separate `settleAt` field must agree
     with it — otherwise the ladder and the docket clock quote different blocks
-    for the same event, on the same page. That is how orem/6 was found: its
+    for the same event, on the same page. That is how bedford/6 was found: its
     timeline said 4,797,800 and its settleAt said 4,798,000. (b) For a claim
     still in phase "answered" the deadline must be exactly answerHeight +
     settleDelay. Disputed and provisional claims are NOT checked that way: a

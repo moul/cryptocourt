@@ -15,7 +15,7 @@
 //	kourtchatctl -db chat.db review               what the scanner left for a human
 //	kourtchatctl -db chat.db kick -msg 41 -for 1h act on a message you just read
 //	kourtchatctl -db chat.db prune -older-than 720h   what 30-day retention would drop
-//	kourtchatctl -db chat.db freeze dev/orem      stop serving a purged court
+//	kourtchatctl -db chat.db freeze dev/bedford      stop serving a purged court
 //	kourtchatctl -db chat.db status               backlog, scanner heartbeat, counts
 //
 // It takes HASHES, not addresses, and that is a consequence of hashing rather than
@@ -932,7 +932,7 @@ func cmdPrune(ctx context.Context, s *chat.Store, argv []string) {
 
 func cmdFreeze(ctx context.Context, s *chat.Store, argv []string) {
 	if len(argv) != 1 || !strings.Contains(argv[0], "/") {
-		die("freeze needs CHAIN/COURT, e.g. dev/orem")
+		die("freeze needs CHAIN/COURT, e.g. dev/bedford")
 	}
 	parts := strings.SplitN(argv[0], "/", 2)
 	if err := s.Freeze(ctx, parts[0], parts[1]); err != nil {
@@ -1106,11 +1106,11 @@ func cmdReveal(ctx context.Context, s *chat.Store, argv []string) {
 
 func cmdUnfreeze(ctx context.Context, s *chat.Store, argv []string) {
 	if len(argv) != 1 {
-		die("unfreeze needs CHAIN/COURT, e.g. dev/orem")
+		die("unfreeze needs CHAIN/COURT, e.g. dev/bedford")
 	}
 	parts := strings.SplitN(argv[0], "/", 2)
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		die("unfreeze needs CHAIN/COURT, e.g. dev/orem")
+		die("unfreeze needs CHAIN/COURT, e.g. dev/bedford")
 	}
 	lifted, err := s.Unfreeze(ctx, parts[0], parts[1])
 	if err != nil {

@@ -24,9 +24,9 @@ const PAGE = 'file://' + require('path').join(__dirname, '..', '..', 'index.html
 // orphaned assertion is worse than a missing one: it fails for a reason nobody
 // can act on, and a suite with a permanent red in it stops being read at all.
 const ROUTES = [
-  {name: "claim",  route: "#/c/orem/1"},
-  {name: "court",  route: "#/c/orem"},
-  {name: "curate", route: "#/c/orem/curate"},
+  {name: "claim",  route: "#/c/bedford/1"},
+  {name: "court",  route: "#/c/bedford"},
+  {name: "curate", route: "#/c/bedford/curate"},
 ];
 
 (async () => {
@@ -99,7 +99,7 @@ const ROUTES = [
 
   // --- the underline arrives on hover, and hover means MORE contrast ---------
   await page.setViewport({width: 1280, height: 1000});
-  await page.goto(PAGE + "#/c/orem/1", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/c/bedford/1", {waitUntil: 'domcontentloaded'});
   await new Promise(x => setTimeout(x, 900));
   const hov = await page.evaluate(() => {
     const a = document.querySelector('.tagrow .tlink');
@@ -127,7 +127,7 @@ const ROUTES = [
   for (const w of [390, 360, 320]) {
     for (const n of [0, 40, 140]) {
       await page.setViewport({width: w, height: 900});
-      await page.goto(PAGE + "#/c/orem/1", {waitUntil: 'domcontentloaded'});
+      await page.goto(PAGE + "#/c/bedford/1", {waitUntil: 'domcontentloaded'});
       await new Promise(x => setTimeout(x, 700));
       const o = await page.evaluate((n) => {
         const a = document.querySelector('.tname');
@@ -158,7 +158,7 @@ const ROUTES = [
 
   // --- what a screen reader is handed --------------------------------------
   await page.setViewport({width: 1280, height: 1000});
-  await page.goto(PAGE + "#/c/orem/1", {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + "#/c/bedford/1", {waitUntil: 'domcontentloaded'});
   await new Promise(x => setTimeout(x, 900));
   const a11y = await page.evaluate(() => {
     const share = document.querySelector('.tagrow [data-help="share-dlg"]');
@@ -213,7 +213,7 @@ const ROUTES = [
       localStorage.setItem("cc.intro", "1");
     }, theme);
     await page.setViewport({width: 1280, height: 900});
-    await page.goto(PAGE + "#/c/orem/1", {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + "#/c/bedford/1", {waitUntil: 'domcontentloaded'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 900));
     const n = await page.evaluate(() => {
@@ -301,7 +301,7 @@ const ROUTES = [
      range; 1600 is past it. */
   for (const w of [1600, 1280, 1024]) {
     await page.setViewport({width: w, height: 1000});
-    await page.goto(PAGE + "#/c/orem", {waitUntil: "networkidle2"});
+    await page.goto(PAGE + "#/c/bedford", {waitUntil: "networkidle2"});
     await new Promise(r => setTimeout(r, 1200));
     const g = await page.evaluate(() => {
       const lr = document.querySelector(".lead-row");

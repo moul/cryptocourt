@@ -41,10 +41,10 @@ stdout 'principal always returns'
 ! stdout '[Bb]acking'
 
 # --- Start a court -------------------------------------------------------------
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args orem -args 'Orem Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args bedford -args 'Bedford Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtEscrow(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CourtEscrow(\"bedford\")"
 stdout ${COURTV2}
 gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.BurnSink()"
 stdout ${SINK}
@@ -59,7 +59,7 @@ stdout 'data: ""'
 # 50 GNOT sent. The curve mints CC to the buyer; the spent GNOT is sent to the
 # burn sink in the same call. The realm account must end EMPTY — a realm that
 # keeps the GNOT is quietly holding a treasury V2 promised not to have.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args orem -send 50000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args bedford -send 50000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout '\([1-9][0-9]* int64\)'
 stdout 'OK!'
 
@@ -72,17 +72,17 @@ stdout '\(50000000 int64\)'
 # The curve's mint is deterministic: 50 GNOT mints exactly 316227766 CC base
 # units, ALL held by the buyer — curve-minted == buyer balance == total supply
 # (no other mint path has run; EmittedTotal stays literal zero pre-verdict).
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CurvePosition(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CurvePosition(\"bedford\")"
 stdout '\(316227766 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"orem\",\"$test1_user_addr\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"bedford\",\"$test1_user_addr\")"
 stdout '\(316227766 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinSupply(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinSupply(\"bedford\")"
 stdout '\(316227766 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.EmittedTotal(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.EmittedTotal(\"bedford\")"
 stdout '\(0 int64\)'
 
 # A second buy accumulates in the sink — one-way, monotone.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args orem -send 5000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Buy -args bedford -send 5000000ugnot -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 gnokey query bank/balances/${SINK}
 stdout 'data: "55000000ugnot"'
@@ -91,54 +91,54 @@ stdout '\(55000000 int64\)'
 
 # --- Claim + stake: real CC escrow conservation ---------------------------------
 # OpenClaim escrows deposit (1 CC) + fee (0.1 CC) = 1_100_000 base units.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args orem -args 'Is the sky blue?' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args bedford -args 'Is the sky blue?' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout '\(1 uint64\)'
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"orem\",\"${COURTV2}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"bedford\",\"${COURTV2}\")"
 stdout '\(1100000 int64\)'
 
 # Stake 0.5 CC on YES. Since v0.34 staking is a LOCK IN PLACE, so the escrow does
 # NOT grow: the coins stay in the staker's own balance and keep their vote. That is
 # the whole point of the change, and this is the only place it is exercised through
 # a real transaction on a real ledger rather than in-process.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Stake -args orem -args 1 -args 0 -args 500000 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Stake -args bedford -args 1 -args 0 -args 500000 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"orem\",\"${COURTV2}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"bedford\",\"${COURTV2}\")"
 stdout '\(1100000 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.StakePools(\"orem\",1)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.StakePools(\"bedford\",1)"
 stdout '500000 int64'
 
 # The position is recorded as a lock against test1's own balance, and locked plus
 # spendable partition it. Asserting both halves is what makes this more than a
 # restatement of the stake: a lock that recorded nothing would leave spendable
 # whole, and a lock that double-counted would leave it short.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.LockedOf(\"orem\",\"${USER_ADDR}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.LockedOf(\"bedford\",\"${USER_ADDR}\")"
 stdout '\(500000 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.SpendableOf(\"orem\",\"${USER_ADDR}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.SpendableOf(\"bedford\",\"${USER_ADDR}\")"
 stdout '\(330062479 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"orem\",\"${USER_ADDR}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"bedford\",\"${USER_ADDR}\")"
 stdout '\(330562479 int64\)'
 
 # Unstake it all: the lock clears and the escrow is untouched throughout, because
 # the stake was never in it. Conservation, on a real ledger, not a mock.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Unstake -args orem -args 1 -args 0 -args 500000 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func Unstake -args bedford -args 1 -args 0 -args 500000 -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"orem\",\"${COURTV2}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.CoinBalanceOf(\"bedford\",\"${COURTV2}\")"
 stdout '\(1100000 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.LockedOf(\"orem\",\"${USER_ADDR}\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.LockedOf(\"bedford\",\"${USER_ADDR}\")"
 stdout '\(0 int64\)'
 
 # --- Public pages: the §7.4 hygiene walls ----------------------------------------
 # Court and claim pages exist, show absolute CC figures, and never render the
 # forbidden framings (backing/redeem/APR/inflation ceiling).
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
-stdout 'Orem Truth Court'
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford"
+stdout 'Bedford Truth Court'
 ! stdout '[Bb]acking'
 ! stdout 'APR'
 ! stdout 'redeem'
 ! stdout '20%'
 
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/1"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/1"
 stdout 'Is the sky blue\?'
 ! stdout '[Bb]acking'
 ! stdout 'APR'
@@ -148,11 +148,11 @@ stdout 'Is the sky blue\?'
 # sanitize.InlineText must neutralize both so qrender's markdown can never emit
 # a live link to the attacker's host or a raw <script>/<img> tag — proving the
 # escaping holds through the actual qrender path, not just the in-process test.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args orem -args 'INJ[x](http://evil.example)<script>alert(1)</script><img src=q onerror=y>END' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func OpenClaim -args bedford -args 'INJ[x](http://evil.example)<script>alert(1)</script><img src=q onerror=y>END' -gas-fee 1000000ugnot -gas-wanted 100000000 -broadcast -chainid=tendermint_test test1
 stdout '\(2 uint64\)'
 stdout 'OK!'
 
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem/2"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford/2"
 # The title's safe text still renders (it is shown, not dropped)...
 stdout 'INJ'
 stdout 'END'
@@ -170,18 +170,18 @@ stdout 'Signal'
 stdout 'staked now'
 
 # The hostile title also appears in the court's claim list — same neutralization.
-gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:orem"
+gnokey query vm/qrender --data "gno.land/r/kourt/kourtv2:bedford"
 ! stdout '\]\(http'
 ! stdout '<script>'
 
 # --- Queryability reads a UI depends on (qeval, no md-scraping) -------------------
 # One-call human status; settle deadline (0 pre-answer); senior-queue bound;
 # per-side pool conviction (0/0 on a fresh claim). All return cleanly.
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimStatus(\"orem\",2)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.ClaimStatus(\"bedford\",2)"
 stdout 'open'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.SettleDeadline(\"orem\",2)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.SettleDeadline(\"bedford\",2)"
 stdout '\(0 int64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.QueueLen(\"orem\")"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.QueueLen(\"bedford\")"
 stdout '\(0 uint64\)'
-gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.PoolConviction(\"orem\",2)"
+gnokey query vm/qeval --data "gno.land/r/kourt/kourtv2.PoolConviction(\"bedford\",2)"
 stdout '\(0 int64\)'

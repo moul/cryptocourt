@@ -8,7 +8,7 @@
 //      render NOTHING, because "no chip" is a decision and not an absence.
 //   2. The DEMO board fixtures, checked against their own declared size. The
 //      sample carries wire strings and a count, and nothing but this test makes
-//      them agree — the first draft of orem/2 declared 5 rows and contained 4.
+//      them agree — the first draft of bedford/2 declared 5 rows and contained 4.
 const fs = require('fs');
 const src = fs.readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
 const { slice } = require("./srcslice");
@@ -144,7 +144,7 @@ const party = role => ({role});
 {
   const grab = (re, cut) => { const m = src.match(re); return m ? m[0].slice(cut, -1).replace(/\\n/g, "\n") : null; };
   // READ THE DECLARED SIZE OUT OF index.html, do not restate it here. Written
-  // the obvious way — `{name:"orem/2", size:4, …}` in this table — the check
+  // the obvious way — `{name:"bedford/2", size:4, …}` in this table — the check
   // compares the test's own constant against the rows and holds nothing: an
   // ablation that changed the sample from 4 to 5 passed. The number under test
   // has to come from the file under test.
@@ -153,12 +153,12 @@ const party = role => ({role});
     const j = src.lastIndexOf("board:{ size:", i);
     return j < 0 ? NaN : parseInt(src.slice(j + "board:{ size:".length), 10);
   };
-  const P1 = /parties:"7\|g1oremfiler[^"]*"/, P2 = /parties:"12\|g1oremfiler[^"]*"/;
+  const P1 = /parties:"7\|g1bedfordfiler[^"]*"/, P2 = /parties:"12\|g1bedfordfiler[^"]*"/;
   const boards = [
-    {name:"orem/1", size:sizeBefore(P1),
+    {name:"bedford/1", size:sizeBefore(P1),
      newest: grab(/newest:"9\|g1clerkwatch[^"]*"/, 8),
      parties:grab(P1, 9), roles:["author"]},
-    {name:"orem/2", size:sizeBefore(P2),
+    {name:"bedford/2", size:sizeBefore(P2),
      newest: grab(/newest:"13\|g1rangewatch[^"]*"/, 8),
      parties:grab(P2, 9), roles:["author","answerer"]},
   ];
@@ -193,10 +193,10 @@ const party = role => ({role});
     ok(b.name+": every party row is a top-level row on the same board",
        ps.every(r => ids.has(r.id)));
   }
-  // orem/2 carries a hidden row on purpose: a tombstone still counts toward the
+  // bedford/2 carries a hidden row on purpose: a tombstone still counts toward the
   // size the chip advertises, because it occupies a line on the page.
   const two = boardNewestRows(boards[1].newest);
-  ok("orem/2 keeps a withheld row, with a mark and no text",
+  ok("bedford/2 keeps a withheld row, with a mark and no text",
      two.some(r => r.mark === "h" && r.text === ""));
 }
 

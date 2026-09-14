@@ -135,7 +135,7 @@ ok("...and still says it ignores moderation",
    src.includes("a claim hidden from the docket appears here while it can still be flagged"));
 /* AND THAT IT DOES NOT REPEAT THE DOCKET. The two lists overlap by nature — a
    settled claim stays flaggable until its rewards are opened — so this one
-   showed four of orem's claims a second time under a second heading, which
+   showed four of bedford's claims a second time under a second heading, which
    narrowing to a folder of three turned into six rows. It lists what the docket
    does not show now, and the caption is where a reader learns that, so the rule
    and the sentence are pinned together. */

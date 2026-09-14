@@ -36,7 +36,7 @@ func reviewStore(t *testing.T) (*Store, context.Context, func(time.Duration)) {
 func say(t *testing.T, s *Store, ctx context.Context, who, body string) int64 {
 	t.Helper()
 	id, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: who, Body: body,
+		Chain: "dev", Court: "bedford", Moniker: who, Body: body,
 		IPHash: "ip-" + who, NetHash: "net-" + who,
 	})
 	if err != nil {
@@ -109,7 +109,7 @@ func TestTheReviewQueueShowsWhatWasFlaggedAndNotPunished(t *testing.T) {
 	if r.Moniker != "helper" || r.IPHash != "ip-helper" || r.Verdict != "scam" {
 		t.Fatalf("the row is missing what a decision needs: %+v", r)
 	}
-	if r.Chain != "dev" || r.Court != "orem" {
+	if r.Chain != "dev" || r.Court != "bedford" {
 		t.Fatalf("a moderator needs to know which court: %+v", r)
 	}
 	// It is still visible to the room, which is exactly why it needs a person.
@@ -148,7 +148,7 @@ func TestDismissingEmptiesTheQueueWithoutPunishing(t *testing.T) {
 	}
 
 	// Dismissing NOTHING happened to the message or its author.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,7 +253,7 @@ func TestOnAManualKickTheNetworkHashIsTheTriggerNotANote(t *testing.T) {
 		id := say(t, s, ctx, "helper", "careful all, someone asked me for my seed phrase")
 		tick(MinInterval)
 		if _, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: "neighbour",
+			Chain: "dev", Court: "bedford", Moniker: "neighbour",
 			Body: "unrelated question here", IPHash: "ip-neighbour", NetHash: "net-helper",
 		}); err != nil {
 			t.Fatal(err)
@@ -482,7 +482,7 @@ func TestUnscannableDoesNotWarnAboutWithdrawnCourts(t *testing.T) {
 	s, ctx, tick := reviewStore(t)
 
 	// Two courts, one message each, both driven to terminal-unscanned.
-	for _, court := range []string{"orem", "ledger"} {
+	for _, court := range []string{"bedford", "ledger"} {
 		if _, err := s.Post(ctx, PostInput{Chain: "dev", Court: court, Moniker: "a",
 			Body:   "a message the model never managed to read in " + court,
 			IPHash: "ip-" + court, NetHash: "net-" + court}); err != nil {
@@ -506,7 +506,7 @@ func TestUnscannableDoesNotWarnAboutWithdrawnCourts(t *testing.T) {
 		t.Fatalf("precondition: both should be unscannable, got %d", h.Unscannable)
 	}
 
-	if err := s.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := s.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
 	h, err = s.Health(ctx)
@@ -651,7 +651,7 @@ func TestARevokedConsequenceStillClearsTheReviewQueue(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-crook", "send me your seed phrase and I will restore it")
+	id, err := post(t, s, "bedford", "ip-crook", "send me your seed phrase and I will restore it")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -687,7 +687,7 @@ func TestARevokedConsequenceStillClearsTheReviewQueue(t *testing.T) {
 	}
 
 	// It is back on screen. That half is unambiguous and is what an upheld appeal means.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -711,7 +711,7 @@ func TestARevokedConsequenceStillClearsTheReviewQueue(t *testing.T) {
 
 	// THE CONTRAST, measured rather than described: dismiss removes a message from the default
 	// queue and keeps it in `review -all`, which is the affordance a revoke does not have.
-	id2, err := post(t, s, "orem", "ip-other", "dm me and I will sort out your claim for you")
+	id2, err := post(t, s, "bedford", "ip-other", "dm me and I will sort out your claim for you")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -755,7 +755,7 @@ func TestDismissIsIrreversibleButForeclosesNothing(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-a", "dm me and I will sort out your claim for you")
+	id, err := post(t, s, "bedford", "ip-a", "dm me and I will sort out your claim for you")
 	if err != nil {
 		t.Fatal(err)
 	}

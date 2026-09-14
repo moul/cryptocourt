@@ -55,10 +55,10 @@ CFG.mode='demo';
 const tour = aboutTour();
 const want = {1:"open",2:"answered",3:"disputed",7:"provisional",5:"provClose",4:"settled",8:"closed"};
 for(const [id,phase] of Object.entries(want)){
-  const d = DEMO.claims["orem/"+id];
-  ok(`tour #${id} exists and is ${phase}`, d && d.phase===phase && tour.includes(`href="#/c/orem/${id}"`));
+  const d = DEMO.claims["bedford/"+id];
+  ok(`tour #${id} exists and is ${phase}`, d && d.phase===phase && tour.includes(`href="#/c/bedford/${id}"`));
 }
-ok("tour titles verbatim from DEMO", tour.includes(esc(DEMO.claims["orem/4"].title)));
+ok("tour titles verbatim from DEMO", tour.includes(esc(DEMO.claims["bedford/4"].title)));
 ok("tour labeled sample thrice", (tour.match(/sample/g)||[]).length>=3);
 ok("settled row names its route", tour.includes("by vote") && tour.includes("conclusion"));
 // NO "SEALED", ANYWHERE A READER MEETS IT AS A CLAIM ABOUT THE CHAIN. The
@@ -66,10 +66,10 @@ ok("settled row names its route", tour.includes("by vote") && tour.includes("con
 // that this page does not, and the tour says exactly that.
 ok("the disputed row says who is not summing, not that it cannot be",
    tour.includes("this page does not add the ballots up") && !/sealed/i.test(tour));
-ok("no finalize-ready promise on orem", !/finalize/i.test(tour));
+ok("no finalize-ready promise on bedford", !/finalize/i.test(tour));
 CFG.mode='live';
 const tourL = aboutTour();
-ok("live: no links into the sample", !tourL.includes('href="#/c/orem') && tourL.includes("switch Source to Demo"));
+ok("live: no links into the sample", !tourL.includes('href="#/c/bedford') && tourL.includes("switch Source to Demo"));
 CFG.mode='demo';
 // §7.4 sweep of the tour copy
 ok("§7.4 clean in tour", !/backing|redeem\b|profit|APR|worth|winnings|you win|wager/i.test(tour));

@@ -76,7 +76,7 @@ const {PAGE, demoPage} = require('./harness');
     };
   });
 
-  await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'domcontentloaded'});
+  await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 1200));
 
   /* THE MARK, AND ONLY THE MARK. A message that ENDS in an exclamation rings, as

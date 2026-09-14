@@ -41,7 +41,7 @@ const SIZES = [
   for (const [w, h, label] of SIZES) {
     await page.setViewport({width: w, height: h});
     await page.goto(PAGE + '#/', {waitUntil: 'networkidle0'});
-    await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+    await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
     await new Promise(z => setTimeout(z, 1300));
 
     const r = await page.evaluate(async () => {
@@ -133,7 +133,7 @@ const SIZES = [
   const afterGesture = async kind => {
     await page.setViewport({width: 390, height: 844});
     await page.goto(PAGE + '#/', {waitUntil: 'networkidle0'});
-    await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+    await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
     await new Promise(z => setTimeout(z, 1300));
     const a = await viewBox();
     if (!a) return null;
@@ -151,7 +151,7 @@ const SIZES = [
      shrink them either. */
   await page.setViewport({width: 390, height: 844});
   await page.goto(PAGE + '#/', {waitUntil: 'networkidle0'});
-  await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1300));
   const targets = await page.evaluate(() => {
     const out = {};
@@ -200,7 +200,7 @@ const SIZES = [
      holder does not travel with. */
   await page.setViewport({width: 390, height: 844});
   await page.goto(PAGE + '#/', {waitUntil: 'networkidle0'});
-  await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1300));
   const holder = await page.evaluate(() => {
     const f = document.querySelector('.mapfull');
@@ -219,7 +219,7 @@ const SIZES = [
      for. The scroll is the least that works — the overhang and no more — so a
      reader who has already scrolled is not thrown somewhere new. */
   await page.goto(PAGE + '#/', {waitUntil: 'networkidle0'});
-  await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1300));
   const brought = await page.evaluate(async () => {
     const sel = document.getElementById('mapsel');
@@ -243,7 +243,7 @@ const SIZES = [
      arm here so a later move out of that block is noticed. */
   await page.setViewport({width: 1440, height: 900});
   await page.goto(PAGE + '#/', {waitUntil: 'networkidle0'});
-  await page.goto(PAGE + '#/c/orem/map', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/map', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1300));
   const desk = await page.evaluate(() => {
     const f = document.querySelector('.mapfull');

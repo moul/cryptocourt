@@ -72,8 +72,8 @@ Two ABCI queries, exactly what gnoweb and `gnokey query` use:
 
 | what | call | example |
 |---|---|---|
-| a rendered page (lists) | `vm/qrender` | `gno.land/r/kourt/kourtv2:orem/3` |
-| a typed read (scalars)  | `vm/qeval`   | `gno.land/r/kourt/kourtv2.CoinPrice("orem")` |
+| a rendered page (lists) | `vm/qrender` | `gno.land/r/kourt/kourtv2:bedford/3` |
+| a typed read (scalars)  | `vm/qeval`   | `gno.land/r/kourt/kourtv2.CoinPrice("bedford")` |
 
 The **court and claim lists come from `Render`** — the realm's own markdown, parsed for
 its links — so the directory and docket are always whatever the chain says. The
@@ -146,7 +146,7 @@ gate instead of quietly growing a scrollbar in somebody's article.
 **The share card is drawn in the browser, and this is the real difference.** A
 link preview is minted by a server: the crawler asks for the URL, the server
 renders that market and returns a PNG. This page has no server, and a crawler
-never runs its JavaScript — so `#/c/orem/1` and `#/` are the *same document* to
+never runs its JavaScript — so `#/c/bedford/1` and `#/` are the *same document* to
 every unfurler. That means:
 
 - The `og:`/`twitter:` tags here are **site-level and truthful**. They describe

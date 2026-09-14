@@ -2,7 +2,7 @@
 """Build the one exhibit the OFFLINE demo shows, as an inline data: URI.
 
     scripts/make-demo-exhibit.py            # print the first sheet's line
-    scripts/make-demo-exhibit.py --claim3   # the whole media block for orem/3
+    scripts/make-demo-exhibit.py --claim3   # the whole media block for bedford/3
     scripts/make-demo-exhibit.py --covers   # the folder faces
     scripts/make-demo-exhibit.py --check    # verify the page still carries them
 
@@ -161,13 +161,13 @@ def line():
 
 
 def claim3():
-    """The whole DEMO_OVERLAY.media entry for orem/3, ready to paste.
+    """The whole DEMO_OVERLAY.media entry for bedford/3, ready to paste.
 
     Printed rather than hand-kept because every sheet carries four numbers the
     page repeats — w, h, bytes and the sha256 — and four of those hand-copied is
     four chances to write down a fingerprint that is not the bytes'. The court's
     whole media design rests on that number meaning something."""
-    out = ['  media:{"orem/3":[']
+    out = ['  media:{"bedford/3":[']
     for i, (w, h, _, cap) in enumerate(EXHIBITS):
         body = exhibit(i)
         out.append('    {kind:"img", mime:"image/png", w:%d, h:%d, bytes:%d,' % (w, h, len(body)))

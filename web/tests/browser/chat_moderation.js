@@ -145,7 +145,7 @@ function xffProxy(target, asAddr) {
       await page.evaluate(b => {
         document.getElementById("ep").value = b;
         document.getElementById("ch").value = "dev";
-        document.getElementById("ct").value = "orem";
+        document.getElementById("ct").value = "bedford";
         document.getElementById("go").click();
       }, `http://127.0.0.1:${chatPort}`);
       await page.waitForFunction(() =>

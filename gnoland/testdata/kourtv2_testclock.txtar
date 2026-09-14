@@ -153,7 +153,7 @@ stderr 'at most ten years'
 # meta court carrying no claims and no coin), so a chain with history can never
 # be armed; once armed, the chain is a test chain and stays one. Sealing is
 # explicit, deployer-only, and keeps tcFloor so it never rewinds.
-gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args orem -args 'Orem Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
+gnokey maketx call -pkgpath gno.land/r/kourt/kourtv2 -func StartCourt -args bedford -args 'Bedford Truth Court' -gas-fee 1000000ugnot -gas-wanted 200000000 -broadcast -chainid=tendermint_test test1
 stdout 'OK!'
 
 # Still armed — this is the property the scenario runner needs.

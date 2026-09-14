@@ -22,15 +22,15 @@ ok("empty query matches all", qPredicate("anything", "  "));
 ok("no match", !qPredicate("#4 Q3 city revenue", "bridge"));
 
 // jump grammar
-ok("bare 7 scoped", JSON.stringify(parseJump("7","orem"))===JSON.stringify({slug:"orem",id:7,bare:true}));
-ok("#7 scoped", parseJump("#7","orem").id===7);
-ok("orem/7", JSON.stringify(parseJump("orem/7",null))===JSON.stringify({slug:"orem",id:7,bare:false}));
-ok("orem 7 (space)", parseJump("orem 7",null).slug==="orem");
+ok("bare 7 scoped", JSON.stringify(parseJump("7","bedford"))===JSON.stringify({slug:"bedford",id:7,bare:true}));
+ok("#7 scoped", parseJump("#7","bedford").id===7);
+ok("bedford/7", JSON.stringify(parseJump("bedford/7",null))===JSON.stringify({slug:"bedford",id:7,bare:false}));
+ok("bedford 7 (space)", parseJump("bedford 7",null).slug==="bedford");
 ok("bare on directory keeps null slug", parseJump("7",null).slug===null);
-ok("reject 0", parseJump("0","orem")===null);
-ok("reject decimals", parseJump("1.5","orem")===null);
-ok("reject leading zeros", parseJump("07","orem")===null);
-ok("reject junk", parseJump("7x","orem")===null && parseJump("orem/7x",null)===null);
+ok("reject 0", parseJump("0","bedford")===null);
+ok("reject decimals", parseJump("1.5","bedford")===null);
+ok("reject leading zeros", parseJump("07","bedford")===null);
+ok("reject junk", parseJump("7x","bedford")===null && parseJump("bedford/7x",null)===null);
 
 // captions (canonical family)
 ok("idle live court", qCaption({mode:"idle",demo:false,kind:"claim titles",loaded:50,total:214})==="searches the 50 loaded claim titles of 214 — older claims live on the docket pages");
@@ -75,7 +75,7 @@ ok("offp union render", src.includes("the search box sweeps everything THIS REND
 ok("qhide class-only toggling", src.includes('classList.toggle("qhide"'));
 ok("replaceState (no refetch)", src.includes('history.replaceState(null, "", "#"+path+tail)'));
 ok("slash focuses / escape clears", src.includes('ev.key==="/"') && src.includes('ev.key==="Escape"'));
-ok("directory bare-number note", src.includes("name a court — orem/${j.id}"));
+ok("directory bare-number note", src.includes("name a court — ${QCTX.ex.slug}/${j.id}"));
 ok("free in-scope validation", src.includes("no claim #${j.id} — this court has"));
 ok("statusText never in data-q", !src.includes('c.statusText}" data-q') && !src.includes('data-q="${esc("#"+c.id+" "+c.title+" "+c.statusText'));
 ok("§7.4 clean", !/backing|redeem\b|profit|APR/i.test(slice('function qPredicate(','let QDEB')));
@@ -117,7 +117,7 @@ ok("...and the folders section is filtered, not folded away",
 // The description is part of it: a curator's sentence about what belongs in a folder is
 // what a reader half-remembers, and it is not on the row.
 ok("...including the description a reader cannot see", /data-q="\$\{esc\(f\.name \+ " " \+ \(f\.desc\|\|""\)\)\}/.test(src));
-ok("C2: directory qbar precedes Featured", src.indexOf('qBarHtml("court name or orem/7"') < src.indexOf('sec-h">Featured'));
+ok("C2: directory qbar precedes Featured", src.indexOf('qBarHtml(qExampleHint(qEx)') < src.indexOf('sec-h">Featured'));
 ok("C3: Enter flushes the debounce", src.includes("clearTimeout(QDEB); QDEB=0;"));
 // C4 pinned `total:totalClaims, slug, totalClaims` verbatim. The denominator is now the
 // SEARCHABLE set — claims plus the folder rows page 1 painted — so the literal moved;
@@ -148,13 +148,27 @@ ok("no folders, no new noun",
 ok("C5: zero caption speaks in names (live)", qCaption({mode:"zero",demo:false,kind:"court names",q:"x",loaded:32,total:214})==='no loaded name matches "x" — 182 more courts are not loaded; page older ›');
 ok("C5: zero caption speaks in names (demo)", qCaption({mode:"zero",demo:true,kind:"court names",q:"x",loaded:2,total:2})==='no name matches "x" — the sample is complete');
 ok("C5: active caption speaks in names", qCaption({mode:"active",matches:1,loaded:32,q:"or",kind:"court names",orderTail:" · ranked by GNOT burned"})==='1 of 32 loaded names match "or" · ranked by GNOT burned');
-ok("C6: uppercase slug jumps", JSON.stringify(parseJump("OREM/7",null))===JSON.stringify({slug:"orem",id:7,bare:false}));
-ok("C6: zero-pad rejected in slug form too", parseJump("orem/007",null)===null);
+ok("C6: uppercase slug jumps", JSON.stringify(parseJump("BEDFORD/7",null))===JSON.stringify({slug:"bedford",id:7,bare:false}));
+ok("C6: zero-pad rejected in slug form too", parseJump("bedford/007",null)===null);
 ok("C7: stats-hidden rows stop matching", src.includes('row.removeAttribute("data-q")'));
 
 // D6-critic: the sample stops certifying completeness where it hides claims
 ok("idle demo, hidden gap", qCaption({mode:"idle",demo:true,kind:"claim titles",loaded:2,total:5})==="searches the 2 loaded claim titles of 5 — hidden claims are omitted");
 ok("zero demo, hidden gap", qCaption({mode:"zero",demo:true,q:"fire",loaded:2,total:5})==='no loaded title matches "fire" — 3 hidden claims omitted; their pages still answer by id');
 ok("idle demo, complete sample unchanged", qCaption({mode:"idle",demo:true,kind:"claim titles",loaded:11,total:11})==="searches all 11 claim titles — the sample is complete");
+
+// The hint's example court comes from the loaded rows, never from a literal.
+// It read "bedford/7" in live mode, naming a court of the SAMPLE to a reader
+// looking at a chain — the one line whose job is to teach the id grammar.
+ok("example is the first loaded court with claims", JSON.stringify(qExample([{slug:"covid",claims:214}]))===JSON.stringify({slug:"covid",id:7}));
+ok("a court with no claims is skipped", qExample([{slug:"empty",claims:0},{slug:"ledger",claims:3}]).slug==="ledger");
+ok("the id never exceeds what the court holds", qExample([{slug:"thin",claims:2}]).id===2);
+ok("featured group wins over listed", qExample([{slug:"feat",claims:9}],[{slug:"plain",claims:9}]).slug==="feat");
+ok("an absent group is skipped, not thrown", qExample(null,[{slug:"plain",claims:9}]).slug==="plain");
+ok("nothing loaded yields no example", qExample(null,[])===null && qExample([{slug:"x",claims:null}])===null);
+ok("no example promises nothing", qExampleHint(null)==="court name");
+ok("an example teaches the grammar", qExampleHint({slug:"covid",id:7})==="court name or covid/7");
+ok("no sample slug is hardcoded into a live hint", !/qBarHtml\("court name or/.test(src) && !src.includes("claim by id — bedford/"));
+
 console.log(fail? "\n"+fail+" FAILURES" : "\nALL PASS");
 process.exit(fail?1:0);

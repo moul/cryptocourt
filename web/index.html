@@ -7,7 +7,7 @@
 <meta name="description" content="A court of record for factual claims. Anyone may state a claim; stake decides which claims get answered; the answer and its route are kept on-chain.">
 <!-- Link previews, and the honest limit of them.
      These are SITE-level and deliberately so. A crawler fetching a URL is served
-     this one file and never runs its JavaScript, so #/c/orem/1 and #/ are the
+     this one file and never runs its JavaScript, so #/c/bedford/1 and #/ are the
      same document to it — a per-claim og:title is not something a hash-routed
      static page can express, and faking one would show every claim the same
      preview. The share panel's downloadable card is the answer for a specific
@@ -46,8 +46,8 @@
      config, and a page pointed elsewhere simply opens a connection it does not
      use. crossorigin is required — the RPC is fetched with CORS, and a
      preconnect without it warms a socket the fetch will not reuse. -->
-<link rel="preconnect" href="https://rpc.kourt.xyz" crossorigin>
-<link rel="dns-prefetch" href="https://rpc.kourt.xyz">
+<link rel="preconnect" href="https://rpc.gno.land" crossorigin>
+<link rel="dns-prefetch" href="https://rpc.gno.land">
 <!-- The tab icon is the same drawing as the rail's mark, and follows the
      browser theme: an SVG favicon carries its own stylesheet, so
      prefers-color-scheme works inside it. Was ⚖️, which every platform
@@ -1554,7 +1554,7 @@ html.embed .main{grid-column:1; grid-row:1; max-width:none; padding:0;
    declaration above on its own grew the tag from 17px to 21.66px and the 320px
    claim embed from 500px to 503px, which embed_layout.js failed on. Pinning the
    line height to the font size reproduces the inline geometry exactly: measured
-   at both #/embed/orem/1 and #/c/orem/3, scrollHeight and the .sbout row are
+   at both #/embed/bedford/1 and #/c/bedford/3, scrollHeight and the .sbout row are
    identical to the inline version, and the tag settles at 15.75px.
    NOT SCOPED TO .sbout: the ballot question ("Overturn the YES answer?") wears
    the same oval, and there currentColor is the heading's ink rather than the
@@ -1904,7 +1904,7 @@ button.helplink:hover{color:var(--accent)}
 .buyrcpt.compact .line{grid-template-columns:max-content minmax(0,1fr); column-gap:10px; align-items:baseline}
 .buyrcpt.compact .line .r{text-align:right}
 /* The receipt lives in the 288px join rail, where the ticket's 20ch label track
-   leaves the value ~100px and "185.2 KOURT:OREM / 185,241,936 units" wraps into
+   leaves the value ~100px and "185.2 KOURT:BEDFORD / 185,241,936 units" wraps into
    a ragged stack. Label above value instead — the rail is too narrow for two
    columns, and the token name got longer when CC became KOURT:SLUG. */
 .buyrcpt .line>*:first-child{font-size:12px; color:var(--muted); font-weight:600;
@@ -3663,7 +3663,7 @@ async function abciFetch(path, data){
 const qeval  = expr => abci("vm/qeval",  PKG+"."+expr);
 const qrender = pth => abci("vm/qrender", PKG+":"+pth);
 
-/* qeval returns typed lines like `(123 int64)` or `("orem" string)`, one per
+/* qeval returns typed lines like `(123 int64)` or `("bedford" string)`, one per
    returned value. Parse tolerantly into JS values. A read that panics becomes a
    query error (caught by the caller), never a silent false — so gate panic-y
    reads (AnswerVerdict, Verdict) behind HasAnswer/Settled first. */
@@ -4046,7 +4046,7 @@ const NOW = 4_800_000; // pretend current block height
    SAMPLE, which has no chain to ask. */
 const DEMO_OVERLAY = {
   courts:{
-    orem:{desc:"Claims of fact from Orem's public record — certifications, inspections, filings. The court decides only what it is asked to decide.", folders:[
+    bedford:{desc:"Claims of fact from Bedford's public record — certifications, inspections, filings. The court decides only what it is asked to decide.", folders:[
         {name:"Municipal record", claims:[4,5,10], img:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAABYCAIAAAAY1/lLAAAC6ElEQVR42u3T+1JVdRzG4d+VaGZaoUkzAtt90MzMDLHIA4rABjZsDlr2d1Yqkge0uqiurDXTNMOoIMLea6/1Xc/Mcwfv+0mHTo3nbOT2L0BfpfzDljeEDfv/vB8APZcODV8ZLBtAwLDlDb0P+/DwRHGMTD8ADi4d/nyiUEanfwUOKAv7agEZBg4U9j/3GkAwwgZhA8IGhA0IG9gp7A9OT5bU6J3fgLdKR05PltrYzO/Aa9KRkcmysyK8GfYPMdgSAoYtb9gW9ui1YMZmHkLFpQ9Hr4U0NvsQKisL+3pgBqaqYY9dD8/MCFvbECDs2o3qqM0+gipIR2s3qqY29whiy8K+WUGGJ3rYZ25WlvkJHPZUxdXmHkMw6Wh9ilr7MUSSPqpP8R9vIFLYt9jOJwgRduMWb6q1N6C8srBv81Zn2htQUsJ+V97zG1A66VhzmndyFIQdte0nUBbpWGuavfMYyhL2Hd6X3yDsoG0vPIHCSsfPzrBvDoSwA+e9CYWShT3LwdUXNqE40vFzs/SKPyHsuHkvbsJgpY+/mKMf6ot/wKAIW9vEDLtNXzkZgwj7fJscuBo5hz1PPuqdp5CP9Mn5efLkc+QS9pfz5K/ReQr9k4W9wEA4H/0M+8ICA9ToPIOey8JeZOAaS8+gh9KnFxYpCHekd2F/1aE4PBJhyxt2Cvtih2JqLD+H/cnCXqKwHJR9hj10cYmCay4/h/eShr5ephScFWFHbfsF7EUWdpdyaXZfwO7S0KUuZeS77Bb2iUtdSsp92Tnsb1YotWZ3C14jbHkTM+xVwmiubEEmnbi8SiStlS1IJy+vEU9r5SVVJmx5EzLsb9cIzMUrG/Y64bVWX1Ip6eT4OhXh7hUK+7Pxu1RHa/UVVSBseRMy7Cv3qCbvFzZhnV17RTzCJmv7T4JJpyZ+hIwYhI28KXjYV3+C7VQhbOLmvf4X5ZWFfR92opCyhj383X3YhUiEjbwpSNjf/wx7dO7u35TCv0ethDaftYjoAAAAAElFTkSuQmCC",
          folders:[{name:"Elections", claims:[1]}]},
         {name:"Infrastructure",   claims:[3,7,11], img:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAABYCAIAAAAY1/lLAAACgklEQVR42u3TZ1KTUQCF4bsYKQoqCSU9oamQBELzH1VALLtzM25HZhwcBmkJKfe7eWaeFZw5b3hVngOyaOlw8yHBOpC1nptPEjZkQ+Gw+XzChqSSvgm7MgdEqIeeb4edA+JROGq+XJio5IAY9CXpm7CrOWCE+tizsCHNpP+FnQeGqXDUGrQwUcsDQzCEnoUNQ0z6uDVkYbKWBwaheNwalTBZnwf6aIQ9CxvSTFrYkFrPwoYX93zSilaYbMwDXSmetCMXphoLwHPE37OwIc2kb8JeXgDulbmehQ0J9nw77EXgr+JpOw1hamURxlzptJ2YML2yCOMpvZ6FzZgnvZW2ML26BGMi+Z6FjZ6FDRlN+mxrPAkbPacY9uu1AqRBz8JG0sIGPWcs7PUCZE7pbJtHCJssKX/Z5jmuwy5C5ITaddhvPhQhWhIVNnpG2Og55bA/lmDkpChsEur5vMMgCBs9pxj2zKcSDI3khhZ2GQZNacJG0gibKFXOO4xQmNkoQ79ULjrEIMxulOHltBRb2BXoWeVihwiF2c0KdEs5wkbSCBs904ewm1V4SOVyhywKb5tV+J82hI2eiS3sVhWuVS93SMZ12DXGWfVyl/QIW88ImwSS/rpL8sK7do1x4OvjFnadhLm4sJE0yYS9VSclPo2w9YywiTPpqz24I7zfbpBFvouw01G72oMnCVvSJBl2p0HMfJTewl4mTt6JsBPq+dsevFCY6ywTA1+kn2H//nUBJEbYIGxA2ICwAWEDD4Wd21ulv+rf92G0hK1nhM39SR9AVEJuf5XeeA8xh71GV+o/DiByIb+/xjO5C9kJ+2CNx3kJwtYzRBH2One4BcJOR+PnZ0jDH8F7olvAx/v1AAAAAElFTkSuQmCC"},
@@ -4073,7 +4073,7 @@ const DEMO_OVERLAY = {
       ]},
     ledger:{desc:"Documentary and technical claims about Denver — filings, measurements, dated records. If a document can settle it, we hear it."},
   },
-  relations:{ orem:[
+  relations:{ bedford:[
     {from:3,  to:9, type:"part"},
     {from:4,  to:9, type:"part"},
     {from:7,  to:9, type:"part"},
@@ -4081,7 +4081,7 @@ const DEMO_OVERLAY = {
     {from:11, to:3, type:"bears", stance:"contradicts"},
     {from:10, to:5, type:"supersedes"},
   ]},
-  voteEndsAt:{"orem/3":NOW+86_400, "ledger/3":NOW+70_000},
+  voteEndsAt:{"bedford/3":NOW+86_400, "ledger/3":NOW+70_000},
   /* THE ONE EXHIBIT THE OFFLINE DEMO SHOWS, on this side of the split on
      purpose. dump-demo.py rewrites the generated half from a live node; it
      cannot reach here, and it must not, because these bytes have no chain to be
@@ -4093,7 +4093,7 @@ const DEMO_OVERLAY = {
      these. mediaVerify answers "sample" for anything carrying them, because
      hashing bytes the page handed itself would print "matches what was filed"
      about an archive that has never seen this. Keyed like voteEndsAt above. */
-  media:{"orem/3":[
+  media:{"bedford/3":[
     {kind:"img", mime:"image/png", w:240, h:160, bytes:529,
      sha256:"18ead64d476a7450297dfd11c44b0cb4d54e80293e7a63687d0333fa6b4b0e0b",
      caption:"north span rating, 2025 inspection report",
@@ -4115,7 +4115,7 @@ const DEMO_OVERLAY = {
 /* ===== BEGIN GENERATED DEMO DATA — scripts/dump-demo.py; do not hand-edit ===== */
 const DEMO_CHAIN = {
   courts:{
-    orem:{ name:"Orem Truth Court", tier:2,
+    bedford:{ name:"Bedford Truth Court", tier:2,
       // desc is overlay-level (the chain stores only a name — the page labels it);
       // burned is the exact curve cost of minted: ceil(minted²/2e9) µGNOT
       burned:7_020_070_389_605,
@@ -4186,85 +4186,85 @@ const DEMO_CHAIN = {
       route:"vote", rewardsOpened:true,
       author:"g1annexfiler000000000000000000000000000", phase:"settled" },
     // open — staking live, no answer yet
-    "orem/1":{ timeline:"opened:1786036800:4596480;now:1787054400:4800000", title:"The county certified 12,412 mail ballots on Nov 6, 2025.",
+    "bedford/1":{ timeline:"opened:1786036800:4596480;now:1787054400:4800000", title:"The county certified 12,412 mail ballots on Nov 6, 2025.",
       yesStake:41_000_000, noStake:12_000_000, convYes:439774, convNo:128714, trailYes:74,
-      author:"g1oremfiler0000000000000000000000000000", phase:"open",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"open",
       // board: WIRE STRINGS, read by the same parser the chain feeds, so the
       // sample cannot drift into a shape the realm does not emit. `size` counts
       // every row — replies included — because BoardSize does.
       board:{ size:4, open:true,
-        parties:"7|g1oremfiler0000000000000000000000000000|author|.|4799200|The 12,412 figure is the certified count, not the returned count — the difference is the 214 cured ballots.",
-        newest:"9|g1clerkwatch000000000000000000000000000|0|.|4799600|The canvass PDF lists 12,412 under certified, table 3.\n8|g1skeptic00000000000000000000000000000000|1|.|4799400|Which document is the source? The press release says 12,198.\n7|g1oremfiler0000000000000000000000000000|0|.|4799200|The 12,412 figure is the certified count, not the returned count — the difference is the 214 cured ballots.",
-        replies:{ "8":"10|g1oremfiler0000000000000000000000000000|.|4799500|The press release predates the cure deadline." } },
+        parties:"7|g1bedfordfiler0000000000000000000000000|author|.|4799200|The 12,412 figure is the certified count, not the returned count — the difference is the 214 cured ballots.",
+        newest:"9|g1clerkwatch000000000000000000000000000|0|.|4799600|The canvass PDF lists 12,412 under certified, table 3.\n8|g1skeptic00000000000000000000000000000000|1|.|4799400|Which document is the source? The press release says 12,198.\n7|g1bedfordfiler0000000000000000000000000|0|.|4799200|The 12,412 figure is the certified count, not the returned count — the difference is the 214 cured ballots.",
+        replies:{ "8":"10|g1bedfordfiler0000000000000000000000000|.|4799500|The press release predates the cure deadline." } },
       // seriesH/seriesD: raw ClaimSeries samples in the chain's own grammar —
       // parseStakeSeries() input, NOT the docket row's 3-ratio triple. The
       // last row of each MUST equal the pools above.
       seriesH:"hourly,720,6667,0;6510:26000000:9500000,6551:29000000:10000000,6584:33000000:10000000,6603:31000000:11000000,6621:35000000:11000000,6640:38000000:12000000,6655:40000000:12000000,6664:41000000:12000000",
       seriesD:"daily,17280,278,0;266:3000000:2500000,267:8000000:3000000,268:8000000:5500000,269:14000000:6000000,270:16000000:6000000,271:19000000:7000000,272:22000000:9500000,274:26000000:9500000,276:33000000:10000000,277:41000000:12000000" },
     // answered — bond posted, freeze, 72h settle window running
-    "orem/2":{ timeline:"opened:1786604400:4710000;answered:1786840200:4757160;settle:1787099400:4809000;now:1787054400:4800000", title:"SpaceX Starship Flight 12 reached orbital velocity.",
+    "bedford/2":{ timeline:"opened:1786604400:4710000;answered:1786840200:4757160;settle:1787099400:4809000;now:1787054400:4800000", title:"SpaceX Starship Flight 12 reached orbital velocity.",
       yesStake:130_000_000, noStake:9_000_000, convYes:323114, convNo:22369, trailYes:93,
-      author:"g1oremfiler0000000000000000000000000000", phase:"answered", answer:0, answerer:"g1answerkeeper00000000000000000000000000",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"answered", answer:0, answerer:"g1answerkeeper00000000000000000000000000",
       board:{ size:4, open:true,
-        parties:"12|g1oremfiler0000000000000000000000000000|author|.|4798100|Orbital velocity is what the claim says — not orbit. The FAA telemetry has it at 27,050 km/h.\n11|g1answerkeeper00000000000000000000000000|answerer|.|4798400|The bond is on NO because the profile was suborbital by design; velocity alone is not the test the claim states.",
-        newest:"13|g1rangewatch000000000000000000000000000|0|h|4798600|\n12|g1oremfiler0000000000000000000000000000|1|.|4798100|Orbital velocity is what the claim says — not orbit. The FAA telemetry has it at 27,050 km/h.\n11|g1answerkeeper00000000000000000000000000|0|.|4798400|The bond is on NO because the profile was suborbital by design; velocity alone is not the test the claim states.",
+        parties:"12|g1bedfordfiler0000000000000000000000000|author|.|4798100|Orbital velocity is what the claim says — not orbit. The FAA telemetry has it at 27,050 km/h.\n11|g1answerkeeper00000000000000000000000000|answerer|.|4798400|The bond is on NO because the profile was suborbital by design; velocity alone is not the test the claim states.",
+        newest:"13|g1rangewatch000000000000000000000000000|0|h|4798600|\n12|g1bedfordfiler0000000000000000000000000|1|.|4798100|Orbital velocity is what the claim says — not orbit. The FAA telemetry has it at 27,050 km/h.\n11|g1answerkeeper00000000000000000000000000|0|.|4798400|The bond is on NO because the profile was suborbital by design; velocity alone is not the test the claim states.",
         // top: the RANKED ordering, and it is not the newest list re-sorted —
         // BoardTop excludes hidden rows entirely (scoreIndexPut never puts one),
         // so row 13 is absent here and present above. A sample where the two
         // orderings were identical would exercise neither the toggle nor the
         // probe that decides whether to offer it.
-        top:"11|g1answerkeeper00000000000000000000000000|4712|.|4798400|The bond is on NO because the profile was suborbital by design; velocity alone is not the test the claim states.\n12|g1oremfiler0000000000000000000000000000|1900|.|4798100|Orbital velocity is what the claim says — not orbit. The FAA telemetry has it at 27,050 km/h.",
+        top:"11|g1answerkeeper00000000000000000000000000|4712|.|4798400|The bond is on NO because the profile was suborbital by design; velocity alone is not the test the claim states.\n12|g1bedfordfiler0000000000000000000000000|1900|.|4798100|Orbital velocity is what the claim says — not orbit. The FAA telemetry has it at 27,050 km/h.",
         replies:{ "12":"14|g1answerkeeper00000000000000000000000000|.|4798500|Then the claim needs the altitude too, and it does not have it." } },
       seriesH:"hourly,720,6667,0;6546:20000000:6000000,6560:45000000:7000000,6572:60000000:8000000,6584:80000000:8000000,6595:99000000:9000000,6603:118000000:9000000,6607:130000000:9000000",
       seriesD:"daily,17280,278,0;272:20000000:6000000,274:99000000:9000000,276:130000000:9000000",
       answerBond:70_000_000, record:2, settleAt:NOW+9_000, disputeBondNext:28_000_000 },
     // provisional — a dispute round failed; the verdict stands in escrow, reopenable
-    "orem/7":{ timeline:"opened:1785454400:4480000;answered:1786054400:4600000;reopen:1787079400:4805000;now:1787054400:4800000", settleAt:NOW-250_000, title:"The reservoir release logs match the stated schedule.",
+    "bedford/7":{ timeline:"opened:1785454400:4480000;answered:1786054400:4600000;reopen:1787079400:4805000;now:1787054400:4800000", settleAt:NOW-250_000, title:"The reservoir release logs match the stated schedule.",
       yesStake:48_000_000, noStake:44_000_000, convYes:303571, convNo:278274, trailYes:55,
-      author:"g1oremfiler0000000000000000000000000000", phase:"provisional", answer:1, answerer:"g1answerkeeper00000000000000000000000000",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"provisional", answer:1, answerer:"g1answerkeeper00000000000000000000000000",
       answerBond:64_000_000, record:1, provisional:1, round:2, disputeBondNext:102_400_000, escrowUntil:NOW+5_000,
       counterOpen:true },
     // disputed — sealed vote in progress. quorumFloor is the realm's formula
     // on this court's numbers: max(5%·supply, min(x̄frozen, votable/3)) → the
     // 5% arm, 5,925 CC. voteEndsAt is the demo round's scheduled close.
-    "orem/3":{ timeline:"opened:1786054400:4600000;answered:1786495200:4688160;now:1787054400:4800000", settleAt:NOW-110_000, title:"The bridge inspection rated the north span 'serviceable'.",
+    "bedford/3":{ timeline:"opened:1786054400:4600000;answered:1786495200:4688160;now:1787054400:4800000", settleAt:NOW-110_000, title:"The bridge inspection rated the north span 'serviceable'.",
       yesStake:60_000_000, noStake:55_000_000, convYes:278780, convNo:255548, trailYes:52,
-      author:"g1oremfiler0000000000000000000000000000", phase:"disputed", answer:0, answerer:"g1answerkeeper00000000000000000000000000",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"disputed", answer:0, answerer:"g1answerkeeper00000000000000000000000000",
       answerBond:80_000_000, round:1, disputeBondNext:64_000_000, quorumFloor:5_925_000_000 },
     // settled by vote — the NO answer was overturned; an overturned answerer
     // draws NO answerer slice (openrewards.gno: bond burned, record reset)
-    "orem/4":{ timeline:"opened:1785554400:4500000;answered:1786454400:4680000;verdict:1786754400:4740000;now:1787054400:4800000", title:"Q3 city revenue exceeded the June forecast.",
+    "bedford/4":{ timeline:"opened:1785554400:4500000;answered:1786454400:4680000;verdict:1786754400:4740000;now:1787054400:4800000", title:"Q3 city revenue exceeded the June forecast.",
       author:"g1youdemoholder0000000000000000000000000",
       yesStake:180_000_000, noStake:20_000_000, convYes:1707589, convNo:189732, trailYes:90,
       phase:"settled", verdict:0, answer:1, answerer:"g1answerkeeper00000000000000000000000000", route:"vote", record:3,
       rewardsOpened:true, draw:{w:1_644_800, a:164_480, ans:0, carrot:12_320},
       pulls:{winnerPaid:false, authorPaid:false, answererPaid:false} },
     // provClose — three failed rounds, everyone 1×
-    "orem/5":{ timeline:"opened:1785054400:4400000;answered:1786054400:4600000;verdict:1786554400:4700000;now:1787054400:4800000", title:"The mayor privately opposed the rezoning before the vote.",
+    "bedford/5":{ timeline:"opened:1785054400:4400000;answered:1786054400:4600000;verdict:1786554400:4700000;now:1787054400:4800000", title:"The mayor privately opposed the rezoning before the vote.",
       yesStake:26_000_000, noStake:24_000_000, convYes:274058, convNo:252976, trailYes:52,
-      author:"g1oremfiler0000000000000000000000000000", phase:"provClose", failedRounds:3 },
+      author:"g1bedfordfiler0000000000000000000000000", phase:"provClose", failedRounds:3 },
     // flagged — a quality flag vote is open
-    "orem/6":{ timeline:"opened:1786304400:4650000;answered:1786784200:4745960;settle:1787043400:4797800;now:1787054400:4800000", title:"The vendor's audit found zero critical findings.",
+    "bedford/6":{ timeline:"opened:1786304400:4650000;answered:1786784200:4745960;settle:1787043400:4797800;now:1787054400:4800000", title:"The vendor's audit found zero critical findings.",
       yesStake:110_000_000, noStake:8_000_000, convYes:556316, convNo:40459, trailYes:92,
-      author:"g1oremfiler0000000000000000000000000000", phase:"answered", answer:0, answerer:"g1answerkeeper00000000000000000000000000",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"answered", answer:0, answerer:"g1answerkeeper00000000000000000000000000",
       answerBond:59_000_000, record:0, settleAt:NOW-2_200, disputeBondNext:23_600_000, },
     // closed — the dead-claim timeout passed unanswered
-    "orem/8":{ timeline:"opened:1784554400:4300000;now:1787054400:4800000", title:"The archived forum post predates the patent filing.",
+    "bedford/8":{ timeline:"opened:1784554400:4300000;now:1787054400:4800000", title:"The archived forum post predates the patent filing.",
       author:"g1author4x9q2demo0000000000000000000000",
       yesStake:2_000_000, noStake:1_500_000, convYes:52703, convNo:39528, trailYes:57,
       phase:"closed" },
     // the association set: #9 is a composite whose parts are #3/#4/#7 — a case
     // half-won; #10 re-files the unfalsifiable #5 as a documentary claim;
     // #11 is the countervailing document behind #3's live dispute
-    "orem/9":{ title:"The city's 2025 annual report is accurate on its headline claims.",
+    "bedford/9":{ title:"The city's 2025 annual report is accurate on its headline claims.",
       yesStake:34_000_000, noStake:30_000_000, convYes:6_000_000, convNo:5_200_000, trailYes:53,
-      author:"g1oremfiler0000000000000000000000000000", phase:"open" },
-    "orem/10":{ title:"The mayor's Oct 12 email to the planning director opposed the rezoning.",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"open" },
+    "bedford/10":{ title:"The mayor's Oct 12 email to the planning director opposed the rezoning.",
       yesStake:22_000_000, noStake:9_000_000, convYes:4_800_000, convNo:1_700_000, trailYes:69,
-      author:"g1oremfiler0000000000000000000000000000", phase:"open" },
-    "orem/11":{ title:"The county's posted inspection log lists the north span as 'load-restricted' for the same period.",
+      author:"g1bedfordfiler0000000000000000000000000", phase:"open" },
+    "bedford/11":{ title:"The county's posted inspection log lists the north span as 'load-restricted' for the same period.",
       yesStake:15_000_000, noStake:13_000_000, convYes:2_900_000, convNo:2_400_000, trailYes:52,
-      author:"g1oremfiler0000000000000000000000000000", phase:"open" },
+      author:"g1bedfordfiler0000000000000000000000000", phase:"open" },
     "ledger/1":{ timeline:"opened:1785345600:4458240;now:1787054400:4800000", title:"Denver's 2025 snowfall passed the 60-inch seasonal normal.",
       yesStake:9_800_000, noStake:1_200_000, convYes:176517, convNo:21614, trailYes:73,
       author:"g1ledgerfiler00000000000000000000000000", phase:"open",
@@ -4286,7 +4286,7 @@ const DEMO_CHAIN = {
   },
   // Σ(amount − paid) equals the court's seniorOwed (640,000); payable is the
   // slice current budget covers — the realm's own figures, owed not earned
-  seniorQueues:{ orem:{ queueLen:2, entries:[
+  seniorQueues:{ bedford:{ queueLen:2, entries:[
     {seq:1, to:"g1youdemoholder0000000000000000000000000", amount:700_000, paid:60_000, payable:390_000},
     {seq:2, to:"g1answerkeeper00000000000000000000000000", amount:240_000, paid:240_000, payable:0},
   ]}},
@@ -4295,8 +4295,8 @@ const DEMO_CHAIN = {
   // type "bears": from, if true, makes to more (supports) or less
   // (contradicts) credible. type "supersedes": from re-files to after a
   // no-decision. Relations move nothing mechanical — each claim is decided alone.
-  positions:{ "orem/2":{yes:12_000_000,no:0,cy:6_400_000,cn:0}, "orem/3":{yes:8_000_000,no:4_000_000,cy:4_100_000,cn:1_900_000}, "orem/4":{yes:20_000_000,no:0,cy:10_800_000,cn:0}, "orem/6":{yes:0,no:5_000_000,cy:0,cn:2_100_000}, "orem/7":{yes:0,no:0,cy:2_000_000,cn:0}, "ledger/2":{yes:3_000_000,no:0,cy:900_000,cn:0} },
-  balances:{ orem:38_400_000, ledger:4_200_000, meta:900_000 },
+  positions:{ "bedford/2":{yes:12_000_000,no:0,cy:6_400_000,cn:0}, "bedford/3":{yes:8_000_000,no:4_000_000,cy:4_100_000,cn:1_900_000}, "bedford/4":{yes:20_000_000,no:0,cy:10_800_000,cn:0}, "bedford/6":{yes:0,no:5_000_000,cy:0,cn:2_100_000}, "bedford/7":{yes:0,no:0,cy:2_000_000,cn:0}, "ledger/2":{yes:3_000_000,no:0,cy:900_000,cn:0} },
+  balances:{ bedford:38_400_000, ledger:4_200_000, meta:900_000 },
 };
 /* ===== END GENERATED DEMO DATA ===== */
 
@@ -4348,10 +4348,21 @@ async function listCourts(){
       .map(([slug,c])=>({slug, name:c.name, tier:c.tier, claims:c.claims.length}));
   const md = await qrender("");
   const out=[]; let tier=1;
+  // BUILT FROM PKG_GWPATH, not spelled out. This line used to carry a literal
+  // /r/kourt/kourtv2 and was the last survivor of the sweep that introduced
+  // PKG_GWPATH -- missed because its slashes are backslash-escaped inside a
+  // regex literal, so a search for the plain path does not find it. The cost
+  // was total and silent: deployed against a realm at any other path, EVERY
+  // court line failed to match, listCourts() returned [], and the page said
+  // "No courts yet. Be the first to start one." on a chain with courts on it.
+  const COURT_LINE = new RegExp(
+    "^\\-\\s*\\[(.+?)\\]\\(" +
+    PKG_GWPATH.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+    ":([a-z0-9-]+)\\)(?:\\s*·\\s*\\S+)?\\s*—\\s*(\\d+)");
   for(const line of md.split("\n")){
     if(/^##\s+Featured/i.test(line)) tier=2;
     else if(/^##\s+Courts/i.test(line)) tier=1;
-    const m = line.match(/^\-\s*\[(.+?)\]\(\/r\/kourt\/kourtv2:([a-z0-9-]+)\)(?:\s*·\s*\S+)?\s*—\s*(\d+)/);
+    const m = line.match(COURT_LINE);
     if(m) out.push({slug:m[2], name:unesc(m[1]), tier, claims:parseInt(m[3],10)});
     // the render's own overflow footer ("…and N more") — a subset must never
     // be labeled as the total. Only the Featured section emits one (the
@@ -4434,8 +4445,16 @@ async function listClaims(slug){
   const out=[]; out.strip=[]; out.pending=[];
   const seen=new Set(), seenS=new Set(), seenP=new Set();
   let sec=null; // "claims" | "strip" | "pending" | null — the render's own sections
-  const re = new RegExp("^\\-\\s*\\[(.+?)\\]\\(\\/r\\/kourt\\/kourtv2:"+slug+"\\/(\\d+)\\)\\s*—\\s*(.*)$");
-  const reBare = new RegExp("^\\-\\s*\\[(.+?)\\]\\(\\/r\\/kourt\\/kourtv2:"+slug+"\\/(\\d+)\\)(?:\\s*—\\s*(.*))?$");
+  // FROM PKG_GWPATH, for the reason given at COURT_LINE in listCourts(). These
+  // two are the same defect one level down: with the path spelled out, a realm
+  // deployed anywhere else parsed ZERO claim lines and the court page said
+  // "No claims yet" over a full docket. A plain-text search for the path does
+  // not find these -- inside a RegExp string the separators are "\\/", so the
+  // literal "/r/kourt/kourtv2" is not a substring of the source.
+  const gw = PKG_GWPATH.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const sl = String(slug).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp("^\\-\\s*\\[(.+?)\\]\\("+gw+":"+sl+"\\/(\\d+)\\)\\s*—\\s*(.*)$");
+  const reBare = new RegExp("^\\-\\s*\\[(.+?)\\]\\("+gw+":"+sl+"\\/(\\d+)\\)(?:\\s*—\\s*(.*))?$");
   for(const line of md.split("\n")){
     if(/^##\s/.test(line)){
       sec = /^##\s+Claims/.test(line)? "claims"
@@ -5166,7 +5185,7 @@ function cc(n, slug){ const {fig,micro}=ccFigure(n);
    shown as 0.00, which is the only thing the micro prefix was protecting
    against. Two decimals where two will do, four or six where they will not. */
 /* NOT ON THE VOTE-LOCK DISCLOSURE, which keeps cc() and the court's full symbol.
-   votelock_test pins "this vote would commit N KOURT:OREM" on purpose: that modal
+   votelock_test pins "this vote would commit N KOURT:BEDFORD" on purpose: that modal
    is a disclosure under the §7.4 house style, and a disclosure is the one place
    where saying the denomination in full is worth the width. Dropping to CC there
    would have been trading a stated contract for tidiness on a surface whose job
@@ -6374,6 +6393,40 @@ async function adenaSign(func, args, el){
        hover, is there for the one reader who wants to check the chain. */
     if(title) n.title = title; else n.removeAttribute("title");
   };
+  /* DECLARED HERE, because a stall can happen at the FIRST wallet call and the
+     catch that renders this runs from anywhere in the function. Defined lower
+     down it sat in the temporal dead zone for exactly the early stalls it
+     exists to report. `vals`/`send` are likewise not yet initialised then, so
+     the command block is attempted, not assumed — a stall before the arguments
+     are known still gets the sentence, just without the copyable line. */
+  const stallOut = () => {
+    note("Adena has not answered in 25s. If it shows \u201cwaiting for device\u201d "
+       + "while the Ledger reads only \u201cCosmos Ready\u201d, that pairing cannot sign "
+       + "here \u2014 the hardware path does not use the Ledger-compatible fee "
+       + "rendering, so the device never draws a prompt. Use a seed-phrase "
+       + "account, or run the same action from a terminal, which DOES work "
+       + "with a Ledger:");
+    try{
+      const holder = el.parentElement.querySelector(".txnote");
+      if(!holder || typeof cliBlock !== "function" || typeof cliCmd !== "function") return;
+      const keys = Object.keys(args || {});
+      const signed = {};
+      keys.forEach((k, i) => { signed[k] = (vals && vals[i] !== undefined) ? vals[i] : args[k]; });
+      holder.appendChild(cliBlock(cliCmd(func, signed, send)));
+    }catch(_){ /* pre-argument stall: the sentence above is the whole answer */ }
+  };
+  /* A VISIBLE STEP TRACE, because this path fails INVISIBLY. Every stage below
+     can end the signature, and several end it without the wallet ever opening —
+     a chain probe that disagrees, a refused establish, a stall. When that
+     happens the reader sees a popup flash and nothing else, and the extension's
+     own console is silent because the decision was ours, not the wallet's.
+     Add ?signtrace=1 to the URL and each stage names itself in the note, so the
+     LAST stage shown is the one that stopped. Off by default: this is a
+     diagnostic, not a running commentary. */
+  const TRACE = (()=>{ try{ return /[?&]signtrace=1\b/.test(location.search)
+                             || /[?&]signtrace=1\b/.test(location.hash); }catch(_){ return false; } })();
+  let stepN = 0;
+  const step = (name) => { if(TRACE) note("step " + (++stepN) + ": " + name); };
   if(el.disabled) return;
   el.disabled = true;
   busy(true);
@@ -6400,10 +6453,29 @@ async function adenaSign(func, args, el){
        So: try to establish once, which is the fix when that is the cause and a
        no-op when it is not, and then say what Adena SAID rather than what we
        guessed it meant. Its own code and message are the only evidence here. */
-    let net = await a.GetNetwork();
+    /* EVERY wallet await, not just the signature. The first version of this
+       guard raced only DoContract, which was the failure being reported at the
+       time — and it missed the one actually in front of the reader: GetNetwork
+       is the FIRST call and the one that has to wake Adena's service worker, so
+       a wallet that is not coming back never gets as far as the signature, and
+       the button span forever with no note. Six awaits precede it
+       (GetNetwork ×2, AddEstablish, SwitchNetwork ×2, AddNetwork); a stall in
+       any one of them looked identical to the reader and produced no message.
+       wcall() throws a tagged error instead, so the existing catch below is the
+       single place that renders the way out. */
+    const WALLET_WAIT_MS = 25000;
+    const wcall = (p) => Promise.race([
+      Promise.resolve(p).catch(e => { throw e; }),
+      new Promise((_, rej) =>
+        setTimeout(() => { const e = new Error("wallet-stalled"); e.walletStalled = true; rej(e); },
+                   WALLET_WAIT_MS)),
+    ]);
+    step("GetNetwork");
+    let net = await wcall(a.GetNetwork());
     if(net.code!==0){
-      const est = await a.AddEstablish("Kourt").catch(()=>null);
-      net = est && (est.code===0 || est.code===4001) ? await a.GetNetwork() : net;
+      step("AddEstablish");
+      const est = await wcall(a.AddEstablish("Kourt")).catch(()=>null);
+      net = est && (est.code===0 || est.code===4001) ? await wcall(a.GetNetwork()) : net;
     }
     if(net.code!==0){
       note("Adena would not answer: " + (net.message || ("code " + net.code))
@@ -6417,7 +6489,8 @@ async function adenaSign(func, args, el){
        to prevent. Anything that is not `want` gets the same treatment. */
     const wchain = (net.data && net.data.chainId) || "";
     if(wchain !== want){
-      let sw = await a.SwitchNetwork(want);
+      step("SwitchNetwork " + want);
+      let sw = await wcall(a.SwitchNetwork(want));
       /* "unknown chain kourt-1" — AND IT IS RIGHT, IT HAS NEVER HEARD OF IT.
          SwitchNetwork only picks among networks Adena already holds, and a
          private chain is in none of them, so the switch fails for a wallet that
@@ -6430,12 +6503,12 @@ async function adenaSign(func, args, el){
          on typeof because an older Adena does not have it, and there the honest
          answer is the message below. */
       if(sw.code!==0 && typeof a.AddNetwork === "function"){
-        const add = await a.AddNetwork({
+        const add = await wcall(a.AddNetwork({
           chainId: want,
           chainName: (CHAIN_LABEL || want),
           rpcUrl: (CFG.rpc || "").replace(/\/+$/, ""),
-        }).catch(()=>null);
-        if(add && (add.code===0 || add.code===4001)) sw = await a.SwitchNetwork(want);
+        })).catch(()=>null);
+        if(add && (add.code===0 || add.code===4001)) sw = await wcall(a.SwitchNetwork(want));
       }
       if(sw.code!==0){
         note("Adena is on "+(wchain || "an unnamed chain")+" and would not move to "+want
@@ -6450,20 +6523,56 @@ async function adenaSign(func, args, el){
        claim" for a claim plainly on screen, because it exists here and not
        there. Compared host-to-host, since a trailing slash or 127.0.0.1 against
        localhost is the same node and should not be an alarm. */
+    step("chain check");
     const wrpc = net.data && (net.data.rpcUrl || net.data.rpc);
     if(wrpc && CFG.rpc){
       const host = u => { try{ const x=new URL(u); return (x.hostname==="localhost"?"127.0.0.1":x.hostname)+":"+(x.port||""); }catch(_){ return null; } };
       const hw = host(wrpc), hp = host(CFG.rpc);
       if(hw && hp && hw!==hp){
-        /* WHAT TO DO, NOT WHAT IS WRONG. The first version explained chain
-           identity — that two nodes can share a name, that reads and writes
-           were going to different places — which is the diagnosis, not the fix,
-           and a reader staring at a wallet prompt cannot act on it. Where it is
-           pointed, where it should point, which screen changes it. */
+        /* A DIFFERENT HOST IS NOT A DIFFERENT CHAIN, and refusing on the
+           hostname alone broke every signature on mainnet. Adena ships
+           gnoland-1 pointed at rpc.onbloc.xyz (onbloc/adena-wallet#898); this
+           page is served from rpc.gno.land. Two nodes, one chain — identical
+           block hash at the same height, measured — and yet this returned
+           before signing, so the wallet prompt opened, the page aborted, and
+           the popup closed with nothing written anywhere. That is exactly the
+           "Adena flashes and disappears" report, and nothing in a console
+           showed it because the refusal was ours.
+
+           So ASK THE CHAIN instead of the URL. The property this guard exists
+           to protect is that reads and writes land on the same ledger, and a
+           shared block hash proves it where a shared hostname only suggested
+           it. Both nodes are asked for the SAME height, a little behind the
+           tip so neither is mid-block, and the hashes must agree.
+
+           A failed probe is not a mismatch: an RPC that blocks cross-origin
+           reads (Adena's own may) tells us nothing either way, and refusing on
+           "could not check" would reinstate the bug in a quieter form. Only a
+           definite disagreement stops the signature. */
         const short = u => { try{ const x=new URL(u); return x.host; }catch(_){ return u; } };
-        note(`Adena is pointed at ${short(wrpc)} — this chain is ${short(CFG.rpc)}. `
-           + `Change the RPC in Adena's network settings, then try again.`);
-        return;
+        const blockHash = async (base, h) => {
+          const r = await fetch(base.replace(/\/+$/, "") + "/block?height=" + h,
+                                {cache:"no-store"});
+          const j = await r.json();
+          return j && j.result && j.result.block_meta
+               && j.result.block_meta.block_id && j.result.block_meta.block_id.hash;
+        };
+        let verdict = "unknown";
+        try{
+          const st = await (await fetch(CFG.rpc.replace(/\/+$/, "") + "/status",
+                                        {cache:"no-store"})).json();
+          const tip = parseInt(st.result.sync_info.latest_block_height, 10);
+          const at = Math.max(1, tip - 20);
+          const [ours, theirs] = await Promise.all([blockHash(CFG.rpc, at), blockHash(wrpc, at)]);
+          if(ours && theirs) verdict = (ours === theirs) ? "same" : "different";
+        }catch(_){ /* leave unknown — see above */ }
+        step("chain probe: " + verdict);
+        if(verdict === "different"){
+          note(`Adena is pointed at ${short(wrpc)}, which is a DIFFERENT chain from `
+             + `${short(CFG.rpc)} — same name, different history. Change the RPC in `
+             + `Adena's network settings, then try again.`);
+          return;
+        }
       }
     }
     // Every argument is confirmed before signing: several buttons carry
@@ -6566,11 +6675,37 @@ async function adenaSign(func, args, el){
       const keys = Object.keys(args||{});
       vals = keys.map(k => k==="amount"? String(micro) : String(args[k]));
     }
+    step("DoContract — handing the tx to the wallet");
     note("Waiting for Adena…");
     const doIt = () => a.DoContract({messages:[{type:"/vm.m_call", value:{
       caller: CFG.addr, send, pkg_path: PKG, func, args: vals
     }}], gasFee: GAS_FEE_UGNOT, gasWanted: GAS_WANTED});
-    let res = await doIt();
+
+    /* A WALLET THAT NEVER ANSWERS IS THE ONE FAILURE WITH NO MESSAGE, and it is
+       not hypothetical: an Adena account backed by a LEDGER cannot sign anything
+       on this chain today. Adena builds the signature payload itself and still
+       renders the fee as gas_wanted/gas_fee; the Ledger Cosmos app stopped
+       accepting that shape, so the device never draws a prompt and never
+       refuses. Adena sits on "waiting for device", the device sits on "Cosmos
+       Ready", and DoContract's promise settles NEITHER way. Every other branch
+       in this function ends in a note(); this one used to spin until the reader
+       gave up, which is the worst of the set because nothing on screen says the
+       wallet is not coming back.
+
+       So: race it. The timeout is not a diagnosis — a reader who is simply slow
+       to approve hits the same clock — which is why the wording says "has not
+       answered" and leaves the prompt live. If the wallet does come back, an
+       approval still lands; only this page stopped waiting.
+
+       gnokey is the way out and it WORKS on the same Ledger: gnokey emits the
+       amount/gas rendering the device accepts (gno #6173), so the command below
+       signs where the wallet cannot. Fix the wallet path by upgrading Adena;
+       nothing in this realm or this page can do it for them. */
+    /* The signature gets the same clock as every other wallet call above —
+       wcall, declared once near GetNetwork. It used to be raced here with its
+       own second `const WALLET_WAIT_MS`, which is both a redeclaration in the
+       same scope and the narrower guard this whole block exists to widen. */
+    let res = await wcall(doIt());
     /* LAST CHANCE TO REGISTER THE CHAIN. Everything above can pass — Adena
        answers, reports the chain we want, points at the right node — and the
        signature still comes back "unknown chain", because what the wallet
@@ -6675,6 +6810,53 @@ async function adenaSign(func, args, el){
         left--;
         if(left > 0) note(base + " Updating in " + left + "s…", true, hash? "tx "+hash : "");
       }, 1000);
+      /* SEVEN SECONDS IS A GUESS, AND IT IS SOMETIMES WRONG. DoContract returns
+         when the wallet has BROADCAST — mempool accepted, not committed — so the
+         wait has to cover broadcast latency, a whole block, and the read that
+         follows. Measured on gnoland-1: blocks land 3.5-5.7s apart, mean 4.1s.
+         A buy signed just after a block therefore commits at ~6s and is read at
+         ~6.5s, inside the window; one signed just before a slow block is not,
+         and the re-render then paints the balance the reader had BEFORE their
+         own purchase. Reported as "the page didn't show my new balance".
+
+         So wait for the TRANSACTION, not for a number of seconds. The hash is
+         the thing that actually answers "did it land", and /tx returns it only
+         once a block holds it. The countdown above still runs — it is what the
+         reader sees — but the re-render now fires on inclusion.
+
+         Bounded, and falling through on ANY doubt: no hash (an older wallet
+         returns none), a blocked query, or 25s elapsed all end in the same
+         re-render the fixed timer would have done. This can be early-right or
+         late-right; it cannot be stuck. */
+      /* THREE ANSWERS, NOT TWO: "in a block", "not yet", and "this query is no
+         use to me". Folding the third into "not yet" is what would make this
+         change a REGRESSION rather than a fix — if the wallet's hash is not the
+         base64 /tx wants, every probe fails identically to a pending one, and
+         the reader waits the full cap to see a balance the old fixed 7s would
+         have shown. So an unusable query stops the poll immediately and repaints
+         on the spot; only a well-formed "not found" is worth waiting on. */
+      const landedAt = async () => {
+        const url = (CFG.rpc || "").replace(/\/+$/, "")
+                  + "/tx?hash=" + encodeURIComponent('"' + hash + '"');
+        try{
+          const r = await fetch(url, {cache:"no-store"});
+          const j = await r.json();
+          if(j && j.result && j.result.height) return "landed";
+          // A tm2 node answers a well-formed-but-unknown hash with an error whose
+          // text names the tx; anything else (bad encoding, 4xx, HTML) is ours.
+          const msg = j && j.error && (j.error.data || j.error.message || "");
+          return /tx|hash|not found/i.test(String(msg)) ? "pending" : "unusable";
+        }catch(_){ return "unusable"; }
+      };
+      const waitForInclusion = async () => {
+        if(!hash) return;
+        const deadline = Date.now() + 25000;
+        while(Date.now() < deadline){
+          const r = await landedAt();
+          if(r === "landed" || r === "unusable") return;
+          await new Promise(r2 => setTimeout(r2, 1500));
+        }
+      };
       /* EVERY CACHED ANSWER IS FROM BEFORE THIS TRANSACTION, and the re-render
          below is the reader watching for their own action to land — which is
          exactly the moment a five-second-old answer is a lie. Cleared now AND
@@ -6697,6 +6879,10 @@ async function adenaSign(func, args, el){
          is the part a reader actually notices. render() awaits its route, so by
          the time it resolves the content is back and the offset is valid. */
       setTimeout(async ()=>{
+        /* INCLUSION FIRST, THEN READ. Starting at 1.5s rather than 7s so a fast
+           block repaints sooner, and blocking on the hash so a slow one is not
+           read early — the old fixed 7s did neither. */
+        await waitForInclusion();
         clearInterval(tick); chainCacheClear();
         /* A REWARD WRITE MOVES THREE BOXES; everything else moves the chart too.
            refreshClaimRewards returns false when it is not on a claim page, when
@@ -6708,12 +6894,12 @@ async function adenaSign(func, args, el){
            burn. After the repaint, so the panel it points at is already on
            screen behind it. */
         if(func === "Buy") franchiseFollowupFigure();
-      }, 7000);
+      }, 1500);
     }
     else if(res.code===4000){ note("Rejected in the wallet."); }
     else if(res.code===3001){ note("Adena's active account is not "+shortAddr(CFG.addr)+" — switch accounts in Adena or reconnect."); }
     else note("Adena: "+(res.message||("code "+res.code)));
-  }catch(e){ note("Adena: "+(e.message||e)); }
+  }catch(e){ if(e && e.walletStalled) stallOut(); else note("Adena: "+(e.message||e)); }
   // Cleared in finally, so a thrown wallet error leaves a button that can be
   // pressed again rather than one that spins for ever.
   // Cleared unless the transaction LANDED: a thrown wallet error must leave a
@@ -7438,7 +7624,7 @@ let renderSeq = 0, paintedSeq = 0;
    carries — that the pending timer is gone rather than merely harmless — is
    pinned in web/tests/chat_test.js, which counts outstanding timers directly. */
 let CHATSTOP = null;
-/* Query params ride the hash (#/c/orem?p=2) so pages, back/forward, and
+/* Query params ride the hash (#/c/bedford?p=2) so pages, back/forward, and
    shared links all land on the same window. Routes match the path part. */
 let QP = {};
 /* The seeded-chain warning. A node whose test clock was ever armed carries
@@ -8410,7 +8596,22 @@ function qBarHtml(placeholder, cap){
   return `<div class="addrbar qbar"><input id="q" type="search" class="mono" placeholder="${esc(placeholder)}" spellcheck="false" autocomplete="off" aria-label="filter loaded titles or jump to a claim id" aria-describedby="qcap">
     <span id="qcap" class="mono small muted" role="status">${esc(cap)}</span></div>`;
 }
-let QCTX = null; // {kind, demo, loaded, total, orderTail, slug, totalClaims}
+/* THE EXAMPLE IN THE HINT NAMES A COURT THAT EXISTS. This was the literal
+   "bedford/7" in every mode, and bedford is a court in the SAMPLE — so the one line
+   on the page whose whole job is to teach the id grammar handed a live reader
+   the id of a court that exists on no chain, and typing it landed on a 404.
+   The rows are in hand at render time, so the example comes from them: the
+   first loaded court holding at least one claim, and an id that court really
+   holds. Nothing loaded, or nothing filed anywhere on the page, yields no
+   example — the hint then names the field and promises nothing. */
+function qExample(...groups){
+  for(const rows of groups)
+    for(const c of (rows||[]))
+      if(c && c.slug && c.claims>0) return {slug:c.slug, id:Math.min(7, c.claims)};
+  return null;
+}
+function qExampleHint(ex){ return ex? `court name or ${ex.slug}/${ex.id}` : "court name"; }
+let QCTX = null; // {kind, demo, loaded, total, orderTail, slug, totalClaims, ex}
 /* THE FOLDER FILTER. The Folders section above the search box is the control:
    each row is a checkbox, and what is below it — the search, Open, Recently
    settled — narrows to what is inside the folders that are ticked.
@@ -8626,7 +8827,7 @@ document.addEventListener("keydown", ev=>{
       const j = parseJump(t.value, QCTX && QCTX.slug);
       const cap = document.getElementById("qcap");
       if(j){
-        if(j.bare && !j.slug){ if(cap) cap.textContent = `name a court — orem/${j.id}`; return; }
+        if(j.bare && !j.slug){ if(cap) cap.textContent = (QCTX && QCTX.ex)? `name a court — ${QCTX.ex.slug}/${j.id}` : `name a court first — court/${j.id}`; return; }
         if(j.bare && QCTX && QCTX.totalClaims!=null && j.id>QCTX.totalClaims){
           if(cap) cap.textContent = `no claim #${j.id} — this court has ${fmtN(QCTX.totalClaims)}`; return;
         }
@@ -8802,16 +9003,17 @@ on(/^\/$/, async ()=>{
      The h1 travels with it. A single h1 later in the document is not an error
      and the crumb still names the page; the alternative was to leave a heading
      at the top with nothing under it. */
+  const qEx = qExample(page===1? featured : null, listed);
   main.innerHTML = crumbs([{label:"Directory"}])
     + statsStrip
     + `<div id="qscope">`
-    + qBarHtml("court name or orem/7", qCaption({mode:"idle", demo:!isLive(), kind:"court names", loaded:(page===1?featured.length:0)+listed.length, total:listedTotal+(page===1?featured.length:0)}))
+    + qBarHtml(qExampleHint(qEx), qCaption({mode:"idle", demo:!isLive(), kind:"court names", loaded:(page===1?featured.length:0)+listed.length, total:listedTotal+(page===1?featured.length:0)}))
     + (page===1 && featured.length?`<section data-qsec><h2 class="sec-h">Featured <span class="count">${featured.length}</span></h2><div class="docket">${featured.map(card).join("")}</div></section>`:"")
     + `<section data-qsec><h2 class="sec-h">Courts <span class="count">${fmtN(listedTotal)}</span></h2>`
     + dirPager
     + (listed.length?`<div class="docket"${page===1?' data-sortable data-sortkind="dir"':""}>${listed.map(card).join("")}</div>`:`<div class="empty"><div class="g">◌</div><p>No courts yet. Be the first to start one.</p></div>`)
     + `</section>`
-    + `<div id="qempty" class="empty qhide"><div class="g">◌</div><p>No loaded name matches.</p><p class="small muted">clear to browse, or go to a claim by id — orem/7</p></div>`
+    + `<div id="qempty" class="empty qhide"><div class="g">◌</div><p>No loaded name matches.</p><p class="small muted">clear to browse${qEx? `, or go to a claim by id — ${esc(qEx.slug)}/${qEx.id}` : ""}</p></div>`
     + `</div>`
     /* THE EXPLANATIONS SIT OUTSIDE THE BUTTONS, not inside them. Both creation
        buttons carried their text through btn()'s `sub` argument, which renders
@@ -8846,7 +9048,7 @@ on(/^\/$/, async ()=>{
           <p class="small muted">Starting a court is a transaction like any other on this site: it is signed with your own key and costs the chain's ordinary fee. Nothing here holds it for you.</p>
         </div></dialog>`;
   QCTX = {kind:"court names", demo:!isLive(), loaded:(page===1?featured.length:0)+listed.length,
-    total:listedTotal+(page===1?featured.length:0), slug:null, totalClaims:null, orderTail:""};
+    total:listedTotal+(page===1?featured.length:0), slug:null, totalClaims:null, orderTail:"", ex:qEx};
   if(QP.sort) applySort(QP.sort); // before applyQ — the search caption reads QCTX.orderTail
   if(QP.q){ const qi=document.getElementById("q"); if(qi){ qi.value=QP.q; applyQ(QP.q); } }
   // stats fill for the visible rows only, chunked so a big directory cannot
@@ -14081,9 +14283,9 @@ function courtBody(slug, s, claims, pager, chainF, allRows, pagerBot, stripQ, pe
     + showChips
     + (pager||"")
     + `<section data-qsec data-group="open"${foldersSec?' style="margin-top:22px"':""}><h2 class="sec-h">Open ${secHelp("Claims this court has not settled yet — the ones you can still stake on. Settled claims move down to Recently settled.")}<span class="count" data-count="open">${openWin}</span></h2>`
-    + (open.length? `<div class="docket" data-sortable data-sortkind="dk">${rows(open)}</div><div class="actions" style="margin-top:10px">${btn("Open a claim","OpenClaimP",{courtSlug:slug,title:"Your claim of fact",body:"What would settle it — the evidence in view, and what this is NOT asking"},"","a body is optional")}${proposeSetBtn(slug)}</div><div id="courtcompose"></div>`
+    + (open.length? `<div class="docket" data-sortable data-sortkind="dk">${rows(open)}</div><div class="actions" style="margin-top:10px">${btn("Open a claim","OpenClaimP",{courtSlug:slug,title:"Your claim of fact",body:"What would settle it — the evidence in view, and what this is NOT asking"},"","a body is optional",null,null,true)}${proposeSetBtn(slug)}</div><div id="courtcompose"></div>`
         : pageOf()>1? `<p class="small muted">Nothing on this page.</p>`
-        : `<div class="empty"><div class="g">◌</div><p>No open claims.</p><p>${btn("Open the first claim","OpenClaimP",{courtSlug:slug,title:"Your claim of fact",body:"What would settle it — the evidence in view, and what this is NOT asking"},"","a body is optional")}</p></div>`)
+        : `<div class="empty"><div class="g">◌</div><p>No open claims.</p><p>${btn("Open the first claim","OpenClaimP",{courtSlug:slug,title:"Your claim of fact",body:"What would settle it — the evidence in view, and what this is NOT asking"},"","a body is optional",null,null,true)}</p></div>`)
     + `</section>`
     + (done.length? `<section data-qsec data-group="settled" style="margin-top:22px"><h2 class="sec-h">Recently settled <span class="count" data-count="settled">${doneWin}</span></h2><div class="docket" data-sortable data-sortkind="dk">${rows(done)}</div></section>` : "")
     + (()=>{ // the chain's own policing lists — page 1, chain order, never sorted or filtered
@@ -14175,37 +14377,37 @@ on(/^\/c\/([a-z0-9-]+)\/curate$/, async (slug)=>{
        <p class="small" style="margin:0 0 10px">This page does not check who you are. If you are not a moderator of this court, the court refuses the transaction when you sign it.</p>
        <p class="small" style="margin:0 0 10px">Sets nest, reorder, retire, and carry a one-line description. Links between claims are on the chain too — including a re-filing, which the court verifies rather than taking your word for: the older claim must really have gone unanswered, and the newer one must come after it.</p>
        <div class="panel"><h2>Sets</h2><div class="actions">
-         ${btn("Create set","CreateFolder",{courtSlug:slug,name:"Set name",desc:"One line on what belongs here"})}
-         ${btn("Create subset","CreateFolderIn",{courtSlug:slug,parentID:1,name:"Set name",desc:"One line on what belongs here"},"","inside another set, four deep")}
-         ${btn("Rename set","RenameFolder",{courtSlug:slug,folderID:1,name:"New name",desc:"New one-liner"})}
-         ${btn("Remove set's picture","ClearFolderImage",{courtSlug:slug,folderID:1},"","the picture itself is set at the foot of this page")}
-         ${btn("Move set","MoveFolder",{courtSlug:slug,folderID:2,newParent:1},"","0 is the root")}
-         ${btn("Retire set","RetireFolder",{courtSlug:slug,folderID:1},"","struck from the tree, row kept")}
-         ${btn("Restore set","RestoreFolder",{courtSlug:slug,folderID:1})}
-         ${btn("Add claim to set","AddToFolder",{courtSlug:slug,folderID:1,claimID:1})}
-         ${btn("Remove claim from set","RemoveFromFolder",{courtSlug:slug,folderID:1,claimID:1})}</div></div>
+         ${btn("Create set","CreateFolder",{courtSlug:slug,name:"Set name",desc:"One line on what belongs here"},null,null,null,null, true)}
+         ${btn("Create subset","CreateFolderIn",{courtSlug:slug,parentID:1,name:"Set name",desc:"One line on what belongs here"},"","inside another set, four deep",null,null, true)}
+         ${btn("Rename set","RenameFolder",{courtSlug:slug,folderID:1,name:"New name",desc:"New one-liner"},null,null,null,null, true)}
+         ${btn("Remove set's picture","ClearFolderImage",{courtSlug:slug,folderID:1},"","the picture itself is set at the foot of this page",null,null, true)}
+         ${btn("Move set","MoveFolder",{courtSlug:slug,folderID:2,newParent:1},"","0 is the root",null,null, true)}
+         ${btn("Retire set","RetireFolder",{courtSlug:slug,folderID:1},"","struck from the tree, row kept",null,null, true)}
+         ${btn("Restore set","RestoreFolder",{courtSlug:slug,folderID:1},null,null,null,null, true)}
+         ${btn("Add claim to set","AddToFolder",{courtSlug:slug,folderID:1,claimID:1},null,null,null,null, true)}
+         ${btn("Remove claim from set","RemoveFromFolder",{courtSlug:slug,folderID:1,claimID:1},null,null,null,null, true)}</div></div>
        <div class="panel" style="margin-top:14px"><h2>Order</h2><div class="actions">
-         ${btn("Order sets","OrderFolders",{courtSlug:slug,parentID:0,ids:"3,1,2"},"","every sibling in that set, once each")}
-         ${btn("Move a claim within a set","MoveItemInFolder",{courtSlug:slug,folderID:1,claimID:1,to:0},"","0 is first")}</div></div>
+         ${btn("Order sets","OrderFolders",{courtSlug:slug,parentID:0,ids:"3,1,2"},"","every sibling in that set, once each",null,null, true)}
+         ${btn("Move a claim within a set","MoveItemInFolder",{courtSlug:slug,folderID:1,claimID:1,to:0},"","0 is first",null,null, true)}</div></div>
        <div class="panel" style="margin-top:14px"><h2>Relations</h2><div class="actions">
-         ${btn("Argue one claim bears on another","AddAssociation",{courtSlug:slug,from:1,to:2,stance:"supports"},"","anyone — free for the claim's author or a moderator, a refundable bond for everybody else")}
-         ${btn("Approve an association","ApproveAssociation",{courtSlug:slug,from:1,to:2},"","a moderator — returns the bond, the edge stays")}
-         ${btn("Disapprove an association","DisapproveAssociation",{courtSlug:slug,from:1,to:2},"","a moderator — burns the bond and drops the edge")}
-         ${btn("Take back an unjudged bond","ClaimAssociationBond",{courtSlug:slug,from:1,to:2},"","the edge's author, once the 14-day window has closed")}
-         ${btn("Settle every bond on a claim","ApproveAllAssociations",{courtSlug:slug,claimID:1},"","a moderator, single-signer — every bond goes back")}
-         ${btn("Burn every bond on a claim","DisapproveAllAssociations",{courtSlug:slug,claimID:1,reason:"Why this claim was cleared"},"","several moderators must agree — spares anything bonded after the vote opened")}
-         ${btn("Set this court's association bond","SetCourtAssociationBond",{courtSlug:slug,amount:1000000},"","a moderator — 0 restores this court's default")}
-         ${btn("Withdraw an association","RemoveAssociation",{courtSlug:slug,from:1,to:2},"","its author, or a moderator")}
-         ${btn("Record a re-filing","SupersedeClaim",{courtSlug:slug,from:2,to:1},"","the newer claim's author, or a moderator — the older one must have died unanswered")}
-         ${btn("Withdraw a re-filing","RemoveSupersede",{courtSlug:slug,from:2},"","its author, or a moderator")}</div></div>
+         ${btn("Argue one claim bears on another","AddAssociation",{courtSlug:slug,from:1,to:2,stance:"supports"},"","anyone — free for the claim's author or a moderator, a refundable bond for everybody else",null,null, true)}
+         ${btn("Approve an association","ApproveAssociation",{courtSlug:slug,from:1,to:2},"","a moderator — returns the bond, the edge stays",null,null, true)}
+         ${btn("Disapprove an association","DisapproveAssociation",{courtSlug:slug,from:1,to:2},"","a moderator — burns the bond and drops the edge",null,null, true)}
+         ${btn("Take back an unjudged bond","ClaimAssociationBond",{courtSlug:slug,from:1,to:2},"","the edge's author, once the 14-day window has closed",null,null, true)}
+         ${btn("Settle every bond on a claim","ApproveAllAssociations",{courtSlug:slug,claimID:1},"","a moderator, single-signer — every bond goes back",null,null, true)}
+         ${btn("Burn every bond on a claim","DisapproveAllAssociations",{courtSlug:slug,claimID:1,reason:"Why this claim was cleared"},"","several moderators must agree — spares anything bonded after the vote opened",null,null, true)}
+         ${btn("Set this court's association bond","SetCourtAssociationBond",{courtSlug:slug,amount:1000000},"","a moderator — 0 restores this court's default",null,null, true)}
+         ${btn("Withdraw an association","RemoveAssociation",{courtSlug:slug,from:1,to:2},"","its author, or a moderator",null,null, true)}
+         ${btn("Record a re-filing","SupersedeClaim",{courtSlug:slug,from:2,to:1},"","the newer claim's author, or a moderator — the older one must have died unanswered",null,null, true)}
+         ${btn("Withdraw a re-filing","RemoveSupersede",{courtSlug:slug,from:2},"","its author, or a moderator",null,null, true)}</div></div>
        <div class="panel" style="margin-top:14px"><h2>Docket</h2><div class="actions">
-         ${btn("Open a seeded claim","OpenClaimSeeded",{courtSlug:slug,title:"Your claim of fact"},"","deposit and fee waived")}
-         ${btn("Hide from listing","HideItem",{courtSlug:slug,claimID:1,reason:"Why this is hidden"},"","several moderators must agree")}
-         ${btn("Unhide","UnhideItem",{courtSlug:slug,claimID:1,reason:"Why this returns"},"","several moderators must agree")}</div></div>
+         ${btn("Open a seeded claim","OpenClaimSeeded",{courtSlug:slug,title:"Your claim of fact"},"","deposit and fee waived",null,null, true)}
+         ${btn("Hide from listing","HideItem",{courtSlug:slug,claimID:1,reason:"Why this is hidden"},"","several moderators must agree",null,null, true)}
+         ${btn("Unhide","UnhideItem",{courtSlug:slug,claimID:1,reason:"Why this returns"},"","several moderators must agree",null,null, true)}</div></div>
        <div class="panel" style="margin-top:14px"><h2>Court</h2><div class="actions">
-         ${btn("Appoint moderators","AppointMods",{courtSlug:slug,m:1,mods:"g1address1,g1address2"},"","creator only, free")}
-         ${btn("Describe this court","SetCourtDesc",{courtSlug:slug,desc:"One line on what this court is for"},"","one line, no newlines")}
-         ${btn("Remove this court's picture","ClearCourtImage",{courtSlug:slug},"","the picture itself is set below")}</div></div>
+         ${btn("Appoint moderators","AppointMods",{courtSlug:slug,m:1,mods:"g1address1,g1address2"},"","creator only, free",null,null, true)}
+         ${btn("Describe this court","SetCourtDesc",{courtSlug:slug,desc:"One line on what this court is for"},"","one line, no newlines",null,null, true)}
+         ${btn("Remove this court's picture","ClearCourtImage",{courtSlug:slug},"","the picture itself is set below",null,null, true)}</div></div>
        <div id="curatepic"></div>
       </section>`
     /* PROPOSING IS NOT A MODERATOR ACT, and the realm says so where the verb is
@@ -14225,7 +14427,7 @@ on(/^\/c\/([a-z0-9-]+)\/curate$/, async (slug)=>{
     + `<section style="margin-top:22px"><h2 class="sec-h">Propose a set <span class="count">any holder — gas only</span></h2>
        <p class="small" style="margin:0 0 10px">This writes to the chain and creates nothing on its own. It records a proposed set so the court can decide on it: a <span class="mono">mod:newset</span> appeal in the meta court has to carry a bonded answer and survive 72 hours of anyone's dispute before the set exists. Until then the proposal is an unreferenced row, which is what keeps the verb cheap to leave open.</p>
        <div class="panel"><div class="actions">
-         ${btn("Propose a set","RegisterFolderProposal",{courtSlug:slug,name:"Set name",desc:"One line on what belongs here",parentID:0},"","parentID 0 files it at the root")}</div></div>
+         ${btn("Propose a set","RegisterFolderProposal",{courtSlug:slug,name:"Set name",desc:"One line on what belongs here",parentID:0},"","parentID 0 files it at the root",null,null, true)}</div></div>
       </section>`
     + `<section style="margin-top:22px"><h2 class="sec-h">Local curation <span class="count">anyone — this browser only</span></h2>
        <p class="small" style="margin:0 0 10px">What the chain cannot hold — claim-to-claim containment and supersedes — lives in a file you keep. Descriptions, nested folders and associations are ON CHAIN now; this file still carries them for demo courts and for anything the moderators have not filed. Nothing here writes to any chain: export it, edit it, share the file, import someone else's. </p>
@@ -15773,11 +15975,13 @@ on(/^\/c\/([a-z0-9-]+)\/f\/([0-9.]+)$/, async (slug,fpath)=>{
           ? btn("Open a claim here", "OpenClaimIn",
                 {courtSlug:slug, folderID:f.fid, title:"Your claim of fact",
                  body:"What would settle it — the evidence in view, and what this is NOT asking"},
-                "", "it opens filed in " + esc(f.name))
+                "", "it opens filed in " + esc(f.name),
+                null, null, true)
           : btn("Open a claim", "OpenClaimP",
                 {courtSlug:slug, title:"Your claim of fact",
                  body:"What would settle it — the evidence in view, and what this is NOT asking"},
-                "", "this set is local curation; the claim opens in " + esc(slug)))
+                "", "this set is local curation; the claim opens in " + esc(slug),
+                    null, null, true))
       /* AND A SUBSET IS THE SAME DOOR, ONE STEP IN. New takes the parent
          from where the CLAIM ITSELF is filed — the title is spent on the name and
          has no room for a path — so a proposal opened here, filed here, becomes a
@@ -15975,7 +16179,7 @@ on(/^\/c\/([a-z0-9-]+)\/(\d+)$/, async (slug,idS)=>{
      therefore never fired at all. It greyed nothing, and a reader pressed the
      button and met the panic in their wallet. */
   if(author) d.author = author;
-  // shortAddr() elides the middle — g1oremf…0000 — and the full address appears
+  // shortAddr() elides the middle — g1bedfordf…0000 — and the full address appears
   // nowhere else on this route, so reading the page aloud gave an address that
   // cannot be used. The elision is for the eye; the value is for everyone.
   const openedBy = author? `<span class="tfact">opened by <span class="mono" aria-hidden="true">${shortAddr(author)}</span><span class="sr-only">${esc(author)}</span></span>` : "";
@@ -16802,7 +17006,7 @@ const SUBJECT_GLYPHS = {
 
    THE PERSON FALLBACK IS FOR FOLDERS ONLY. Inside a docket, a one-word heading
    is nearly always somebody's name — "Fauci" over the claims about him. A COURT
-   slug is one word by convention ("orem", "covid"), so the same rule there would
+   slug is one word by convention ("bedford", "covid"), so the same rule there would
    put a face on every court that failed to mention its own subject. Courts ask
    without it and fall back to their initials. */
 function subjectGlyph(name, personFallback){
@@ -17384,8 +17588,8 @@ function stakeBar(d, slug){
   if(t<=0) return `<div class="sbar empty"><span class="sbnone">no stake yet — the first stake sets the line</span></div>`;
   const py = y*100/t, pn = 100-py;
   // Labels sit BELOW the bar, never inside it. Inside, a label has only its own
-  // side's width, and "NO 12.0 KOURT:OREM · 23.1%" does not fit a 23% block at
-  // any viewport — the first attempt clipped it to "JRT:OREM · 23.1%".
+  // side's width, and "NO 12.0 KOURT:BEDFORD · 23.1%" does not fit a 23% block at
+  // any viewport — the first attempt clipped it to "JRT:BEDFORD · 23.1%".
   return `<div class="sbar" role="img" aria-label="staked YES ${ccText(y,slug)} ${py.toFixed(1)}%, NO ${ccText(n,slug)} ${pn.toFixed(1)}%">
       <div class="sbY" style="width:${py.toFixed(3)}%"></div>
       <div class="sbN" style="width:${pn.toFixed(3)}%"></div>
@@ -18492,11 +18696,11 @@ function aboutTour(){
     [8,"Closed, never answered — the file died at its timeout; stakes were never frozen and unstake freely; the deposit refunded, the fee burned."],
   ];
   return `<h2>Specimen files — one claim in each state</h2>
-      <p>The demo court, orem, is a labeled sample — 11 claims spanning every state a file can be in. Each entry below is a real file in it.</p>
-      <div class="btn-row" style="margin:0 0 12px"><a class="btn" href="#/c/orem">Open the sample court — orem</a><span class="small muted">Demo data — a sample, involving no chain.</span></div>
+      <p>The demo court, bedford, is a labeled sample — 11 claims spanning every state a file can be in. Each entry below is a real file in it.</p>
+      <div class="btn-row" style="margin:0 0 12px"><a class="btn" href="#/c/bedford">Open the sample court — bedford</a><span class="small muted">Demo data — a sample, involving no chain.</span></div>
       <div class="docket" style="border:1px solid var(--line); border-radius:var(--r)">${rows.map(([i,cap])=>{
-        const d = DEMO.claims["orem/"+i];
-        return `<a class="crow" href="#/c/orem/${i}">
+        const d = DEMO.claims["bedford/"+i];
+        return `<a class="crow" href="#/c/bedford/${i}">
       <span class="id">#${i}</span>
       <span><span class="t">${verdictSentence(d.title, rowVerdict(statusText(d)).side, rowVerdict(statusText(d)).mark)}</span><span class="m" style="display:block">${esc(cap)}</span></span>
       ${rowVerdict(statusText(d)).side? "" : statusPill(statusText(d))}</a>`;
@@ -18864,7 +19068,7 @@ async function meHoldings(addr,courts){
   try{
     const prevRaw = store.get(seenKey(addr));
     // demo teaches the feature with a canned prior look, labeled (sample)
-    const prev = prevRaw? JSON.parse(prevRaw) : (CFG.mode==="demo"? {h:NOW-3_000, claims:{"orem/3":"answered"}} : null);
+    const prev = prevRaw? JSON.parse(prevRaw) : (CFG.mode==="demo"? {h:NOW-3_000, claims:{"bedford/3":"answered"}} : null);
     const changes = prev? diffSeen(prev, snapshot) : [];
     if(changes.length){
       ladder = `<section style="margin-top:14px"><h2 class="sec-h">Since you were last here <span class="count">this browser's memory${CFG.mode==="demo"?" (sample)":""}</span></h2>
@@ -18885,7 +19089,7 @@ async function meHoldings(addr,courts){
      section's own heading, under a strip whose first number said "open positions
      0". Nothing was missing; the summary was answering a different question in
      the place a reader looks for this one, and 0 beat 19.5 for attention.
-     A LIST, NOT A SUM, and that is not a shortcut. KOURT:COVID and KOURT:OREM are
+     A LIST, NOT A SUM, and that is not a shortcut. KOURT:COVID and KOURT:BEDFORD are
      different coins with different prices and no exchange rate between them, so
      a single total would be a number that means nothing. One court gets its
      balance; several get a count with the balances spelled out beneath. */
@@ -20783,7 +20987,7 @@ function demoRender(path){
       o += "- row 1 · height 4799600 · hide · by g1modalpha000000000000000000000000000000 — answered while under review; the strip keeps it policeable\n";
       o += "- row 1 · height 4799200 · global-hide:code-2026-041 · by g1metareview0000000000000000000000000000\n";
       o += "- row 1 · height 4798800 · hide · by g1modalpha000000000000000000000000000000 — duplicate of the reopening filing\n";
-    } else if(parts[0]==="orem"){
+    } else if(parts[0]==="bedford"){
       o += "## Moderators\n\n- 2 of 3 must agree for a moderation act\n\n";
       o += "## Awaiting approval\n\nProposals this set has started and not yet carried. An approval expires if the set does not reach its threshold in time; the reason is withheld until the act carries.\n\n";
       o += "- `hide:9` — 1 of 2 approved, expires at height 4915960\n\n";

@@ -1,0 +1,76 @@
+<!-- The DIRECTORY (#/, demo, dark). Third capture: elements get adopted
+     site-wide, and until now every switch had only been judged on a claim
+     page and a docket. Regenerate with mockups/_capture-directory.js.
+     Includes the RAIL, like the other two captures: without it nothing that
+     touches the sidebar could be judged on this view, and the page rendered
+     full-width, which is not what the site does. -->
+<aside class="rail">
+  <div class="brand">
+    <a class="mark" href="#/">
+      <span class="scale">⚖️</span>
+      <span><h1>Kourt</h1></span>
+    </a>
+    <div class="tag">Stake on claims of fact. Your principal always returns 1×.</div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="#/" data-k="dir" class="on"><span class="g">▤</span> Directory</a>
+    <div class="sec">You</div>
+    <a href="#/me" data-k="me"><span class="g">◈</span> Your positions</a>
+    <a href="#/needs" data-k="needs"><span class="g">!</span> What needs you</a>
+    <div class="sec">Reference</div>
+    <a href="#/about" data-k="about"><span class="g">?</span> How it works</a>
+  </nav>
+  <div class="foot">
+    <div class="node">
+      <div class="row"><span class="dot demo" id="dot"></span> <b id="nodelab">Demo data</b></div>
+      <a class="small" id="gwrealm" target="_blank" rel="noopener" style="display:none; margin:2px 0 4px" title="the chain's own view — every screen here can be served by the realm's Render" href="https://gno.land/r/kourt/kourtv2">⚖ this realm on gnoweb →</a>
+      <label for="modesel">Source</label>
+      <select id="modesel">
+        <option value="demo">Demo (offline sample)</option>
+        <option value="live">Live node (RPC)</option>
+      </select>
+      <div id="rpcwrap" hidden="">
+        <label for="preset">Preset</label>
+        <select id="preset">
+          <option value="">Custom</option>
+          <option value="gnodev">Local gnodev</option>
+          <option value="sapphire">Sapphire testnet</option>
+        </select>
+        <label for="rpc">RPC endpoint</label>
+        <input id="rpc" class="mono" placeholder="http://127.0.0.1:26657" spellcheck="false">
+        <label for="gnoweb">gnoweb (for tx links)</label>
+        <input id="gnoweb" class="mono" placeholder="https://gno.land" spellcheck="false">
+        <label for="chainid">chain id (for CLI commands)</label>
+        <input id="chainid" class="mono" placeholder="dev" spellcheck="false">
+        <label for="chat">court chat (optional)</label>
+        <input id="chat" class="mono" placeholder="http://127.0.0.1:8788  (this site)" spellcheck="false">
+      </div>
+    </div>
+    <button class="themebtn" id="walletbtn"><span class="g">◇</span> <span id="walletlab">Connect Adena</span></button>
+    <div class="small muted" id="wallethint" role="status" hidden=""></div>
+    <button class="themebtn" id="themebtn"><span class="g">◐</span> <span id="themelab">Light mode</span></button>
+  </div>
+</aside>
+<main class="main" id="main"><div class="crumbs"><span>Directory</span></div><div class="lead-row"><div><h1 class="page-h">Courts of record</h1>
+       <p class="page-sub">Each court runs its own coin and its own docket of claims of fact. Stake on YES or NO; your staked coin always returns 1×, and conviction — stake × time held — earns the reward when the verdict goes your way. Pick the court whose judgment you trust.</p></div>
+       <span class="act"><button class="btn primary inert" data-inert="1"><span class="g">↗</span> Start a court</button><button class="clitog" data-cli="# demo data — these entities exist on no chain; switch Source to a live node first
+gnokey maketx call \
+  --pkgpath &quot;gno.land/r/kourt/kourtv2&quot; --func &quot;StartCourt&quot; \
+  --args &quot;my-court&quot; \
+  --args &quot;My Court&quot; \
+  --gas-fee 10000ugnot --gas-wanted 10000000 --broadcast \
+  --chainid &quot;dev&quot; --remote &quot;http://127.0.0.1:26657&quot; YOURKEY" title="Show the command line for this action">CLI</button></span></div><section><div class="grid stats">
+      <div class="stat"><div class="k">courts listed</div><div class="v tnum">1</div><div class="sub">on the public register — ranked by GNOT burned</div></div>
+      <div class="stat"><div class="k">featured</div><div class="v tnum">1</div><div class="sub">a curation tier set by the global DAO — placement, not endorsement</div></div>
+      <div class="stat"><div class="k">claims filed</div><div class="v tnum">14</div><div class="sub">across the 2 courts on this page — filings, not judgments</div></div>
+    </div><p class="small muted" style="margin:8px 0 0">1 court hidden by moderation — hidden from the listing, not from access: a direct link still opens the court.</p></section><div id="qscope"><div class="addrbar qbar"><input id="q" type="search" class="mono" placeholder="court name or orem/7" spellcheck="false" autocomplete="off" aria-label="filter loaded titles or jump to a claim id" aria-describedby="qcap">
+    <span id="qcap" class="mono small muted" role="status">searches all 2 court names — the sample is complete</span></div><section data-qsec=""><div class="sec-h">Featured <span class="count">1</span></div><div class="docket"><a class="crow courtrow" data-rank="0" data-claims="11" data-q="/orem Orem Truth Court" href="#/c/orem">
+      <span class="id"><svg class="icn" viewBox="0 0 14 12" aria-hidden="true"><path d="M7 0l6 2.8V4H1V2.8zM2.2 5h1.8v4.4H2.2zm3.9 0h1.8v4.4H6.1zm3.9 0h1.8v4.4H10zM1 10.4h12V12H1z" fill="currentColor"></path></svg>/orem</span>
+      <span><span class="t" id="cn-orem">Orem Truth Court</span><span class="m" style="display:block" id="cm-orem">11 claims</span></span>
+      <span class="px" id="cp-orem"><b>118</b><small>µGNOT/unit · 118,500 KOURT:OREM</small></span>
+      <span class="pill open">★ featured</span></a></div></section><section data-qsec=""><div class="sec-h">Courts <span class="count">1</span></div><div class="pager"><span class="mono small">all 1 court · ranked by GNOT burned</span>
+    <span class="chips"></span></div><div class="docket" data-sortable="" data-sortkind="dir"><a class="crow courtrow" data-rank="0" data-claims="3" data-q="/ledger The Ledger of Denver" href="#/c/ledger">
+      <span class="id"><svg class="icn" viewBox="0 0 14 12" aria-hidden="true"><path d="M7 0l6 2.8V4H1V2.8zM2.2 5h1.8v4.4H2.2zm3.9 0h1.8v4.4H6.1zm3.9 0h1.8v4.4H10zM1 10.4h12V12H1z" fill="currentColor"></path></svg>/ledger</span>
+      <span><span class="t" id="cn-ledger">The Ledger of Denver</span><span class="m" style="display:block" id="cm-ledger">3 claims</span></span>
+      <span class="px" id="cp-ledger"><b>74</b><small>µGNOT/unit · 74,300 KOURT:LEDGER</small></span>
+      <span class="pill void">listed</span></a></div></section><div id="qempty" class="empty qhide"><div class="g">◌</div><p>No loaded name matches.</p><p class="small muted">clear to browse, or go to a claim by id — orem/7</p></div></div></main>

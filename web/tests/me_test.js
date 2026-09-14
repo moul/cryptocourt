@@ -31,23 +31,23 @@ ok("open → nothing", claimables("c",1,{phase:"open"},P_STAKE,ME,100).now.lengt
 
 // rewardsOpened draws via paid flags
 const D4 = {phase:"settled",rewardsOpened:true,verdict:0,answer:1,route:"vote",author:ME,answerer:"g1x",draw:{w:1,a:2,ans:0,carrot:5},pulls:pulls0};
-const c4 = claimables("orem",4,D4,{yes:20,no:0,cy:10,cn:0},ME,100);
+const c4 = claimables("bedford",4,D4,{yes:20,no:0,cy:10,cn:0},ME,100);
 ok("winner draw when side==verdict & !paid", c4.now.some(r=>r.label.includes("accuracy reward")));
 ok("author draw when author & !paid", c4.now.some(r=>r.label.includes("author's slice")));
 ok("no answerer row for non-answerer", !c4.now.some(r=>r.label.includes("answerer")));
 ok("stake withdraw also present", c4.now.some(r=>r.label.includes("returns 1×")));
-const c4paid = claimables("orem",4,{...D4,pulls:{winnerPaid:true,authorPaid:true,answererPaid:true}},{yes:20,no:0,cy:10,cn:0},ME,100);
+const c4paid = claimables("bedford",4,{...D4,pulls:{winnerPaid:true,authorPaid:true,answererPaid:true}},{yes:20,no:0,cy:10,cn:0},ME,100);
 ok("paid flags suppress draws", !c4paid.now.some(r=>r.label.includes("reward")||r.label.includes("slice")));
-const cAns0 = claimables("orem",4,{...D4,author:"g1a",answerer:ME},{yes:0,no:0,cy:0,cn:1},ME,100);
+const cAns0 = claimables("bedford",4,{...D4,author:"g1a",answerer:ME},{yes:0,no:0,cy:0,cn:1},ME,100);
 ok("overturned answerer: decisive nothing", cAns0.now.some(r=>r.decisive && r.label.includes("draws nothing")));
-const cLoser = claimables("orem",4,D4,{yes:0,no:20,cy:0,cn:10},ME,100);
+const cLoser = claimables("bedford",4,D4,{yes:0,no:20,cy:0,cn:10},ME,100);
 ok("losing side gets no reward row", !cLoser.now.some(r=>r.label.includes("accuracy reward")));
-ok("null pulls (failed read) → no draw rows, never guessed", !claimables("orem",4,{...D4,pulls:null},{yes:20,no:0,cy:10,cn:0},ME,100).now.some(r=>r.label.includes("reward")));
+ok("null pulls (failed read) → no draw rows, never guessed", !claimables("bedford",4,{...D4,pulls:null},{yes:20,no:0,cy:10,cn:0},ME,100).now.some(r=>r.label.includes("reward")));
 
 // carrot: participants excluded — a scanned (staked) hit never hedges
-ok("staker gets NO carrot hedge", claimables("orem",4,{...D4,author:"g1a"},P_STAKE,ME,100).maybe.length===0);
-ok("conviction-only participant: NO hedge", claimables("orem",4,{...D4,author:"g1a"},P_CONV,ME,100).maybe.length===0);
-ok("non-participant would hedge", claimables("orem",4,{...D4,author:"g1a"},P_NONE,ME,100).maybe.length===1);
+ok("staker gets NO carrot hedge", claimables("bedford",4,{...D4,author:"g1a"},P_STAKE,ME,100).maybe.length===0);
+ok("conviction-only participant: NO hedge", claimables("bedford",4,{...D4,author:"g1a"},P_CONV,ME,100).maybe.length===0);
+ok("non-participant would hedge", claimables("bedford",4,{...D4,author:"g1a"},P_NONE,ME,100).maybe.length===1);
 
 // finalize
 ok("finalize when escrow passed + participant", claimables("c",1,{phase:"provisional",provisional:0,escrowUntil:90},P_STAKE,ME,100).now.some(r=>r.label.includes("finalize")));
@@ -104,7 +104,7 @@ ok("needs sections", src.includes(">Against your side <span") && src.includes(">
    So it asserts the RULE now, in the only two ways source can:
      - the disclaimer exists wherever multiple courts are shown, and
      - nothing folds heldList into a single number. A reduce over it is the only
-       way to produce a cross-court total, and KOURT:COVID plus KOURT:OREM is a
+       way to produce a cross-court total, and KOURT:COVID plus KOURT:BEDFORD is a
        figure with no exchange rate behind it. */
 ok("no cross-court sums — the holdings are listed, not added",
    /never summed/.test(src)

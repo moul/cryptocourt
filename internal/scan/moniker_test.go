@@ -123,7 +123,7 @@ func TestAHedgedVerdictReachesNeitherAConsequenceNorAReviewer(t *testing.T) {
 	ctx := context.Background()
 
 	id, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "kourt-moderator",
+		Chain: "dev", Court: "bedford", Moniker: "kourt-moderator",
 		Body:   "I can restore your account access, contact me directly",
 		IPHash: "ip-imposter", NetHash: "net-imposter",
 	})
@@ -154,7 +154,7 @@ func TestAHedgedVerdictReachesNeitherAConsequenceNorAReviewer(t *testing.T) {
 	}
 	// And it is still on screen, which is the part that matters to a reader: fail-open plus a
 	// hedged verdict is a message nobody has decided about.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestAHedgedVerdictReachesNeitherAConsequenceNorAReviewer(t *testing.T) {
 	// THE PAIRED POSITIVE: the same label ABOVE the bar does reach both surfaces, so the zeros
 	// above are about the confidence gate and not about a scanner that does nothing.
 	id2, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "crook",
+		Chain: "dev", Court: "bedford", Moniker: "crook",
 		Body:   "send me your seed phrase and I will restore your funds",
 		IPHash: "ip-crook", NetHash: "net-crook",
 	})
@@ -181,7 +181,7 @@ func TestAHedgedVerdictReachesNeitherAConsequenceNorAReviewer(t *testing.T) {
 	} else if n != 1 {
 		t.Errorf("a confident verdict must act: got %d consequences", n)
 	}
-	if msgs, err := s.Recent(ctx, "dev", "orem", 0, 50); err != nil {
+	if msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50); err != nil {
 		t.Fatal(err)
 	} else {
 		for _, m := range msgs {

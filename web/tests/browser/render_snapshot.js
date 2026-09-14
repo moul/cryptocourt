@@ -1,6 +1,6 @@
 const puppeteer=require('puppeteer');
 // check-browser-checks: not-a-check — it prints a snapshot rather than asserting, so a gate running it would prove nothing; it is a diff tool for showing a refactor changed nothing.
-const ROUTES=["/","/c/orem","/c/orem/1","/c/orem/3","/c/orem/4","/c/orem/7","/c/ledger","/c/ledger/1","/c/annex","/me","/needs","/c/orem/map","/c/orem/f/0"];
+const ROUTES=["/","/c/bedford","/c/bedford/1","/c/bedford/3","/c/bedford/4","/c/bedford/7","/c/ledger","/c/ledger/1","/c/annex","/me","/needs","/c/bedford/map","/c/bedford/f/0"];
 (async()=>{
   const b=await puppeteer.launch({headless:'new'});
   const p=await b.newPage();

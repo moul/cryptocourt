@@ -37,7 +37,7 @@ func TestTheWholeLifecycleWithABystanderWatching(t *testing.T) {
 	say := func(ip, moniker, body string) int64 {
 		t.Helper()
 		id, err := s.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: moniker, Body: body,
+			Chain: "dev", Court: "bedford", Moniker: moniker, Body: body,
 			IPHash: "ip-" + ip, NetHash: "net-" + ip,
 		})
 		if err != nil {
@@ -50,7 +50,7 @@ func TestTheWholeLifecycleWithABystanderWatching(t *testing.T) {
 	// the room, see their own message, and post again.
 	bystander := func(stage string, wantVisible int) {
 		t.Helper()
-		msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+		msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 		if err != nil {
 			t.Fatalf("%s: the bystander must be able to read: %v", stage, err)
 		}
@@ -136,13 +136,13 @@ func TestTheWholeLifecycleWithABystanderWatching(t *testing.T) {
 	}
 
 	// ── withdrawing the court, and putting it back ───────────────────────────────────────────
-	if err := s.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := s.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.Recent(ctx, "dev", "orem", 0, 50); err == nil {
+	if _, err := s.Recent(ctx, "dev", "bedford", 0, 50); err == nil {
 		t.Error("a withdrawn court must not be read")
 	}
-	if lifted, err := s.Unfreeze(ctx, "dev", "orem"); err != nil {
+	if lifted, err := s.Unfreeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	} else if !lifted {
 		t.Error("and must be restorable")
@@ -152,7 +152,7 @@ func TestTheWholeLifecycleWithABystanderWatching(t *testing.T) {
 	// ── and the bystander can still speak, which is the whole point ──────────────────────────
 	now = now.Add(time.Hour)
 	if _, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "bob", Body: "the room still works",
+		Chain: "dev", Court: "bedford", Moniker: "bob", Body: "the room still works",
 		IPHash: "ip-bob", NetHash: "net-bob",
 	}); err != nil {
 		t.Errorf("the bystander must be able to post after all of it: %v", err)

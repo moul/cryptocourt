@@ -46,33 +46,33 @@ const W = 600;
 
 // It is offered, and it carries the CURRENT title so the form opens on the text
 // being fixed rather than on an empty field the author has to retype.
-const html = polishLink("orem", 7, open, null, null, W);
+const html = polishLink("bedford", 7, open, null, null, W);
 ok("offered while the claim is open and unstaked", html.includes("fix the title"));
 ok("it points at EditClaimTitle", html.includes("func=EditClaimTitle"));
-ok("for this court and claim", html.includes("courtSlug=orem") && html.includes("claimID=7"));
+ok("for this court and claim", html.includes("courtSlug=bedford") && html.includes("claimID=7"));
 ok("prefilled with the title being fixed", html.includes(encodeURIComponent("Was it so?")));
 ok("and it leaves the app rather than pretending to be a route",
    html.includes('target="_blank"') && html.includes('rel="noopener"'));
 
 // EVERY WITHDRAWAL IS A REFUSAL THE REALM WOULD HAVE MADE. Showing the offer in
 // any of these sends an author to a form that cannot succeed.
-ok("gone once YES is staked", polishLink("orem",7,{...open, yesStake:1},null,null,W)==="");
-ok("gone once NO is staked",  polishLink("orem",7,{...open, noStake:1},null,null,W)==="");
-ok("gone when the claim is answered", polishLink("orem",7,{...open, phase:"frozen"},null,null,W)==="");
-ok("gone when the claim died", polishLink("orem",7,{...open, phase:"closed"},null,null,W)==="");
+ok("gone once YES is staked", polishLink("bedford",7,{...open, yesStake:1},null,null,W)==="");
+ok("gone once NO is staked",  polishLink("bedford",7,{...open, noStake:1},null,null,W)==="");
+ok("gone when the claim is answered", polishLink("bedford",7,{...open, phase:"frozen"},null,null,W)==="");
+ok("gone when the claim died", polishLink("bedford",7,{...open, phase:"closed"},null,null,W)==="");
 // A withheld title must not be offered for editing: the page will not show the
 // text, so the form would invite an edit to something the author cannot read
 // here, and the moderation gate is not the client's to second-guess.
-ok("gone when the title is purged", polishLink("orem",7,open,true,null,W)==="");
-ok("gone when the title is redacted", polishLink("orem",7,open,null,true,W)==="");
+ok("gone when the title is purged", polishLink("bedford",7,open,true,null,W)==="");
+ok("gone when the title is redacted", polishLink("bedford",7,open,null,true,W)==="");
 // Demo data with a live tx link is the trap btn() refuses for the same reason:
 // it would point a real network at a sample claim.
 CFG.mode='demo';
-ok("gone in demo mode", polishLink("orem",7,open,null,null,W)==="");
+ok("gone in demo mode", polishLink("bedford",7,open,null,null,W)==="");
 CFG.mode='live';
 // Nothing to reason about yet — a page that has not read the claim must not
 // guess that the window is open.
-ok("gone when there is no claim data", polishLink("orem",7,null,null,null,W)==="");
+ok("gone when there is no claim data", polishLink("bedford",7,null,null,null,W)==="");
 
 // THE COURT MUST HAVE A WINDOW AT ALL, which is the condition the first version
 // of this missed entirely and would have shipped without. StartCourt passes
@@ -80,9 +80,9 @@ ok("gone when there is no claim data", polishLink("orem",7,null,null,null,W)==="
 // way the title freezes before the opening transaction returns and
 // EditClaimTitle refuses every call. Offering "fix the title" there is a link
 // that cannot work, on almost every court in existence.
-ok("gone when the court has no polish window", polishLink("orem",7,open,null,null,0)==="");
-ok("gone when the realm cannot say", polishLink("orem",7,open,null,null,null)==="");
-ok("offered when the court opted into one", polishLink("orem",7,open,null,null,1).includes("fix the title"));
+ok("gone when the court has no polish window", polishLink("bedford",7,open,null,null,0)==="");
+ok("gone when the realm cannot say", polishLink("bedford",7,open,null,null,null)==="");
+ok("offered when the court opted into one", polishLink("bedford",7,open,null,null,1).includes("fix the title"));
 
 
 /* A CONTROL THE CHAIN WOULD REFUSE SAYS SO BEFORE THE SIGNATURE. OpenRewards was
@@ -99,7 +99,7 @@ ok("offered when the court opted into one", polishLink("orem",7,open,null,null,1
 {
   const settled = {phase:"settled", verdict:0, answer:0, route:"vote", rewardsOpened:false,
                    yesStake:180, noStake:20};
-  const clear = stakeTicket("orem", 4, settled);
+  const clear = stakeTicket("bedford", 4, settled);
   const crysOf = h => (h.match(/<button[^>]*>(?:(?!<\/button>)[\s\S])*?Open the rewards[\s\S]*?<\/button>/)||[""])[0];
   /* THE GREYED CASE IS GONE, not weakened. Three assertions here covered
      OpenRewards being blocked while a quality question was open — an open flag
@@ -204,7 +204,7 @@ ok("offered when the court opted into one", polishLink("orem",7,open,null,null,1
   // Once they are open the card stops explaining how to open them.
   ok("a rewardsOpened claim does not still describe opening",
      !/have to be opened first/.test(
-       stakeTicket("orem", 4, Object.assign({}, settled, {rewardsOpened:true}))));
+       stakeTicket("bedford", 4, Object.assign({}, settled, {rewardsOpened:true}))));
   // The withdraw buttons beside it are never blocked — principal is never gated.
   ok("withdrawing principal is never blocked",
      !/data-blocked/.test((clear.match(/<button[^>]*>(?:(?!<\/button>)[\s\S])*?Withdraw[\s\S]*?<\/button>/)||[""])[0]));

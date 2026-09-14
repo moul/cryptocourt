@@ -59,16 +59,16 @@ func rawPost(t *testing.T, path, contentType, body string) *http.Request {
 func TestMalformedPathsAreRefused(t *testing.T) {
 	srv, _, clk := newServer(t)
 	for _, p := range []string{
-		"/api/chat/dev/orem/extra",                 // a third segment
+		"/api/chat/dev/bedford/extra",              // a third segment
 		"/api/chat/dev",                            // only one
 		"/api/chat/",                               // none
 		"/api/chat/dev/",                           // empty court
-		"/api/chat//orem",                          // empty chain
-		"/api/chat/dev/orem/",                      // trailing slash after a valid pair
+		"/api/chat//bedford",                       // empty chain
+		"/api/chat/dev/bedford/",                   // trailing slash after a valid pair
 		"/api/chat/dev/../../secret",               // traversal, pre-cleaning
 		"/api/chat/dev/%2e%2e",                     // traversal, encoded
-		"/api/chat/dev/OREM",                       // the court regex is lower-case only
-		"/api/chat/dev/orem%20two",                 // a space
+		"/api/chat/dev/BEDFORD",                    // the court regex is lower-case only
+		"/api/chat/dev/bedford%20two",              // a space
 		"/api/chat/dev/" + strings.Repeat("x", 33), // one over the 32-rune cap
 	} {
 		t.Run(p, func(t *testing.T) {
@@ -90,7 +90,7 @@ func TestMalformedPathsAreRefused(t *testing.T) {
 	longButLegal := strings.Repeat("x", 32)
 	postOK(t, srv, clk, "/api/chat/dev/"+longButLegal, "application/json",
 		`{"moniker":"alice","body":"a 32-character court is legal"}`)
-	postOK(t, srv, clk, "/api/chat/dev/orem", "application/json",
+	postOK(t, srv, clk, "/api/chat/dev/bedford", "application/json",
 		`{"moniker":"alice","body":"and the ordinary path works"}`)
 }
 
@@ -118,7 +118,7 @@ func TestJSONTypeConfusion(t *testing.T) {
 		`{"moniker":"alice","body":"hello there"}{"moniker":"b","body":"smuggled"}`,
 	} {
 		t.Run(fmt.Sprintf("%.34q", body), func(t *testing.T) {
-			rec := do(t, srv, rawPost(t, "/api/chat/dev/orem", "application/json", body))
+			rec := do(t, srv, rawPost(t, "/api/chat/dev/bedford", "application/json", body))
 			if rec.Code == 200 {
 				t.Fatalf("accepted %q", body)
 			}
@@ -134,17 +134,17 @@ func TestJSONTypeConfusion(t *testing.T) {
 	// `curl --data @file` and read as a mysterious 400. json.Decoder skips whitespace
 	// before reporting More(), and this is the assertion that keeps that true.
 	for i, tail := range []string{"\n", "\r\n", "  ", "\t", "\n\n  \n"} {
-		postOK(t, srv, clk, "/api/chat/dev/orem", "application/json",
+		postOK(t, srv, clk, "/api/chat/dev/bedford", "application/json",
 			fmt.Sprintf(`{"moniker":"alice","body":"trailing whitespace %d"}`, i)+tail)
 	}
 
 	// Duplicate keys: Go keeps the last. Not a vulnerability, but worth pinning so the
 	// behaviour is a decision rather than a surprise — a client sending both must not
 	// be able to smuggle a body past a reviewer reading the first.
-	postOK(t, srv, clk, "/api/chat/dev/orem", "application/json",
+	postOK(t, srv, clk, "/api/chat/dev/bedford", "application/json",
 		`{"body":"the first one","moniker":"alice","body":"the second one"}`)
 	var got struct{ Messages []Message }
-	rec2 := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec2 := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if err := json.Unmarshal(rec2.Body.Bytes(), &got); err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestOversizedBodyIsRefusedNotTruncated(t *testing.T) {
 	srv, store, clk := newServer(t)
 	huge := strings.Repeat("a", MaxInputBytes*4)
 	b, _ := json.Marshal(postBody{Moniker: "alice", Body: huge})
-	r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/orem", bytes.NewReader(b))
+	r := httptest.NewRequest(http.MethodPost, "/api/chat/dev/bedford", bytes.NewReader(b))
 	r.Header.Set("Content-Type", "application/json")
 	rec := do(t, srv, r)
 	if rec.Code == 200 {
@@ -182,7 +182,7 @@ func TestOversizedBodyIsRefusedNotTruncated(t *testing.T) {
 		t.Fatalf("an oversized body must be a 4xx, got %d", rec.Code)
 	}
 	// The half that matters: nothing was stored. A truncated accept would leave a row.
-	msgs, err := store.Recent(t.Context(), "dev", "orem", 0, 50)
+	msgs, err := store.Recent(t.Context(), "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +193,7 @@ func TestOversizedBodyIsRefusedNotTruncated(t *testing.T) {
 	// PAIRED POSITIVE at the boundary the sanitiser enforces, not the reader's: a
 	// message of exactly MaxBodyRunes must still be accepted.
 	*clk = clk.Add(MinInterval + time.Second)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice",
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice",
 		strings.Repeat("a", MaxBodyRunes))); rec.Code != 200 {
 		t.Fatalf("a maximum-length message must be accepted, got %d %s", rec.Code, rec.Body)
 	}
@@ -217,7 +217,7 @@ func TestContentTypeVariants(t *testing.T) {
 		t.Run("accept "+ct, func(t *testing.T) {
 			// A distinct body per case, or the duplicate rule refuses the second one and
 			// the test reads as a content-type failure.
-			postOK(t, srv, clk, "/api/chat/dev/orem", ct,
+			postOK(t, srv, clk, "/api/chat/dev/bedford", ct,
 				fmt.Sprintf(`{"moniker":"alice","body":"an ordinary message number %d"}`, i))
 		})
 	}
@@ -227,7 +227,7 @@ func TestContentTypeVariants(t *testing.T) {
 		"text/json", "json",
 	} {
 		t.Run("refuse "+ct, func(t *testing.T) {
-			rec := do(t, srv, rawPost(t, "/api/chat/dev/orem", ct, body))
+			rec := do(t, srv, rawPost(t, "/api/chat/dev/bedford", ct, body))
 			if rec.Code != http.StatusUnsupportedMediaType {
 				t.Fatalf("%q must be refused with 415, got %d", ct, rec.Code)
 			}
@@ -242,7 +242,7 @@ func TestUnsupportedMethods(t *testing.T) {
 	for _, m := range []string{http.MethodPut, http.MethodDelete, http.MethodPatch,
 		http.MethodHead, http.MethodTrace} {
 		t.Run(m, func(t *testing.T) {
-			r := httptest.NewRequest(m, "/api/chat/dev/orem", nil)
+			r := httptest.NewRequest(m, "/api/chat/dev/bedford", nil)
 			rec := do(t, srv, r)
 			if rec.Code != http.StatusMethodNotAllowed {
 				t.Fatalf("%s must be 405, got %d", m, rec.Code)
@@ -250,13 +250,13 @@ func TestUnsupportedMethods(t *testing.T) {
 		})
 	}
 	// PAIRED POSITIVES: the three that must work.
-	if rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil)); rec.Code != 200 {
+	if rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil)); rec.Code != 200 {
 		t.Fatalf("GET must work, got %d", rec.Code)
 	}
-	if rec := do(t, srv, httptest.NewRequest(http.MethodOptions, "/api/chat/dev/orem", nil)); rec.Code != 204 {
+	if rec := do(t, srv, httptest.NewRequest(http.MethodOptions, "/api/chat/dev/bedford", nil)); rec.Code != 204 {
 		t.Fatalf("OPTIONS must be 204, got %d", rec.Code)
 	}
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "hello there")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "hello there")); rec.Code != 200 {
 		t.Fatalf("POST must work, got %d %s", rec.Code, rec.Body)
 	}
 }
@@ -265,7 +265,7 @@ func TestUnsupportedMethods(t *testing.T) {
 // garbage in them cannot produce an error or an unbounded read.
 func TestGarbageQueryParameters(t *testing.T) {
 	srv, _, _ := newServer(t)
-	if rec := do(t, srv, postReq(t, "/api/chat/dev/orem", "alice", "a message to find")); rec.Code != 200 {
+	if rec := do(t, srv, postReq(t, "/api/chat/dev/bedford", "alice", "a message to find")); rec.Code != 200 {
 		t.Fatal("setup post failed")
 	}
 	for _, q := range []string{
@@ -276,7 +276,7 @@ func TestGarbageQueryParameters(t *testing.T) {
 		"?since=" + strings.Repeat("9", 400),
 	} {
 		t.Run(q, func(t *testing.T) {
-			rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem"+q, nil))
+			rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford"+q, nil))
 			if rec.Code != 200 {
 				t.Fatalf("garbage query params must be clamped, not refused: got %d %s",
 					rec.Code, rec.Body)
@@ -314,7 +314,7 @@ func TestScatteringAcrossRoomsDoesNotRaiseTheCeiling(t *testing.T) {
 	for i := 0; i < attempts; i++ {
 		*oneClock = oneClock.Add(MinInterval + 100*time.Millisecond)
 		if _, err := one.Post(context.Background(), PostInput{
-			Chain: "dev", Court: "orem", Moniker: "a",
+			Chain: "dev", Court: "bedford", Moniker: "a",
 			Body:   fmt.Sprintf("message %d in a single room", i),
 			IPHash: "ip-a", NetHash: "net-a",
 		}); err == nil {
@@ -368,7 +368,7 @@ func TestTheBurstFloorIsPerAddressNotPerRoom(t *testing.T) {
 	ctx := context.Background()
 
 	if _, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "a", Body: "the first message",
+		Chain: "dev", Court: "bedford", Moniker: "a", Body: "the first message",
 		IPHash: "ip-a", NetHash: "net-a",
 	}); err != nil {
 		t.Fatal(err)
@@ -410,7 +410,7 @@ func TestTheBurstFloorIsPerAddressNotPerRoom(t *testing.T) {
 	// a DIFFERENT network does not test this: net-scoping lets them through too, which is
 	// why the earlier version of this line missed it.
 	if _, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "b", Body: "an unrelated person talking",
+		Chain: "dev", Court: "bedford", Moniker: "b", Body: "an unrelated person talking",
 		IPHash: "ip-b", NetHash: "net-a", // same /24, different address
 	}); err != nil {
 		t.Fatalf("a neighbour behind the same NAT must not inherit somebody else's "+

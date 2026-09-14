@@ -45,7 +45,7 @@ const contrast = (fgs, bgs) => { const bg = parse(bgs); return ratio(over(parse(
       localStorage.setItem("cc.intro", "1");
     });
     await page.setViewport({width: 1280, height: 1100});
-    await page.goto(PAGE + '#/c/orem', {waitUntil: 'networkidle0'});
+    await page.goto(PAGE + '#/c/bedford', {waitUntil: 'networkidle0'});
     await new Promise(r => setTimeout(r, 900));
 
     const marks = await page.evaluate(() => {

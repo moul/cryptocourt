@@ -21,7 +21,7 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const PAGE = 'file://' + path.join(__dirname, '..', '..', 'index.html');
-const ROUTES = ["#/c/orem", "#/c/orem/f/0", "#/c/orem/f/1", "#/c/orem/11", "#/c/orem/map"];
+const ROUTES = ["#/c/bedford", "#/c/bedford/f/0", "#/c/bedford/f/1", "#/c/bedford/11", "#/c/bedford/map"];
 
 (async () => {
   const browser = await puppeteer.launch({headless: 'new'});
@@ -70,7 +70,7 @@ const ROUTES = ["#/c/orem", "#/c/orem/f/0", "#/c/orem/f/1", "#/c/orem/11", "#/c/
            display:none by design, and a hidden element's rect is all zeros. So
            `|0 - tr.y| > 0 * 0.75` is true whenever there is any text beside it,
            and every folder row reported two eyes breaking a line they have no box
-           in. Measured on #/c/orem: two, both .foldbox, both display:none.
+           in. Measured on #/c/bedford: two, both .foldbox, both display:none.
            ASKED OF THE BOX, NOT OF `display`. getClientRects() is empty for an
            element with no layout for ANY reason — display:none on itself, on an
            ancestor, or detached — where a display check would have to walk up and
@@ -96,7 +96,7 @@ const ROUTES = ["#/c/orem", "#/c/orem/f/0", "#/c/orem/f/1", "#/c/orem/11", "#/c/
   /* THE HEADING THAT WAS REPORTED, measured as the reader saw it: the eye above
      the name made an 80px h1 out of a 40px one. Height, not just "same line",
      because a heading that wraps for any other reason is the same defect. */
-  await page.goto(PAGE + "#/c/orem/f/0", {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + "#/c/bedford/f/0", {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 800));
   const head = await page.evaluate(() => {
     const h = document.querySelector("h1.page-h"), eye = h.querySelector(".wedjat, .eye");
@@ -134,7 +134,7 @@ const ROUTES = ["#/c/orem", "#/c/orem/f/0", "#/c/orem/f/1", "#/c/orem/11", "#/c/
      docket and a moderator files it. A button reading "file a claim in this set"
      would name an outcome the chain will not deliver — and the reader would
      learn that after paying for the claim. */
-  for (const r of ["#/c/orem/f/0", "#/c/orem/f/1"]) {
+  for (const r of ["#/c/bedford/f/0", "#/c/bedford/f/1"]) {
     await page.goto(PAGE + r, {waitUntil: 'networkidle0'});
     await new Promise(z => setTimeout(z, 800));
     const act = await page.evaluate(() => {
@@ -182,8 +182,8 @@ const ROUTES = ["#/c/orem", "#/c/orem/f/0", "#/c/orem/f/1", "#/c/orem/11", "#/c/
      verdict oval ended the title and the figure belonging to it was an inch away.
      Asked for as "(NO) 49% ~ all inline", and that is the shape asserted: the
      oval, the figure and the line on one baseline, in that order.
-     ON ledger, NOT orem: the rule underneath is "the figure is the decided
-     side's", and orem's visible docket has no settled-NO row to break — mutants
+     ON ledger, NOT bedford: the rule underneath is "the figure is the decided
+     side's", and bedford's visible docket has no settled-NO row to break — mutants
      that severed the plumbing survived against it, all silently correct on a
      court where every verdict is YES. */
   await page.goto(PAGE + "#/c/ledger", {waitUntil: 'networkidle0'});
@@ -265,8 +265,8 @@ const ROUTES = ["#/c/orem", "#/c/orem/f/0", "#/c/orem/f/1", "#/c/orem/11", "#/c/
      still open wore a "PROPOSED YES" pill on the meta line while a disputed one
      an inch above wore the oval — the same fact, two vocabularies, in the list a
      reader meets a court in. The map has always drawn oval + `…` for it.
-     ON orem, which has both a pending row and a settled one. */
-  await page.goto(PAGE + "#/c/orem", {waitUntil: 'networkidle0'});
+     ON bedford, which has both a pending row and a settled one. */
+  await page.goto(PAGE + "#/c/bedford", {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1500));
   const marks = await page.evaluate(() => {
     const rows = [...document.querySelectorAll(".docket .crow.claimrow")];

@@ -63,8 +63,8 @@ func TestAnExistingDatabaseGainsTheColumnAndKeepsItsRows(t *testing.T) {
 	}
 	if _, err := raw.Exec(
 		`INSERT INTO messages(id,chain,court,moniker,body,ip_hash,created_at,verdict,hidden)
-		 VALUES (1,'dev','orem','alice','a message worth keeping','ip1',1700000000,'clean',0),
-		        (2,'dev','orem','crook','a scam that was hidden','ip2',1700000001,'scam',1)`); err != nil {
+		 VALUES (1,'dev','bedford','alice','a message worth keeping','ip1',1700000000,'clean',0),
+		        (2,'dev','bedford','crook','a scam that was hidden','ip2',1700000001,'scam',1)`); err != nil {
 		t.Fatal(err)
 	}
 	// The precondition, asserted rather than assumed: if the fixture already had the
@@ -90,7 +90,7 @@ func TestAnExistingDatabaseGainsTheColumnAndKeepsItsRows(t *testing.T) {
 	// THE HALF A VERSION COUNTER WOULD NOT CATCH: the rows are still there, with their
 	// values, and the hidden flag still hides.
 	ctx := context.Background()
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}

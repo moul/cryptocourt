@@ -1,0 +1,178 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kourt — styling concepts</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#0b1014;color:#dfe7ee;
+  font:15px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif;
+  padding:40px clamp(20px,5vw,64px);max-width:1000px}
+h1{font:600 26px/1.2 ui-serif,Georgia,serif;margin:0 0 6px}
+.sub{color:#8a99a4;margin:0 0 30px;max-width:64ch}
+.warn{border:1px solid #7d5c0f;background:#2e2512;color:#d7b264;
+  padding:10px 13px;border-radius:3px;font-size:13px;margin:0 0 30px}
+.c{display:block;text-decoration:none;color:inherit;border:1px solid #212b33;
+  border-radius:4px;padding:16px 18px;margin:0 0 12px;background:#141c22;
+  box-shadow:inset 0 1px 0 rgba(179,190,243,.10)}
+.c:hover{border-color:#9aa8ee;box-shadow:0 0 8px rgba(154,168,238,.35),inset 0 1px 0 rgba(179,190,243,.16)}
+.c h2{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;
+  text-transform:uppercase;color:#e8b04b;margin:0 0 8px}
+.c .t{font-weight:600;font-size:17px;margin:0 0 6px}
+.c p{margin:0;color:#a3b2bd;font-size:14px}
+.c .cost{margin:8px 0 0;color:#8a99a4;font-size:13px;font-style:italic}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;color:#b3bef3}
+</style></head><body>
+<h1>Kourt — styling concepts</h1>
+<p class="sub">Cypherpunk / Blade&nbsp;Runner ideas, applied judiciously. Each one is the
+<em>real</em> claim page — real numbers, real chart, real ticket — with nothing changed but the
+CSS, so they can be compared honestly. Pick the elements worth keeping and I'll implement those
+on the site.</p>
+
+<div class="warn"><strong>None of this is on the site.</strong> Mockups only, uncommitted.
+See <code>NOTES.md</code> for what has been tried and rejected.</div>
+
+<a class="c" href="c10-selected.html" style="border-color:#c9a227;background:#191f18">
+  <h2>Your selection &mdash; concept 10</h2>
+  <div class="t">The ten you turned on, as one design</div>
+  <p><code>e-ticks e-cyan e-nofill e-ruled e-ring e-brackets e-ruling e-grid e-casenum e-seal</code>
+  &mdash; baked in, no toggles, on <strong>four</strong> views:
+  <a href="c10-selected.html" style="color:#b3bef3">claim</a>,
+  <a href="c10-selected-docket.html" style="color:#b3bef3">docket</a>,
+  <a href="c10-selected-directory.html" style="color:#b3bef3">directory</a> and
+  <a href="c10-selected-embed.html" style="color:#b3bef3">the share card</a> (new &mdash; open that one
+  in a 400&times;500 window; it is an iframe, not a page). Read together the set is coherent: surfaces
+  lose their fills and become hairline frames with registration ticks, the chain's data is the only
+  glowing thing, and gold is spent <em>only</em> on provenance &mdash; the docket reference and the
+  seal &mdash; never on state. You left <code>e-stamp</code> and <code>e-formcaps</code> off, so pills
+  and section heads stay exactly as they are.</p>
+  <p class="cost">Three costs, measured. <strong>One</strong>: built first the way
+  <code>e-ticks</code> describes itself &mdash; ticks <em>instead of</em> a border &mdash; and the
+  render refuted it. The claim panel is a grid item stretched to the ticket's height, so four 10px
+  marks sat ~960px apart around a 500px void and read as stray. Hairline restored, tick as
+  reinforcement, and nested boxes give up their marks. <strong>Two</strong>: two of the ten do not
+  cross onto paper. In light mode the share card came out striped like fax paper end to end &mdash;
+  every ratio still passed AA and it still looked wrong &mdash; so the ruling and the glow are
+  dark-only, which is already what every neon token in the live light theme does. <strong>Three</strong>:
+  on the claim page and the share card, <code>e-ruled</code> and <code>e-seal</code> do nothing at all
+  &mdash; there is no stats strip and no seal there. Adopting ten elements buys eight.</p>
+  <p class="cost">Audited since: three defects, all caused by the ten. <code>e-nofill</code> was
+  stripping the fill that was the <em>only</em> thing marking &ldquo;Reward = conviction, not
+  stake&rdquo; as an aside (it now takes a rule in the margin, like the notices do); it separated
+  docket rows on the wrong edge, drawing a doubled hairline against the container in all six boxes on
+  the docket and directory; and it turned an invisible stretched panel into a visible frame around
+  ~300px of nothing. That last fix, <code>align-self:start</code>, is the one declaration here that
+  is <strong>layout, not skin</strong> &mdash; flagged rather than smuggled. <code>e-brackets</code>
+  measured exactly as designed: 10px amber at rest, 14px teal on hover, nested boxes dark.</p>
+</a>
+
+<a class="c" href="c7-switchboard.html" style="border-color:#e8b04b">
+  <h2>Where those came from &mdash; concept 07</h2>
+  <div class="t">Element switchboard</div>
+  <p>Every element from 01&ndash;08 as its own switch, over <strong>all three</strong> captured pages
+  &mdash; claim, court docket and directory &mdash; with the six concepts as one-click presets. Tick what you
+  want; the readout at the bottom of the panel is literally what to tell me, and that is what I
+  implement.</p>
+  <p class="cost">Cyan and ink are one slot &mdash; two answers to the same question, so one unticks the
+  other. Switches with no visible effect in the current view are dimmed and say which view to go to.
+  The panel folds to a tab when you want the page whole, and on a phone it overlays rather than
+  squeezing the page &mdash; it reserved 368px of a 390px viewport until that was measured. It also has a
+  dark/light switch, because measured, every mark in every concept scores 1.02&ndash;1.95:1 on the site's
+  light paper: the concepts are dark-only demonstrations, and each element needs a paired light value.</p>
+</a>
+
+<a class="c" href="c1-records-terminal.html">
+  <h2>Concept 01</h2>
+  <div class="t">Records terminal</div>
+  <p>Amber monospace field <em>labels</em>, values left plain and large. A cyan data trace, so
+  two hues do two jobs: amber is what the page tells you, cyan is what the chain recorded.
+  Corner ticks instead of full borders — panels read as registered frames on a plate.</p>
+  <p class="cost">Costs nothing in legibility; every number is untouched. Strongest so far &mdash; and now
+  audited: on <a href="c1-records-terminal-docket.html" style="color:#b3bef3">the docket</a> and
+  <a href="c1-records-terminal-directory.html" style="color:#b3bef3">the directory</a> too, with paired
+  light values. Note its cyan trace is inert on both of those &mdash; neither page has a chart.</p>
+</a>
+
+<a class="c" href="c2-phosphor.html">
+  <h2>Concept 02</h2>
+  <div class="t">Phosphor burn</div>
+  <p>Territory Studio's "screen burn suggesting old technology": a faint horizontal ruling and a
+  vignette, fixed to the viewport so it belongs to the screen rather than the document.</p>
+  <p class="cost">Revised after computing it: the first version failed WCAG AA for <em>body text</em>
+  in the corners (3.67:1), not just the rail footer. A multiply overlay scales text and background
+  together, which pushes their ratio toward 1. Now confined to the main column and clear of the text
+  at every width &mdash; all cases pass. The honest cost: it is now the mildest concept here.</p>
+</a>
+
+<a class="c" href="c3-crosshair.html">
+  <h2>Concept 03</h2>
+  <div class="t">Registration marks</div>
+  <p>The surveillance register: a ring you sight through on the one point the chart exists to
+  report, corner brackets on the panel you're actually reading (hover-only — always-on is
+  wallpaper), registration ticks down the margin like the edge of a plate.</p>
+  <p class="cost">Revised: the margin ticks were being painted underneath the opaque rail, and the
+  &ldquo;reticle&rdquo; was a <em>smaller</em> dot than the one it replaced. Both fixed — see
+  <code>NOTES.md</code>.</p>
+</a>
+
+<a class="c" href="c4-wireframe.html">
+  <h2>Concept 04</h2>
+  <div class="t">Structured wireframe</div>
+  <p>The brutalist half of the reading — the half about structure, not atmosphere. 1px rules, no
+  fills, square corners, no shadow: components that feel engineered rather than floating. The
+  opposite bet from 01, which <em>adds</em> marks; this one takes surfaces away.</p>
+  <p class="cost">Now in two views &mdash; <a href="c4-wireframe-docket.html" style="color:#b3bef3">the
+  docket</a> as well, because the ruled stats strip could not be judged on a claim page at all.
+  Caveat: removing the fills makes the site&rsquo;s existing background grid far more prominent, so
+  the two are coupled. The tabular-figures idea is <em>retracted</em> &mdash; measured, Kourt&rsquo;s
+  numeric columns are already box-aligned, so it buys nothing.</p>
+</a>
+
+<a class="c" href="c5-microfiche.html">
+  <h2>Concept 05</h2>
+  <div class="t">Microfiche</div>
+  <p>The half of Territory Studio's reference pile nobody reaches for: E-Ink, microfiche, optical
+  lenses &mdash; <em>not</em> neon. A near-monochrome plate with no glow anywhere and an ink trace.
+  YES/NO keep their hues, because those are the only colours on the page that carry meaning.
+  Also as <a href="c5-microfiche-docket.html" style="color:#b3bef3">the docket</a>.</p>
+  <p class="cost">Measurably the most legible option here: trace contrast 16.83:1 against paper,
+  where concept 01's cyan is 10.27:1. Cost: making the accent into ink killed the link colour, so
+  links needed an always-on underline &mdash; which suits a printed plate anyway.</p>
+</a>
+
+<a class="c" href="c6-composite.html">
+  <h2>Concept 06</h2>
+  <div class="t">Composite &mdash; the measured winners</div>
+  <p><strong>Not a sixth aesthetic.</strong> The five above are alternatives, and nobody ships an
+  alternative. This is the elements that measured well, assembled: amber monospace labels and corner
+  ticks (01), no fills and the ruled stats strip (04), the reticle ring (03), the ruling (02). Also as
+  <a href="c6-composite-docket.html" style="color:#b3bef3">the docket</a>.</p>
+  <p class="cost">One real conflict, decided in the open: 01 wants a cyan trace for the two-hue split,
+  05 wants ink and wins on contrast (16.83 vs 10.27). Cyan chosen &mdash; the semantics beat six points
+  of ratio when both are far above AA. If that trade is wrong, concept 05 takes the other side.</p>
+</a>
+
+<a class="c" href="c8-filed.html">
+  <h2>Concept 08</h2>
+  <div class="t">Filed and stamped</div>
+  <p>The register the brief actually asks for, taken literally: the stamp, the seal, the case number,
+  FILED. Every other concept here borrows from science fiction &mdash; a court of record has its own
+  visual language and it predates all of it. Also as
+  <a href="c8-filed-docket.html" style="color:#b3bef3">the docket</a>.</p>
+  <p class="cost">No rotation, on purpose: a tilted stamp would be the only purely decorative thing in
+  the gallery. An accident worth keeping &mdash; gold ended up marking where you <em>are</em> and grey
+  where you can <em>go</em>, because the crumb links kept their own colour.</p>
+</a>
+
+<a class="c" href="c9-commandbar.html">
+  <h2>Concept 09</h2>
+  <div class="t">Command line chic</div>
+  <p>The only <em>interaction</em> idea in the research, and the last one unused: a
+  <code>&#8984;K</code> palette over the real claim page. Every destination in it is scraped from the
+  three captures &mdash; real routes, real court slugs, real claim titles &mdash; because a palette
+  answering invented destinations would be lorem ipsum in another costume.</p>
+  <p class="cost">It beats the rail for exactly one thing: jumping to a claim by number, which the rail
+  cannot do and the court search box can only do on the court you are already looking at. Against it:
+  it is invisible until you know the shortcut, so it can only ever be an accelerator on top of the
+  navigation, never a replacement. Second file here to bend the vary-the-CSS-only rule, and the last
+  one that should.</p>
+</a>
+</body></html>

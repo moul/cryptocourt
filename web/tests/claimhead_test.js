@@ -50,9 +50,9 @@ const REC = COLS.join("\t");
   ok("the fixture in this harness is that wide too", COLS.length === realmN);
 
   REPLY = REC; asked = [];
-  const h = await claimHeadOf('"orem"', 3);
+  const h = await claimHeadOf('"bedford"', 3);
   ok("one read, and it is ClaimHead with the window",
-     asked.length === 1 && /^ClaimHead\("orem",3,120960\)$/.test(asked[0]));
+     asked.length === 1 && /^ClaimHead\("bedford",3,120960\)$/.test(asked[0]));
 
   // EVERY COLUMN NAMED, one assertion each. Written out rather than deep-equalled
   // so that a transposition says which two fields swapped.
@@ -76,26 +76,26 @@ const REC = COLS.join("\t");
   // ---- it refuses rather than guesses --------------------------------------
   REPLY = new Error("name ClaimHead not declared");
   ok("an older realm yields null, so the caller reads singly",
-     (await claimHeadOf('"orem"', 3)) === null);
+     (await claimHeadOf('"bedford"', 3)) === null);
   REPLY = COLS.slice(0, realmN - 1).join("\t");
   ok("a record one column SHORT is refused, not read shifted",
-     (await claimHeadOf('"orem"', 3)) === null);
+     (await claimHeadOf('"bedford"', 3)) === null);
   REPLY = REC + "\textra";
   ok("a record one column LONG is refused too",
-     (await claimHeadOf('"orem"', 3)) === null);
+     (await claimHeadOf('"bedford"', 3)) === null);
   REPLY = "";
-  ok("an empty reply is refused", (await claimHeadOf('"orem"', 3)) === null);
+  ok("an empty reply is refused", (await claimHeadOf('"bedford"', 3)) === null);
   {
     const bad = COLS.slice(); bad[0] = "not-a-number";
     REPLY = bad.join("\t");
     ok("a money column that is not a number is refused, not read as zero",
-       (await claimHeadOf('"orem"', 3)) === null);
+       (await claimHeadOf('"bedford"', 3)) === null);
   }
   // 0 is a real answer for a pool and must NOT be mistaken for a parse failure
   {
     const zeroes = COLS.slice(); zeroes[0] = "0"; zeroes[1] = "0";
     REPLY = zeroes.join("\t");
-    const z = await claimHeadOf('"orem"', 3);
+    const z = await claimHeadOf('"bedford"', 3);
     ok("but a genuinely zero pool is kept", z && z.yesStake === 0 && z.noStake === 0);
   }
   // an absent quorum/close is null rather than 0, because 0 is what the realm
@@ -103,7 +103,7 @@ const REC = COLS.join("\t");
   {
     const nodispute = COLS.slice(); nodispute[22] = "0"; nodispute[23] = "0";
     REPLY = nodispute.join("\t");
-    const z = await claimHeadOf('"orem"', 3);
+    const z = await claimHeadOf('"bedford"', 3);
     ok("no open round leaves quorum and close null, not zero",
        z && z.quorumFloor === null && z.voteCloses === null);
   }

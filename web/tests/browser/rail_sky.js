@@ -71,7 +71,7 @@ const crypto = require('crypto');
   // to re-resolve them looks perfect until somebody opens the site in daylight.
   for (const scheme of ['light', 'dark']) {
     await page.emulateMediaFeatures([{name: 'prefers-color-scheme', value: scheme}]);
-    await page.goto(PAGE + '#/c/orem/4', {waitUntil: 'domcontentloaded'});
+    await page.goto(PAGE + '#/c/bedford/4', {waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 1500));
     const m = await page.evaluate(() => {
       const rail = document.querySelector('.rail');

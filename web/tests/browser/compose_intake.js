@@ -32,7 +32,7 @@ if (!BASE) { console.log("usage: compose_intake.js <base-url>"); process.exit(2)
     localStorage.setItem("cc.intro", "1");
     // Drafts persist per court, and a draft restored from an earlier case would
     // seed exhibits this one never added.
-    localStorage.removeItem("cc.mediadraft.orem");
+    localStorage.removeItem("cc.mediadraft.bedford");
   });
   await page.goto(BASE + "/index.html", {waitUntil: 'domcontentloaded'});
   await new Promise(r => setTimeout(r, 600));
@@ -46,13 +46,13 @@ if (!BASE) { console.log("usage: compose_intake.js <base-url>"); process.exit(2)
       // keystroke and every exhibit per court, and restores them on mount — so
       // without this each case inherits the one before it and the counts creep.
       // Observed as 1, then 2, then 3 items across three independent cases.
-      localStorage.removeItem(mediaDraftKey("orem"));
+      localStorage.removeItem(mediaDraftKey("bedford"));
       const real = window.mediaNewComposer;
       window.mediaNewComposer = function (o) { const c = real(o); window.__c = c; return c; };
       const div = document.createElement("div");
       div.className = "__probe";
       document.body.appendChild(div);
-      mountCompose(div, "orem");
+      mountCompose(div, "bedford");
       div.querySelector(".composeopen").click();
       window.mediaNewComposer = real;
       return div;
@@ -325,7 +325,7 @@ if (!BASE) { console.log("usage: compose_intake.js <base-url>"); process.exit(2)
   // directly. Neither crosses a page load, which is the only event the feature
   // exists for.
   //
-  // A DIFFERENT COURT, because evaluateOnNewDocument above clears orem's draft
+  // A DIFFERENT COURT, because evaluateOnNewDocument above clears bedford's draft
   // on every document — including the one the reload produces, which would wipe
   // the very thing under test and report it as lost.
   await page.evaluate(async () => {

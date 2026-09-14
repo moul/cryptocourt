@@ -39,8 +39,8 @@ eval(code);
 
 let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else console.log("ok:",n); };
 
-const d = Object.assign({}, DEMO.claims["orem/3"]);
-const html = disputeTicket("orem", 3, d, NOW);
+const d = Object.assign({}, DEMO.claims["bedford/3"]);
+const html = disputeTicket("bedford", 3, d, NOW);
 
 // THE BALLOT IS THE QUESTION, ONE LINE OF CLOCK, AND THE BUTTONS. Quorum, the
 // threshold, the locking rule, what each outcome does to whose bond and the
@@ -79,10 +79,10 @@ ok("the hint is one line, and it is the clock",
 // still said "Round 2": the fixture has a voteEndsAt and never reaches it.
 ok("...with no round number on it, on any branch",
    !/<div class="hint">[^<]*[Rr]ound \d/.test(html)
-   && [ballotHint("orem", d, NOW),
-       ballotHint("orem", Object.assign({}, d, {voteEndsAt:null}), NOW),
-       ballotHint("orem", d, null),
-       ballotHint("orem", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)]
+   && [ballotHint("bedford", d, NOW),
+       ballotHint("bedford", Object.assign({}, d, {voteEndsAt:null}), NOW),
+       ballotHint("bedford", d, null),
+       ballotHint("bedford", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)]
         .every(x => !/[Rr]ound \d/.test(x)));
 // "One vote per address, and you cannot change it" is a rule about a mistake:
 // it means something only to somebody who has already cast the vote it would
@@ -95,9 +95,9 @@ ok("...and no standing warning about changing a vote",
 {
   const h = html.match(/<div class="hint">([^<]*)</)[1];
   const all = [h,
-    ballotHint("orem", Object.assign({}, d, {voteEndsAt:null}), NOW),
-    ballotHint("orem", d, null),
-    ballotHint("orem", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)];
+    ballotHint("bedford", Object.assign({}, d, {voteEndsAt:null}), NOW),
+    ballotHint("bedford", d, null),
+    ballotHint("bedford", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)];
   ok("...and every branch of it is one short sentence",
      all.every(x => x.length < 60 && !x.includes("\n")
                     && x.trim().split(/\.\s+/).length === 1));
@@ -106,7 +106,7 @@ ok("...and no standing warning about changing a vote",
 // noise to somebody who can no longer vote, and joining it on made the sentence
 // read "Round 3 — voting has closed — Resolve works now".
 ok("a closed window says only that, and says it without a second dash",
-   ballotHint("orem", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)
+   ballotHint("bedford", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)
      === "Voting has closed; Resolve works now.");
 ok("no outcome rows: what overturning does to whose bond is modal copy",
    !html.includes("the answer stays YES") && !html.includes("the answer becomes NO"));
@@ -128,10 +128,10 @@ ok("the spent-round ladder is gone from the file",
    !src.includes("failed quorum — half that round's disputer bond burned")
    && !src.includes("disputeRounds"));
 // DisputeBondNext quotes what the NEXT DISPUTE costs (dispute.gno:849). The row
-// that carried it said "voting now at 64.0 KOURT:OREM", which tells a voter they
+// that carried it said "voting now at 64.0 KOURT:BEDFORD", which tells a voter they
 // must pay to vote. Voting costs no bond, so the figure is not carried forward.
 ok("...and no bond figure sits beside the word voting",
-   !html.includes("voting now at") && !/voting[^.]*KOURT:OREM/.test(html));
+   !html.includes("voting now at") && !/voting[^.]*KOURT:BEDFORD/.test(html));
 // The eligibility paragraph left the ballot entirely: the reason only matters to
 // the reader it applies to, and only when they reach for the button.
 ok("eligibility is not a standing paragraph", !html.includes("holder can vote"));
@@ -143,9 +143,9 @@ ok("...the vote buttons are marked for the click-time check",
 // so the panel says which one it is.
 {
   const save = CFG.mode; CFG.mode = "live";
-  const open   = disputeTicket("orem", 3, d, NOW);                                  // window open
-  const shut   = disputeTicket("orem", 3, Object.assign({}, d, {voteEndsAt:NOW-1}), NOW);
-  const unsure = disputeTicket("orem", 3, Object.assign({}, d, {voteEndsAt:null}), NOW);
+  const open   = disputeTicket("bedford", 3, d, NOW);                                  // window open
+  const shut   = disputeTicket("bedford", 3, Object.assign({}, d, {voteEndsAt:NOW-1}), NOW);
+  const unsure = disputeTicket("bedford", 3, Object.assign({}, d, {voteEndsAt:null}), NOW);
   CFG.mode = save;
 
   ok("before the close, Resolve is not offered at all", !/>[^<]*Resolve/.test(open));
@@ -189,23 +189,23 @@ ok("clock: no second copy of the close row on the ballot",
 // this branch means the read failed — and it says so instead of substituting a
 // number that looks like an answer.
 ok("clock: a failed read says so rather than guessing a window",
-   ballotHint("orem", Object.assign({}, d, {voteEndsAt:null}), NOW)
+   ballotHint("bedford", Object.assign({}, d, {voteEndsAt:null}), NOW)
      === "The closing time could not be read.");
 // WHAT RENDERS, not what the file says. A file-wide ban also bans the comment
 // that explains why the line went — the same trap votelock_test hit with
 // SpendableOf, where the guard has to be "nothing CALLS it", not "the string
 // never appears". Every branch is checked, since only one of them carried it.
 ok("...and no branch of the hint substitutes a window length for a countdown",
-   [ballotHint("orem", d, NOW),
-    ballotHint("orem", Object.assign({}, d, {voteEndsAt:null}), NOW),
-    ballotHint("orem", d, null),
-    ballotHint("orem", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)]
+   [ballotHint("bedford", d, NOW),
+    ballotHint("bedford", Object.assign({}, d, {voteEndsAt:null}), NOW),
+    ballotHint("bedford", d, null),
+    ballotHint("bedford", Object.assign({}, d, {voteEndsAt:NOW-1}), NOW)]
      .every(x => !/7 days|a week/.test(x)));
 // nowH null is a DIFFERENT branch from voteEndsAt absent: the height IS known and
 // merely unprojectable. It must print that height rather than the 7-day guess,
 // which would be an invented date printed over a fact the chain gave.
 ok("clock: a known height with no clock to project it prints the height",
-   ballotHint("orem", d, null).includes("Closes at block "));
+   ballotHint("bedford", d, null).includes("Closes at block "));
 // Quorum LEFT the ballot. The rule and the figure are in the modal, where a
 // reader who wants the mechanism can find both — and the ballot no longer
 // spends a row on arithmetic nobody is being asked to do.
@@ -213,13 +213,13 @@ ok("quorum is off the ballot", !html.includes("<span>required quorum</span>"));
 // CASE-INSENSITIVE ON THE MARK ONLY. The symbol's canonical spelling is the
 // realm's — court.gno renders KOURT:SYMBOL — and that is still what ccSym and
 // ccText return. What changed is the DISPLAY: the mark is a gold bar reading
-// "Kourt" beside the court's name, so tag-stripped output reads "Kourt:OREM".
+// "Kourt" beside the court's name, so tag-stripped output reads "Kourt:BEDFORD".
 // The colon and the court name are still pinned exactly; only the mark's case
 // is allowed to be a presentation choice.
 ok("...and in the modal, rule first then figure",
    html.includes("If too little weight is cast, the round decides nothing at all")
    // Tags stripped: the symbol is wrapped for colour, the wording is unchanged.
-   && /5,925 kourt:OREM/i.test(html.replace(/<[^>]*>/g, "")));
+   && /5,925 kourt:BEDFORD/i.test(html.replace(/<[^>]*>/g, "")));
 ok("no bare jargon label left", !html.includes("turnout bar"));
 ok("threshold is off the ballot", !html.includes("<span>threshold</span>"));
 ok("...and stated in the modal in plain words",
@@ -297,7 +297,7 @@ ok("...while the button itself no longer carries that subtitle",
 // into data-args and then esc()apes, so the quotes are entities.
 {
   const save = CFG.mode; CFG.mode = "live";
-  const L = disputeTicket("orem", 3, d, NOW);
+  const L = disputeTicket("bedford", 3, d, NOW);
   CFG.mode = save;
   ok("...and it sends the word the realm accepts",
      L.includes("choice&quot;:&quot;spam") && !/abstain/i.test(L));
@@ -318,7 +318,7 @@ ok("...while the button itself no longer carries that subtitle",
   // by design — asserting the action markup against it passes for the wrong
   // reason or not at all. The first version of this block did the latter.
   const save = CFG.mode; CFG.mode = "live";
-  const L = disputeTicket("orem", 3, d, NOW);
+  const L = disputeTicket("bedford", 3, d, NOW);
   CFG.mode = save;
 
   const one = L.match(/<span class="act">[\s\S]*?<\/span>/g) || [];
@@ -453,10 +453,15 @@ ok("...and a failed connect says why, in the dialog that asked",
         for `setTimeout(async ()=>{ … }, 7000);` matches the MEDIA path first —
         adenaSign has a second seven-second callback for mediaClaimed — so the
         window has to start at the statement this rule is about. */
+     /* DELAY-AGNOSTIC END. This pinned the literal "}, 7000);" and so failed the
+        day the wait stopped being a fixed seven seconds — the repaint now polls
+        for the transaction's inclusion and the timer that opens it is 1500. The
+        rule is about ORDER, not duration, so find the callback's close by shape. */
      const clr = sign.indexOf("clearInterval(tick)");
      if(clr < 0) return false;
-     const end = sign.indexOf("}, 7000);", clr);
-     if(end < 0) return false;
+     const rel = sign.slice(clr).search(/\},\s*\d+\s*\);/);
+     if(rel < 0) return false;
+     const end = clr + rel;
      const cb = sign.slice(clr, end);
      // both repaint paths live after the clear, inside the same callback
      return cb.includes("refreshClaimRewards") && cb.includes("render()");
@@ -549,8 +554,13 @@ ok("...reading the realm's reason without reprinting it",
 // produced it, so a reinstalled wallet, a revoked permission or another browser
 // profile all land here with the wallet perfectly unlocked — and both
 // conditions the click handler checks are still true, so it cannot tell.
+// The wcall() wrapper is optional in this pattern on purpose: every wallet call
+// is raced against a stall timeout (a Ledger-backed Adena never answers at all),
+// and the ORDER this asserts — read the network, and on refusal try to establish
+// before giving up — is what matters, not whether the call is wrapped. Pinning
+// the bare spelling made a timeout guard look like a regression in the handshake.
 ok("a refused GetNetwork tries to establish before giving up",
-   /let net = await a\.GetNetwork\(\);[\s\S]{0,400}await a\.AddEstablish\("Kourt"\)/.test(src));
+   /let net = await (?:wcall\()?a\.GetNetwork\(\)\)?;[\s\S]{0,400}await (?:wcall\()?a\.AddEstablish\("Kourt"\)/.test(src));
 ok("...and then quotes Adena rather than diagnosing for it",
    src.includes('note("Adena would not answer: " + (net.message || ("code " + net.code))')
    && !src.includes("Could not read Adena's network"));
@@ -565,8 +575,14 @@ ok("...and a rejected prompt is not treated as a hard failure",
 // Adena is an MV3 extension: the first call after it has been idle cold-starts
 // a suspended service worker, roughly a second in which the button looked
 // ignored. The wait belongs to the extension; the silence was ours.
+// Located by PATTERN, not by literal text. indexOf on the bare spelling returns
+// -1 once the call is wrapped (wcall, the stall timeout), and -1 compares LESS
+// than every real index — so the assertion silently inverted and passed for the
+// wrong reason, or failed for one. Assert the position is found, then the order.
+const gnIdx = src.search(/await (?:wcall\()?a\.GetNetwork\(\)/);
+ok("the call that waits is still located", gnIdx > 0);
 ok("the button says it is busy BEFORE the call that waits",
-   src.indexOf("busy(true);") < src.indexOf("await a.GetNetwork()"));
+   src.indexOf("busy(true);") < gnIdx);
 // CLEARED ON FAILURE, HELD ON SUCCESS. This pinned the bare
 // `finally{ el.disabled = false; busy(false); }`, which cleared it either way —
 // so a landed transaction went idle for the 7s it waits to be included, exactly
@@ -610,14 +626,14 @@ ok("no live-tally leak words", !/has voted|votes so far|current tally|leading/i.
 ok("no banned words", !/backing|redeem\b|profit|APR|share if right/i.test(html));
 
 // claim WITHOUT demo position (ledger/1 hypothetical dispute) — no sample-exclusion line
-const d2 = Object.assign({}, DEMO.claims["orem/3"]);
+const d2 = Object.assign({}, DEMO.claims["bedford/3"]);
 const html2 = disputeTicket("ledger", 1, d2, NOW);
 ok("no exclusion teaching when sample holds no position", !html2.includes("sample address holds a stake"));
 
 // live shape: no voteEndsAt/quorumFloor → honest absence lines
 CFG.mode='live';
-const dl = Object.assign({}, DEMO.claims["orem/3"]); delete dl.voteEndsAt; delete dl.quorumFloor;
-const htmlL = disputeTicket("orem", 3, dl, 5000000);
+const dl = Object.assign({}, DEMO.claims["bedford/3"]); delete dl.voteEndsAt; delete dl.quorumFloor;
+const htmlL = disputeTicket("bedford", 3, dl, 5000000);
 ok("live: no invented deadline",
    htmlL.includes("The closing time could not be read."));
 // The read that made the guess unnecessary. Asserted as the CALL, because a
@@ -640,8 +656,8 @@ ok("live: the vote buttons are findable by the async check",
 CFG.mode='demo';
 
 // past-close demo: Resolve-works copy
-const d3 = Object.assign({}, DEMO.claims["orem/3"], {voteEndsAt: NOW-100});
-const html3 = disputeTicket("orem", 3, d3, NOW);
+const d3 = Object.assign({}, DEMO.claims["bedford/3"], {voteEndsAt: NOW-100});
+const html3 = disputeTicket("bedford", 3, d3, NOW);
 ok("past close: resolve works now",
    html3.includes("Voting has closed; Resolve works now"));
 // ...and it replaces the countdown rather than sitting beside it. A ballot that
@@ -660,11 +676,11 @@ ok("uphold: bond held to finalise + the same payment limits",
 // with them the claim: the fix is now structural rather than conditional. What
 // has to hold is that the ballot says NOTHING about anybody's bond at either
 // value, so there is no untruth left to special-case.
-const d0 = Object.assign({}, DEMO.claims["orem/3"], {answerBond:0});
-const html0 = disputeTicket("orem", 3, d0, NOW);
+const d0 = Object.assign({}, DEMO.claims["bedford/3"], {answerBond:0});
+const html0 = disputeTicket("bedford", 3, d0, NOW);
 const ballotOf = h => h.slice(0, h.indexOf("<dialog"));   // the modal may discuss bonds; the ballot may not
 ok("F4: the ballot claims nothing about a bond at zero", !/bond/i.test(ballotOf(html0)));
-ok("F4: ...nor at 80 KOURT:OREM, so the two read alike", !/bond/i.test(ballotOf(html)));
+ok("F4: ...nor at 80 KOURT:BEDFORD, so the two read alike", !/bond/i.test(ballotOf(html)));
 ok("F4: and the two ballots differ in nothing at all",
    ballotOf(html0) === ballotOf(html));
 const srcF = fs.readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
@@ -750,9 +766,9 @@ ok("...and no longer restates the token rule on the ballot",
 ok("the dense blocks are gone from the ticket body", !html.includes("a running count would make copying the first big voter") && !html.includes("there is no pot to steer"));
 ok("plain-English rewrite present",
    html.includes("the best move would be to wait and copy whoever voted with the most weight"));
-ok("§7.4 holds in the new copy", !/backing|redeem|APR|profit|return on/i.test(html) && html.includes("staked KOURT:OREM is never touched"));
-ok("the token is named, not \"money\"", html.includes("KOURT:OREM") && !/\bmoney\b/.test(html));
-ok("canonical display is KOURT:SLUG", html.includes("Anyone holding KOURT:OREM"));
+ok("§7.4 holds in the new copy", !/backing|redeem|APR|profit|return on/i.test(html) && html.includes("staked KOURT:BEDFORD is never touched"));
+ok("the token is named, not \"money\"", html.includes("KOURT:BEDFORD") && !/\bmoney\b/.test(html));
+ok("canonical display is KOURT:SLUG", html.includes("Anyone holding KOURT:BEDFORD"));
 ok("the word \"money\" appears nowhere in the file", (()=>{ const fs=require("fs");
   return !/\bmoney\b/i.test(fs.readFileSync(require('path').join(__dirname,'..','index.html'),"utf8")); })());
 console.log(fail? "\n"+fail+" FAILURES" : "\nALL PASS");

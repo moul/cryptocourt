@@ -41,7 +41,7 @@ func TestReadsAreNotBlockedByAWriter(t *testing.T) {
 	ctx := context.Background()
 
 	if _, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "alice", Body: "a message to read",
+		Chain: "dev", Court: "bedford", Moniker: "alice", Body: "a message to read",
 		IPHash: "ip1", NetHash: "net1",
 	}); err != nil {
 		t.Fatal(err)
@@ -69,7 +69,7 @@ func TestReadsAreNotBlockedByAWriter(t *testing.T) {
 	<-held
 
 	start := time.Now()
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	elapsed := time.Since(start)
 	if err != nil {
 		t.Fatalf("a read failed while a writer held the lock: %v", err)
@@ -119,7 +119,7 @@ func TestAWriteWaitsForTheLockRatherThanFailing(t *testing.T) {
 
 	start := time.Now()
 	id, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "alice", Body: "posted during a write",
+		Chain: "dev", Court: "bedford", Moniker: "alice", Body: "posted during a write",
 		IPHash: "ip1", NetHash: "net1",
 	})
 	elapsed := time.Since(start)
@@ -146,7 +146,7 @@ func TestChatServesWhileTheScannerWrites(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		if _, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: "alice",
+			Chain: "dev", Court: "bedford", Moniker: "alice",
 			Body:   fmt.Sprintf("message number %d here", i),
 			IPHash: fmt.Sprintf("ip%02d", i), NetHash: "net1",
 		}); err != nil {
@@ -177,7 +177,7 @@ func TestChatServesWhileTheScannerWrites(t *testing.T) {
 	reads, worst := 0, time.Duration(0)
 	for time.Now().Before(deadline) {
 		start := time.Now()
-		if _, err := s.Recent(ctx, "dev", "orem", 0, 50); err != nil {
+		if _, err := s.Recent(ctx, "dev", "bedford", 0, 50); err != nil {
 			halt()
 			wg.Wait()
 			t.Fatalf("a read failed while the scanner was writing: %v", err)

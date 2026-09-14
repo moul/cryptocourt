@@ -43,25 +43,25 @@ s.expect("TestClockActive", [], "false")
 s.arm_clock(at=1780000000)
 
 s.note("a court with real coin, and one claim staked")
-s.court(alice, "orem", "Orem Truth Court")
-s.buy(alice, "orem", 400_000_000)
-s.buy(bob, "orem", 400_000_000)
-s.claim(alice, "orem", "The county certified 12,412 mail ballots on Nov 6, 2025.")
+s.court(alice, "bedford", "Bedford Truth Court")
+s.buy(alice, "bedford", 400_000_000)
+s.buy(bob, "bedford", 400_000_000)
+s.claim(alice, "bedford", "The county certified 12,412 mail ballots on Nov 6, 2025.")
 # alice stakes and so is a PARTICIPANT, which is what lets her open the rewards
 # without waiting out finalizeGraceBlocks. bob keeps his coin unstaked so he can
 # post the answer bond — staked coin is committed and cannot back one.
-s.stake(alice, "orem", 1, YES, 400_000_000)
+s.stake(alice, "bedford", 1, YES, 400_000_000)
 
 s.note("ripen the trailing average — 2,160 blocks, one transaction")
 s.advance_height(2200, "answerWindow, without producing a block")
-s.stake(alice, "orem", 1, YES, 1_000_000)  # an observation in the new bucket
-s.answer(bob, "orem", 1, YES)
-s.expect("HasAnswer", ["orem", 1], "true")
+s.stake(alice, "bedford", 1, YES, 1_000_000)  # an observation in the new bucket
+s.answer(bob, "bedford", 1, YES)
+s.expect("HasAnswer", ["bedford", 1], "true")
 
 s.note("settle: 72 hours on the calendar half")
 s.advance(72 * 3600 + 60, "just past the settle window")
-s.settle(alice, "orem", 1)
-s.expect("Settled", ["orem", 1], "true")
+s.settle(alice, "bedford", 1)
+s.expect("Settled", ["bedford", 1], "true")
 
 # THIS TESTED THE 24h QUIET WINDOW, which the realm deleted on purpose, and the
 # deletion is documented where the gate used to stand. openrewards.gno: the
@@ -78,11 +78,11 @@ s.expect("Settled", ["orem", 1], "true")
 # it and answered, so isParticipant is true for both and this gate can never
 # refuse either of them, at any time.
 s.note("the participant-only week on OpenRewards")
-s.expect_refuse(DEPLOYER, "OpenRewards", ["orem", 1], "participant-only",
+s.expect_refuse(DEPLOYER, "OpenRewards", ["bedford", 1], "participant-only",
                 note="the gate must REFUSE before the advance, or the test proves nothing")
 # SECONDS, not blocks. The gate reads verdictAtTime whenever the verdict carries
 # a stamp and a settled verdict does, so no number of blocks would open it —
 # the same height-to-stamp migration the dispute scenarios now advance for.
 s.advance(7 * 86400 + 60, "past finalizeGraceSecs (clock.gno, 7*86400)")
-s.call(DEPLOYER, "OpenRewards", ["orem", 1])
-s.expect("RewardsOpened", ["orem", 1], "true")
+s.call(DEPLOYER, "OpenRewards", ["bedford", 1])
+s.expect("RewardsOpened", ["bedford", 1], "true")

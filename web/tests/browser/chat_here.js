@@ -28,7 +28,7 @@ const {PAGE, demoPage} = require('./harness');
   let fail = 0;
   const ok = (m, c, d) => { if (!c) { fail++; console.log("FAIL: " + m + (d ? "  " + d : "")); } else console.log("ok: " + m); };
 
-  await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1200));
 
   const seen = await page.evaluate(() => {
@@ -131,7 +131,7 @@ const {PAGE, demoPage} = require('./harness');
       document.body.appendChild(host);
       window.__stop = mountChat(host, {
         cfg: {mode: "live", chat: "http://chat.invalid"},
-        chain: "dev", court: "orem", heading: false,
+        chain: "dev", court: "bedford", heading: false,
       });
       await new Promise(r => setTimeout(r, 1200));
       const el = host.querySelector(".chathere");

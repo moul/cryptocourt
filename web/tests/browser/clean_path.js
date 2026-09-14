@@ -74,7 +74,7 @@ const {PAGE, demoPage} = require('./harness');
      into a court named "m/deadbeef" would replace one wrong page with a
      stranger one. Null means "change nothing", which draws the directory —
      exactly what happens today. */
-  for (const p of ["/m/deadbeef", "/api/chat/dev/orem", "/COVID", "/covid/nope/deeper", "/"]) {
+  for (const p of ["/m/deadbeef", "/api/chat/dev/bedford", "/COVID", "/covid/nope/deeper", "/"]) {
     ok(`${p} is left alone`, await decide(p) === null, JSON.stringify(await decide(p)));
   }
 

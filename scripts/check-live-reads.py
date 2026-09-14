@@ -14,7 +14,7 @@ does not come back in the shape the page will try to parse. It is a
 CONFORMANCE check against a live node, not a unit test: run it against a node
 seeded by scripts/seed-node.sh.
 
-    scripts/check-live-reads.py [--remote http://127.0.0.1:26657] [--court orem]
+    scripts/check-live-reads.py [--remote http://127.0.0.1:26657] [--court bedford]
 
 It is deliberately NOT part of `make check` — that gate must not require a
 running chain.
@@ -118,7 +118,7 @@ def main():
     def flag(n, d):
         return argv[argv.index(n) + 1] if n in argv and argv.index(n) + 1 < len(argv) else d
     remote = flag("--remote", "http://127.0.0.1:26657")
-    court = flag("--court", "orem")
+    court = flag("--court", "bedford")
     # The claim id is a knob because state lives on DIFFERENT claims: a seeded
     # node has one settled and one disputed, and probing only id 1 leaves the
     # dispute reads permanently "skipped" while a dispute is right there on id 2.

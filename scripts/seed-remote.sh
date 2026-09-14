@@ -179,7 +179,7 @@ Seeded $CHAINID at $REMOTE from $SCN.
   not in \`make check\`, which must not require a running chain, so the seed is
   the place that points at it — as seed-node.sh already does for a local node.
 
-  NAME THE COURT. The flag defaults to "orem", which is the court smoke.py
+  NAME THE COURT. The flag defaults to "bedford", which is the court smoke.py
   seeds, and this path defaults to $SCN instead. Pointing it at a court the
   chain does not carry reports EVERY read as "no such court" — a wall of
   failures that looks like a broken realm rather than a wrong argument.

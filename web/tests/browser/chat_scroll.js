@@ -27,7 +27,7 @@ const {PAGE, demoPage} = require('./harness');
   let fail = 0;
   const ok = (m, c, d) => { if (!c) { fail++; console.log("FAIL: " + m + (d ? "  " + d : "")); } else console.log("ok: " + m); };
 
-  await page.goto(PAGE + '#/c/orem/chat', {waitUntil: 'networkidle0'});
+  await page.goto(PAGE + '#/c/bedford/chat', {waitUntil: 'networkidle0'});
   await new Promise(z => setTimeout(z, 1200));
 
   const log = await page.evaluate(() => {
@@ -88,7 +88,7 @@ const {PAGE, demoPage} = require('./harness');
      quietly stopped holding. The premise is now made to hold. */
   await page.goto(PAGE + '#/', {waitUntil: 'domcontentloaded'});
   await page.reload({waitUntil: 'networkidle0'});
-  await page.evaluate(() => { location.hash = "#/c/orem/chat"; });
+  await page.evaluate(() => { location.hash = "#/c/bedford/chat"; });
   await new Promise(z => setTimeout(z, 1400));
 
   const flat = await page.evaluate(() => {

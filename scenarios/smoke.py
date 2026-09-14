@@ -32,14 +32,14 @@ s.expect_refuse("alice", "AdvanceTestClock", [3600], "only the deployer may driv
                 note="not merely refused by the simulator: -simulate skip proves the chain refuses")
 
 s.note("a court, and real GNOT burned into its coin")
-s.court(DEPLOYER, "orem", "Orem Truth Court")
+s.court(DEPLOYER, "bedford", "Bedford Truth Court")
 s.expect("TestClockActive", [], "true")   # creating a court must NOT disarm it
-s.buy("alice", "orem", 50_000_000)
-s.buy("bob", "orem", 50_000_000)
-s.expect("CoinSupply", ["orem"], r"int64")
+s.buy("alice", "bedford", 50_000_000)
+s.buy("bob", "bedford", 50_000_000)
+s.expect("CoinSupply", ["bedford"], r"int64")
 
 s.note("two claims and stake on both sides")
-s.claim("alice", "orem", "The county certified 12,412 mail ballots on Nov 6, 2025.")
+s.claim("alice", "bedford", "The county certified 12,412 mail ballots on Nov 6, 2025.")
 # The apostrophe is deliberate and load-bearing. testscript quotes rc-style
 # ('' is a literal quote), sh quotes its own way, and the emitter used to
 # wrap a token in single quotes whenever it held a space — which turned any
@@ -50,7 +50,7 @@ s.claim("alice", "orem", "The county certified 12,412 mail ballots on Nov 6, 202
 # assertion passes an integer id. An audit found that path was the one still
 # unquoted, and it now shares the same _q_txtar as the other two; no read in the
 # realm takes free text, so there is nothing here to assert it with.
-s.claim("bob", "orem", "The mayor's office said the Center St. bridge inspection was 'complete'.")
+s.claim("bob", "bedford", "The mayor's office said the Center St. bridge inspection was 'complete'.")
 # ClaimCount returns nextID, which is pre-incremented (claim.gno:276-277), so
 # it equals the highest id issued: 2 after two claims, not 3.
 # The title must survive BOTH quoting layers — the tx that wrote it and the
@@ -61,33 +61,33 @@ s.claim("bob", "orem", "The mayor's office said the Center St. bridge inspection
 # markdown-escaped as "St\\. bridge" — the web overlay undoes it with unesc()
 # at every ClaimTitle site. The apostrophes are what this assertion is for, and
 # they pass through untouched.
-s.expect("ClaimTitle", ["orem", 2], "The mayor's office said the Center St")
-s.expect("ClaimCount", ["orem"], r"\(2 uint64\)")
-s.stake("alice", "orem", 1, YES, 40_000_000)
-s.stake("bob", "orem", 1, NO, 12_000_000)
-s.stake("bob", "orem", 2, YES, 9_000_000)
-s.expect("StakePools", ["orem", 1], r"40000000")
+s.expect("ClaimTitle", ["bedford", 2], "The mayor's office said the Center St")
+s.expect("ClaimCount", ["bedford"], r"\(2 uint64\)")
+s.stake("alice", "bedford", 1, YES, 40_000_000)
+s.stake("bob", "bedford", 1, NO, 12_000_000)
+s.stake("bob", "bedford", 2, YES, 9_000_000)
+s.expect("StakePools", ["bedford", 1], r"40000000")
 
 s.note("moderation is listing-level: hidden from lists, reachable by id")
-s.hide(DEPLOYER, "orem", 2, "off-topic pending review")
-s.expect("HiddenFromListing", ["orem", 2], "true")
-s.expect("ClaimCount", ["orem"], r"\(2 uint64\)")   # the claim still exists
+s.hide(DEPLOYER, "bedford", 2, "off-topic pending review")
+s.expect("HiddenFromListing", ["bedford", 2], "true")
+s.expect("ClaimCount", ["bedford"], r"\(2 uint64\)")   # the claim still exists
 
 s.note("folders are real chain state (flat; nesting lives in the overlay)")
-s.folder(DEPLOYER, "orem", "Municipal record", "Filings, audits, inspections.")
-s.folder_add(DEPLOYER, "orem", 1, 1)
-s.expect("FolderItems", ["orem", 1], r"1")
+s.folder(DEPLOYER, "bedford", "Municipal record", "Filings, audits, inspections.")
+s.folder_add(DEPLOYER, "bedford", 1, 1)
+s.expect("FolderItems", ["bedford", 1], r"1")
 
 s.note("the whole point: cross a deadline by moving the date, not by waiting")
-s.expect_refuse("alice", "CloseDeadClaim", ["orem", 1],
+s.expect_refuse("alice", "CloseDeadClaim", ["bedford", 1],
                 "dead-claim timeout has not passed")
 s.advance(12 * 7 * 86400 - 1, why="one second short of the 12-week timeout")
-s.expect_refuse("alice", "CloseDeadClaim", ["orem", 1],
+s.expect_refuse("alice", "CloseDeadClaim", ["bedford", 1],
                 "dead-claim timeout has not passed",
                 note="the boundary is the assertion: a frozen clock can sit exactly here")
 s.advance(2, why="over the line")
-s.call("alice", "CloseDeadClaim", ["orem", 1])
-s.expect("ClaimClosed", ["orem", 1], "true")
+s.call("alice", "CloseDeadClaim", ["bedford", 1])
+s.expect("ClaimClosed", ["bedford", 1], "true")
 
 s.note("a handful of blocks, to prove height moves independently of the date")
 s.mine(5, why="cheap: the ring maturity a real answer needs is 2,160")

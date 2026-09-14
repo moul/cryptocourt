@@ -28,9 +28,9 @@ code += slice('const CURATION_V', '/* ======').replace('const CURATION_V','var C
 eval(code);
 
 let fail=0; const ok=(n,c)=>{ if(!c){fail++; console.log("FAIL:",n);} else console.log("ok:",n); };
-const base = ()=>({kourtCuration:1, court:"orem", chain:"demo", desc:"A line.", folders:[{name:"F", claims:[1], folders:[]}], relations:[{from:3,to:9,type:"part"}]});
+const base = ()=>({kourtCuration:1, court:"bedford", chain:"demo", desc:"A line.", folders:[{name:"F", claims:[1], folders:[]}], relations:[{from:3,to:9,type:"part"}]});
 const V = new Set([1,2,3,4,5,6,7,8,9,10,11]);
-const run = (mut)=>{ const r=base(); mut&&mut(r); return cleanCuration(r,"orem",V); };
+const run = (mut)=>{ const r=base(); mut&&mut(r); return cleanCuration(r,"bedford",V); };
 
 // acceptance
 ok("clean base accepted", run().errs.length===0);
@@ -51,7 +51,7 @@ ok("from==to", run(r=>r.relations=[{from:3,to:3,type:"part"}]).errs.length>0);
 ok("duplicate triple", run(r=>r.relations=[{from:3,to:9,type:"part"},{from:3,to:9,type:"part"}]).errs.length>0);
 ok("two part-parents", run(r=>r.relations=[{from:3,to:9,type:"part"},{from:3,to:5,type:"part"}]).errs.length>0);
 ok("part cycle", run(r=>r.relations=[{from:3,to:9,type:"part"},{from:9,to:3,type:"part"}]).errs.length>0);
-ok("not an object", cleanCuration([], "orem", V).errs.length>0);
+ok("not an object", cleanCuration([], "bedford", V).errs.length>0);
 // warnings, not errors
 const w1 = run(r=>{ r.extraKey=1; });
 ok("unknown keys stripped + reported", w1.errs.length===0 && w1.warn.some(w=>w.includes("unknown keys stripped: extraKey")) && !("extraKey" in (w1.cur||{})));
@@ -62,24 +62,24 @@ ok("chain mismatch warned", w3.errs.length===0 && w3.warn.some(w=>w.includes("ch
 
 // precedence: demo local ?? sample
 CFG.mode='demo';
-ok("demo default = sample", curationFor("orem").source==="sample" && curationFor("orem").folders.length===3);
+ok("demo default = sample", curationFor("bedford").source==="sample" && curationFor("bedford").folders.length===3);
 const local = base();
-store.set("cc.cur.demo.orem", JSON.stringify(cleanCuration(local,"orem",null).cur));
-const cf = curationFor("orem");
+store.set("cc.cur.demo.bedford", JSON.stringify(cleanCuration(local,"bedford",null).cur));
+const cf = curationFor("bedford");
 ok("demo local overrides sample", cf.source==="local" && cf.folders.length===1 && cf.desc==="A line.");
-store.del("cc.cur.demo.orem");
-ok("clear restores sample", curationFor("orem").source==="sample");
+store.del("cc.cur.demo.bedford");
+ok("clear restores sample", curationFor("bedford").source==="sample");
 // live: local ?? none
 CFG.mode='live';
-ok("live default = none", curationFor("orem")===null);
-store.set("cc.cur.dev.orem", JSON.stringify(cleanCuration(local,"orem",null).cur));
-ok("live local applies under chain key", curationFor("orem") && curationFor("orem").source==="local");
-store.del("cc.cur.dev.orem");
+ok("live default = none", curationFor("bedford")===null);
+store.set("cc.cur.dev.bedford", JSON.stringify(cleanCuration(local,"bedford",null).cur));
+ok("live local applies under chain key", curationFor("bedford") && curationFor("bedford").source==="local");
+store.del("cc.cur.dev.bedford");
 CFG.mode='demo';
 
 // idempotence: clean(clean(x)) byte-equal
-const c1 = cleanCuration(base(),"orem",V).cur;
-const c2 = cleanCuration(JSON.parse(JSON.stringify(c1)),"orem",V).cur;
+const c1 = cleanCuration(base(),"bedford",V).cur;
+const c2 = cleanCuration(JSON.parse(JSON.stringify(c1)),"bedford",V).cur;
 ok("export→import idempotent", JSON.stringify(c1)===JSON.stringify(c2));
 
 // label strings + curate-page copy present in source

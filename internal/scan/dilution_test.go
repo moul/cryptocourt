@@ -228,7 +228,7 @@ func TestLiveScannerCatchesADilutedLure(t *testing.T) {
 	var lureID int64
 	for _, b := range append(append([]string{}, dilutionFiller...), target) {
 		id, err := st.Post(ctx, chat.PostInput{
-			Chain: "dev", Court: "orem", Moniker: "padder", Body: b,
+			Chain: "dev", Court: "bedford", Moniker: "padder", Body: b,
 			IPHash: "ip-pad", NetHash: "net-pad",
 		})
 		if err != nil {

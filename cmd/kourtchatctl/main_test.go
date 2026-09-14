@@ -332,7 +332,7 @@ func TestAReplayedConsequenceIsReportedAsOne(t *testing.T) {
 	ctx := context.Background()
 
 	id, err := s.Post(ctx, chat.PostInput{
-		Chain: "dev", Court: "orem", Moniker: "troll", Body: "a message to act on twice",
+		Chain: "dev", Court: "bedford", Moniker: "troll", Body: "a message to act on twice",
 		IPHash: "ip-a", NetHash: "net-a",
 	})
 	if err != nil {

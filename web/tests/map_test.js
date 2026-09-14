@@ -204,27 +204,27 @@ function verify(svg, label){
   return fails.length===0;
 }
 
-// demo orem, both modes
-const c0=DEMO.courts.orem;
-const claimsMap={}; c0.claims.forEach(id=>{ const d=DEMO.claims["orem/"+id];
+// demo bedford, both modes
+const c0=DEMO.courts.bedford;
+const claimsMap={}; c0.claims.forEach(id=>{ const d=DEMO.claims["bedford/"+id];
   claimsMap[id]={title:d.title, statusText:statusText(d), media:d.media}; });
-const demoData={folders:c0.folders, all:c0.claims, claims:claimsMap, relations:DEMO.relations.orem, linkFolders:true, courtName:"Orem Truth Court"};
+const demoData={folders:c0.folders, all:c0.claims, claims:claimsMap, relations:DEMO.relations.bedford, linkFolders:true, courtName:"Bedford Truth Court"};
 let allpass=true; const svgs={};
 for(const mode of ["titles","ids"]){
-  const L=mapLayout(demoData,mode); const svg=mapSvg(L,demoData,"orem");
+  const L=mapLayout(demoData,mode); const svg=mapSvg(L,demoData,"bedford");
   svgs[mode]=svg;
-  allpass=verify(svg,"orem/"+mode)&&allpass;
+  allpass=verify(svg,"bedford/"+mode)&&allpass;
 }
-ok("A-I pass on demo orem (both modes)", allpass);
+ok("A-I pass on demo bedford (both modes)", allpass);
 
 // live shape: 50 claims in one pseudo folder, no relations — the widest ring the
 // solve has to fit, and the case where the fit rescale actually fires.
 const liveClaims={}; const liveAll=[];
 for(let i=1;i<=50;i++){ liveAll.push(i); liveClaims[i]={title:`Synthetic documentary claim number ${i} with a longer wrapping title.`, statusText: i%7===0?"settled — every stake withdraws 1×": i%5===0?"disputed — a sealed vote is deciding":"open — stake YES or NO"}; }
-const liveData={folders:[], all:liveAll, claims:liveClaims, relations:[], looseName:"docket — newest 50", courtName:"Orem Truth Court"};
+const liveData={folders:[], all:liveAll, claims:liveClaims, relations:[], looseName:"docket — newest 50", courtName:"Bedford Truth Court"};
 let livepass=true;
 for(const mode of ["titles","ids"]){
-  const L=mapLayout(liveData,mode); const svg=mapSvg(L,liveData,"orem");
+  const L=mapLayout(liveData,mode); const svg=mapSvg(L,liveData,"bedford");
   livepass=verify(svg,"live50/"+mode)&&livepass;
 }
 ok("A-I pass on live 50-claim ring (both modes)", livepass);
@@ -922,7 +922,7 @@ global.SHUT_MARK = "\u{1307C}";   // 𓁼 — the second mark, opens concealed
 }
 
 // determinism: same input → same bytes
-ok("deterministic bytes", mapSvg(mapLayout(demoData,"titles"),demoData,"orem")===svgs.titles);
+ok("deterministic bytes", mapSvg(mapLayout(demoData,"titles"),demoData,"bedford")===svgs.titles);
 
 // the court is the centre, and it is one node
 ok("exactly one court node, and it is not a link",
@@ -944,7 +944,7 @@ ok("exactly one court node, and it is not a link",
   const badCode = buildCode(c=>c.replace("sep:22,","sep:-90,"));
   const f=new Function("g", badCode + "; g.mapLayout=mapLayout; g.mapSvg=mapSvg;");
   f(badNS);
-  const Lb=badNS.mapLayout(demoData,"titles"); const svgB=badNS.mapSvg(Lb,demoData,"orem");
+  const Lb=badNS.mapLayout(demoData,"titles"); const svgB=badNS.mapSvg(Lb,demoData,"bedford");
   const silent=[]; const orig=console.log; console.log=(...a)=>silent.push(a.join(" "));
   const badPass=verify(svgB,"negative");
   console.log=orig;
@@ -1038,8 +1038,8 @@ const TILES = svg => [...svg.matchAll(
        statusText:"open — stake YES or NO",
        media:[{kind:"img", sha256:"", mime:"image/png", w:40, h:40, bytes:99, caption:"", mirrors:["https://i.imgur.com/x.png"]}]},
   };
-  const data={folders:[], all:[1,2,3], claims, relations:[], looseName:"docket", courtName:"Orem Truth Court"};
-  const L=mapLayout(data,"titles"), svg=mapSvg(L,data,"orem");
+  const data={folders:[], all:[1,2,3], claims, relations:[], looseName:"docket", courtName:"Bedford Truth Court"};
+  const L=mapLayout(data,"titles"), svg=mapSvg(L,data,"bedford");
   const t=TILES(svg), P=parseSVG(svg);
   const box=id=>P.rects.filter(r=>r.cls==="mnode").find(r=>r.ref===String(id));
   ok("five exhibits draw four tiles", t.filter(x=>x.id==="1").length===4);
@@ -1083,7 +1083,7 @@ const TILES = svg => [...svg.matchAll(
   // browsers resolve against the page and fetch.
   ok("a folder with no picture draws nothing", !/<image class="mfimg" href=""/.test(svgs.titles));
 }
-// dot classes agree with statusPill families for every orem claim
+// dot classes agree with statusPill families for every bedford claim
 {
   let agree=true;
   for(const id of c0.claims){
@@ -1144,8 +1144,8 @@ const TILES = svg => [...svg.matchAll(
   }
   ok("dot classes agree with phaseClass on all 11 claims", agree);
 }
-ok("nodes are links", (svgs.titles.match(/<a href="#\/c\/orem\/\d+"/g)||[]).length===11);
-ok("folder nodes link to folder pages", svgs.titles.includes('href="#/c/orem/f/0"'));
+ok("nodes are links", (svgs.titles.match(/<a href="#\/c\/bedford\/\d+"/g)||[]).length===11);
+ok("folder nodes link to folder pages", svgs.titles.includes('href="#/c/bedford/f/0"'));
 /* The count line's TEXT moved into mapCountLine(), where search_test.js exercises
    it as three real cases — truncated, complete and demo — instead of pinning one
    template literal by eye. What is left to check here is the WIRING: that the map

@@ -38,7 +38,7 @@ func TestTheDocumentedBackupProcedureCopiesALiveDatabase(t *testing.T) {
 	const want = 6
 	for i := 0; i < want; i++ {
 		if _, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: "alice",
+			Chain: "dev", Court: "bedford", Moniker: "alice",
 			Body:   fmt.Sprintf("message %d about the settle window and the docket order", i),
 			IPHash: "ip-a", NetHash: "net-a",
 		}); err != nil {
@@ -135,7 +135,7 @@ func TestANewDatabaseIsNotReadableByOtherUsers(t *testing.T) {
 	// A write, so the WAL certainly exists and certainly holds rows.
 	s.Now = func() time.Time { return time.Unix(1_700_000_000, 0) }
 	if _, err := s.Post(context.Background(), PostInput{
-		Chain: "dev", Court: "orem", Moniker: "alice",
+		Chain: "dev", Court: "bedford", Moniker: "alice",
 		Body:   "a message, so the WAL exists and has something in it",
 		IPHash: "ip-a", NetHash: "net-a",
 	}); err != nil {

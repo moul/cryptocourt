@@ -41,10 +41,10 @@ func post(t *testing.T, s *Store, court, ip, body string) (int64, error) {
 func TestPostAndRead(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
-	if _, err := post(t, s, "orem", "ip1", "first message here"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "first message here"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestPostAndRead(t *testing.T) {
 		t.Fatalf("got %+v", msgs)
 	}
 	// A different chain is a different room: one court slug exists on many chains.
-	other, err := s.Recent(ctx, "test5", "orem", 0, 50)
+	other, err := s.Recent(ctx, "test5", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,16 +63,16 @@ func TestPostAndRead(t *testing.T) {
 
 func TestThrottleInterval(t *testing.T) {
 	s, clock := newStore(t)
-	if _, err := post(t, s, "orem", "ip1", "one message here"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "one message here"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := post(t, s, "orem", "ip1", "immediately after"); !errors.Is(err, ErrThrottled) {
+	if _, err := post(t, s, "bedford", "ip1", "immediately after"); !errors.Is(err, ErrThrottled) {
 		t.Fatalf("a second message in the same instant must be refused, got %v", err)
 	}
 	// Paired positive: after the interval it must go through, or this is just a
 	// test that posting fails.
 	*clock = clock.Add(MinInterval)
-	if _, err := post(t, s, "orem", "ip1", "after the interval"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "after the interval"); err != nil {
 		t.Fatalf("after the interval it must be accepted: %v", err)
 	}
 }
@@ -80,17 +80,17 @@ func TestThrottleInterval(t *testing.T) {
 func TestThrottlePerIPWindow(t *testing.T) {
 	s, clock := newStore(t)
 	for i := 0; i < PerIPMax; i++ {
-		if _, err := post(t, s, "orem", "ip1", "message number here"); err != nil {
+		if _, err := post(t, s, "bedford", "ip1", "message number here"); err != nil {
 			t.Fatalf("message %d of the allowance was refused: %v", i, err)
 		}
 		*clock = clock.Add(MinInterval)
 	}
-	if _, err := post(t, s, "orem", "ip1", "one too many now"); !errors.Is(err, ErrThrottled) {
+	if _, err := post(t, s, "bedford", "ip1", "one too many now"); !errors.Is(err, ErrThrottled) {
 		t.Fatalf("past the window allowance must be refused, got %v", err)
 	}
 	// And the window must actually expire.
 	*clock = clock.Add(PerIPWindow)
-	if _, err := post(t, s, "orem", "ip1", "after the window"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "after the window"); err != nil {
 		t.Fatalf("the window must expire: %v", err)
 	}
 }
@@ -219,11 +219,11 @@ func TestKickBlocksPostingThenExpires(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := post(t, s, "orem", "ip1", "trying to post now"); !errors.Is(err, ErrKicked) {
+	if _, err := post(t, s, "bedford", "ip1", "trying to post now"); !errors.Is(err, ErrKicked) {
 		t.Fatalf("a kicked address must be refused, got %v", err)
 	}
 	*clock = clock.Add(time.Hour + time.Second)
-	if _, err := post(t, s, "orem", "ip1", "the kick has expired"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "the kick has expired"); err != nil {
 		t.Fatalf("the kick must expire: %v", err)
 	}
 }
@@ -280,7 +280,7 @@ func TestRevokedInfractionsDoNotEscalate(t *testing.T) {
 		t.Fatalf("after revoking, the ladder must reset to %s, got %s", Ladder[0], d)
 	}
 	// And the address can post again.
-	if _, err := post(t, s, "orem", "ip1", "after the appeal"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "after the appeal"); err != nil {
 		t.Fatalf("a revoked kick must stop blocking: %v", err)
 	}
 }
@@ -334,12 +334,12 @@ func TestBanUnbanBanAgain(t *testing.T) {
 func TestConsequenceHidesRecentMessages(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
-	id, err := post(t, s, "orem", "ip1", "claim your free airdrop")
+	id, err := post(t, s, "bedford", "ip1", "claim your free airdrop")
 	if err != nil {
 		t.Fatal(err)
 	}
 	*clock = clock.Add(MinInterval)
-	if _, err := post(t, s, "orem", "ip2", "an innocent bystander"); err != nil {
+	if _, err := post(t, s, "bedford", "ip2", "an innocent bystander"); err != nil {
 		t.Fatal(err)
 	}
 	inf, err := s.Consequence(ctx, Infraction{IPHash: "ip1", Kind: KindKick,
@@ -347,7 +347,7 @@ func TestConsequenceHidesRecentMessages(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -358,7 +358,7 @@ func TestConsequenceHidesRecentMessages(t *testing.T) {
 	if err := s.Revoke(ctx, inf, "op"); err != nil {
 		t.Fatal(err)
 	}
-	if msgs, _ = s.Recent(ctx, "dev", "orem", 0, 50); len(msgs) != 2 {
+	if msgs, _ = s.Recent(ctx, "dev", "bedford", 0, 50); len(msgs) != 2 {
 		t.Fatalf("revoking must un-hide, got %d messages", len(msgs))
 	}
 }
@@ -366,13 +366,13 @@ func TestConsequenceHidesRecentMessages(t *testing.T) {
 func TestFrozenCourtRefusesPosts(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
-	if _, err := post(t, s, "orem", "ip1", "before the purge"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "before the purge"); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Freeze(ctx, "dev", "orem"); err != nil {
+	if err := s.Freeze(ctx, "dev", "bedford"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := post(t, s, "orem", "ip2", "after the purge"); !errors.Is(err, ErrWithdrawn) {
+	if _, err := post(t, s, "bedford", "ip2", "after the purge"); !errors.Is(err, ErrWithdrawn) {
 		t.Fatalf("a frozen court must refuse posts, got %v", err)
 	}
 	// Another court is unaffected — freezing is per court, not a kill switch.
@@ -386,7 +386,7 @@ func TestFrozenCourtRefusesPosts(t *testing.T) {
 func TestChatWorksWithNoScanner(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
-	if _, err := post(t, s, "orem", "ip1", "nobody is scanning this"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "nobody is scanning this"); err != nil {
 		t.Fatalf("chat must work with no scanner: %v", err)
 	}
 	h, err := s.Health(ctx)
@@ -449,7 +449,7 @@ func TestWindowStopsAtTheLastConsequence(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 	for _, b := range []string{"setup line one", "setup line two"} {
-		if _, err := post(t, s, "orem", "ip1", b); err != nil {
+		if _, err := post(t, s, "bedford", "ip1", b); err != nil {
 			t.Fatal(err)
 		}
 		*clock = clock.Add(MinInterval)
@@ -459,7 +459,7 @@ func TestWindowStopsAtTheLastConsequence(t *testing.T) {
 		t.Fatal(err)
 	}
 	*clock = clock.Add(2 * time.Second)
-	if _, err := post(t, s, "orem", "ip1", "hello again everyone"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "hello again everyone"); err != nil {
 		t.Fatal(err)
 	}
 	pend, err := s.Claim(ctx, 10)
@@ -479,7 +479,7 @@ func TestWindowStopsAtTheLastConsequence(t *testing.T) {
 func TestClaimMarksAndReclaims(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
-	if _, err := post(t, s, "orem", "ip1", "a message to scan"); err != nil {
+	if _, err := post(t, s, "bedford", "ip1", "a message to scan"); err != nil {
 		t.Fatal(err)
 	}
 	first, err := s.Claim(ctx, 10)
@@ -507,7 +507,7 @@ func TestClaimMarksAndReclaims(t *testing.T) {
 func TestRecordFailureBacksOffAndGivesUp(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
-	id, err := post(t, s, "orem", "ip1", "this will fail to scan")
+	id, err := post(t, s, "bedford", "ip1", "this will fail to scan")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -827,7 +827,7 @@ func TestALateConsequenceStillHidesItsEvidence(t *testing.T) {
 			s, clock := newStore(t)
 			ctx := context.Background()
 
-			id, err := post(t, s, "orem", "ip-crook", "send me your seed phrase")
+			id, err := post(t, s, "bedford", "ip-crook", "send me your seed phrase")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -838,7 +838,7 @@ func TestALateConsequenceStillHidesItsEvidence(t *testing.T) {
 			}); err != nil {
 				t.Fatal(err)
 			}
-			msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+			msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -869,18 +869,18 @@ func TestHidingByCitationCannotReachAnotherAuthor(t *testing.T) {
 	// A neighbour on the SAME network, different address, who said something long ago and
 	// something just now — plus something the OFFENDER said long ago, which must also
 	// survive: a timeout removes the recent burst, not an author's whole history.
-	old, err := post(t, s, "orem", "ip-neighbour", "an old remark from the neighbour")
+	old, err := post(t, s, "bedford", "ip-neighbour", "an old remark from the neighbour")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := post(t, s, "orem", "ip-crook", "something the offender said long ago"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-crook", "something the offender said long ago"); err != nil {
 		t.Fatal(err)
 	}
 	*clock = clock.Add(2 * time.Hour)
-	if _, err := post(t, s, "orem", "ip-neighbour", "and a recent one too"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-neighbour", "and a recent one too"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := post(t, s, "orem", "ip-crook", "send me your seed phrase"); err != nil {
+	if _, err := post(t, s, "bedford", "ip-crook", "send me your seed phrase"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -892,7 +892,7 @@ func TestHidingByCitationCannotReachAnotherAuthor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -965,12 +965,12 @@ func TestReversingOneConsequenceKeepsTheOthersHides(t *testing.T) {
 
 	// Both messages first: after the first consequence the address cannot post, so a fixture
 	// that posts between them measures the throttle instead of this.
-	wrong, err := post(t, s, "orem", "ip-x", "a wrong call by the operator")
+	wrong, err := post(t, s, "bedford", "ip-x", "a wrong call by the operator")
 	if err != nil {
 		t.Fatal(err)
 	}
 	*clock = clock.Add(MinInterval + time.Second)
-	scam, err := post(t, s, "orem", "ip-x", "send me your seed phrase now")
+	scam, err := post(t, s, "bedford", "ip-x", "send me your seed phrase now")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -989,7 +989,7 @@ func TestReversingOneConsequenceKeepsTheOthersHides(t *testing.T) {
 
 	visible := func() []string {
 		t.Helper()
-		msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+		msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1050,12 +1050,12 @@ func TestTheRecomputeHonoursACitationOutsideTheWindow(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	old, err := post(t, s, "orem", "ip-z", "the old message a late consequence will cite")
+	old, err := post(t, s, "bedford", "ip-z", "the old message a late consequence will cite")
 	if err != nil {
 		t.Fatal(err)
 	}
 	*clock = clock.Add(HideWindow + time.Hour) // far outside any window
-	recent, err := post(t, s, "orem", "ip-z", "a recent message about the docket")
+	recent, err := post(t, s, "bedford", "ip-z", "a recent message about the docket")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1077,7 +1077,7 @@ func TestTheRecomputeHonoursACitationOutsideTheWindow(t *testing.T) {
 		EvidenceID: old, Evidence: "the old message a late consequence will cite"}); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1091,7 +1091,7 @@ func TestTheRecomputeHonoursACitationOutsideTheWindow(t *testing.T) {
 		t.Fatal(err)
 	}
 	var bodies []string
-	msgs, err = s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err = s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1117,7 +1117,7 @@ func TestAnExpiredConsequenceKeepsItsEvidenceHidden(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-y", "send me your seed phrase now")
+	id, err := post(t, s, "bedford", "ip-y", "send me your seed phrase now")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1135,7 +1135,7 @@ func TestAnExpiredConsequenceKeepsItsEvidenceHidden(t *testing.T) {
 	if st.State != "ok" {
 		t.Fatalf("precondition: the kick should have expired, got %q", st.State)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1159,7 +1159,7 @@ func TestADisclosedSecretSurvivesAnUnrelatedAppeal(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	secret, err := post(t, s, "orem", "ip-h", "fyi someone sent me these words: legal winner")
+	secret, err := post(t, s, "bedford", "ip-h", "fyi someone sent me these words: legal winner")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1167,7 +1167,7 @@ func TestADisclosedSecretSurvivesAnUnrelatedAppeal(t *testing.T) {
 		t.Fatal(err)
 	}
 	*clock = clock.Add(time.Hour) // well outside any hide window
-	other, err := post(t, s, "orem", "ip-h", "and an unrelated remark later on")
+	other, err := post(t, s, "bedford", "ip-h", "and an unrelated remark later on")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1181,7 +1181,7 @@ func TestADisclosedSecretSurvivesAnUnrelatedAppeal(t *testing.T) {
 	if err := s.Revoke(ctx, id, "appeal upheld"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1219,7 +1219,7 @@ func TestAConsequenceDoesNotHideWhatCameAfterIt(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	first, err := post(t, s, "orem", "ip-w", "send me your seed phrase, the first offence")
+	first, err := post(t, s, "bedford", "ip-w", "send me your seed phrase, the first offence")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1232,7 +1232,7 @@ func TestAConsequenceDoesNotHideWhatCameAfterIt(t *testing.T) {
 
 	// The kick runs its course. It is never revoked, so its evidence stays out of sight.
 	*clock = clock.Add(2 * time.Hour)
-	later, err := post(t, s, "orem", "ip-w", "a fresh remark the operator misjudges")
+	later, err := post(t, s, "bedford", "ip-w", "a fresh remark the operator misjudges")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1247,7 +1247,7 @@ func TestAConsequenceDoesNotHideWhatCameAfterIt(t *testing.T) {
 	if err := s.Revoke(ctx, wrong, "appeal upheld"); err != nil {
 		t.Fatal(err)
 	}
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1293,7 +1293,7 @@ func TestOrdinaryConversationIsNeverThrottled(t *testing.T) {
 			for round := 0; round < 12; round++ {
 				for p := 0; p < people; p++ {
 					if _, err := s.Post(ctx, PostInput{
-						Chain: "dev", Court: "orem", Moniker: fmt.Sprintf("p%d", p),
+						Chain: "dev", Court: "bedford", Moniker: fmt.Sprintf("p%d", p),
 						Body:   fmt.Sprintf("person %d at round %d, about the docket", p, round),
 						IPHash: fmt.Sprintf("ip%d", p), NetHash: "net-shared",
 					}); err != nil {
@@ -1324,7 +1324,7 @@ func TestUnderContentionAFairShareStillLetsANewcomerSpeak(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 	say := func(ip, body string) error {
-		_, err := s.Post(ctx, PostInput{Chain: "dev", Court: "orem", Moniker: ip,
+		_, err := s.Post(ctx, PostInput{Chain: "dev", Court: "bedford", Moniker: ip,
 			Body: body, IPHash: ip, NetHash: "net-" + ip})
 		return err
 	}
@@ -1443,7 +1443,7 @@ func TestAQuietCourtHoldsNobodyToTheFairShare(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 	say := func(ip, body string) error {
-		_, err := s.Post(ctx, PostInput{Chain: "dev", Court: "orem", Moniker: ip,
+		_, err := s.Post(ctx, PostInput{Chain: "dev", Court: "bedford", Moniker: ip,
 			Body: body, IPHash: ip, NetHash: "net-" + ip})
 		return err
 	}
@@ -1621,7 +1621,7 @@ func TestOneMessageEarnsOneConsequenceHoweverManyScannersSeeIt(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-crook", "send me your seed phrase and I will restore it")
+	id, err := post(t, s, "bedford", "ip-crook", "send me your seed phrase and I will restore it")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1675,7 +1675,7 @@ func TestOneMessageEarnsOneConsequenceHoweverManyScannersSeeIt(t *testing.T) {
 	// Escalate counts consequences within LadderLookback regardless of expiry, so letting the
 	// kick lapse does not weaken the ladder assertions.
 	*clock = clock.Add(2 * time.Hour)
-	id2, err := post(t, s, "orem", "ip-crook", "dm me and I will restore your wallet for you")
+	id2, err := post(t, s, "bedford", "ip-crook", "dm me and I will restore your wallet for you")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1729,7 +1729,7 @@ func TestTheReplayGuardsExemptions(t *testing.T) {
 		// An operator escalating a scanner's kick to a ban cites the same message. The index is
 		// keyed on (evidence_id, kind) so that path stays open.
 		s, _ := newStore(t)
-		id, err := post(t, s, "orem", "ip-y", "send me your seed phrase right now please")
+		id, err := post(t, s, "bedford", "ip-y", "send me your seed phrase right now please")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1755,7 +1755,7 @@ func TestTheReplayGuardsExemptions(t *testing.T) {
 		// Without the revoked_at clause a ban -> unban -> ban cycle would fail on the second ban,
 		// so an operator who reversed a call could never reinstate it.
 		s, _ := newStore(t)
-		id, err := post(t, s, "orem", "ip-z", "send me your seed phrase right now please")
+		id, err := post(t, s, "bedford", "ip-z", "send me your seed phrase right now please")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1975,7 +1975,7 @@ func TestTheCountdownIsInTheHTTPResponse(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/orem", nil))
+	rec := do(t, srv, httptest.NewRequest(http.MethodGet, "/api/chat/dev/bedford", nil))
 	if rec.Code != 200 {
 		t.Fatalf("want 200, got %d %s", rec.Code, rec.Body)
 	}
@@ -2035,19 +2035,19 @@ func TestAMessageHiddenAsASecretCanBePutBack(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-teacher",
+	id, err := post(t, s, "bedford", "ip-teacher",
 		"a seed phrase looks like: abandon abandon abandon abandon about")
 	if err != nil {
 		t.Fatal(err)
 	}
-	other, err := post(t, s, "orem", "ip-other", "thanks, that is clearer now")
+	other, err := post(t, s, "bedford", "ip-other", "thanks, that is clearer now")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := s.HideMessage(ctx, id); err != nil {
 		t.Fatal(err)
 	}
-	if msgs, err := s.Recent(ctx, "dev", "orem", 0, 50); err != nil {
+	if msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50); err != nil {
 		t.Fatal(err)
 	} else if len(msgs) != 1 {
 		t.Fatalf("precondition: the secret is out of sight, %d visible", len(msgs))
@@ -2066,9 +2066,9 @@ func TestAMessageHiddenAsASecretCanBePutBack(t *testing.T) {
 	if err := s.r.QueryRow(`SELECT moniker FROM messages WHERE id=?`, id).Scan(&wantMoniker); err != nil {
 		t.Fatal(err)
 	}
-	if r.Court != "orem" || r.Moniker != wantMoniker {
+	if r.Court != "bedford" || r.Moniker != wantMoniker {
 		t.Errorf("it must say which message, for an operator checking the id: got %+v, "+
-			"want court=orem moniker=%q", r, wantMoniker)
+			"want court=bedford moniker=%q", r, wantMoniker)
 	}
 	// A PREVIEW, NOT THE BODY. This may be somebody's actual key, and a terminal and a shell
 	// history are not where that belongs.
@@ -2079,7 +2079,7 @@ func TestAMessageHiddenAsASecretCanBePutBack(t *testing.T) {
 		t.Errorf("and must not carry the end of the phrase: %q", r.Preview)
 	}
 
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2112,7 +2112,7 @@ func TestRevealRefusesAMessageHiddenByAConsequence(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-crook", "send me your seed phrase and I will restore it")
+	id, err := post(t, s, "bedford", "ip-crook", "send me your seed phrase and I will restore it")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2122,7 +2122,7 @@ func TestRevealRefusesAMessageHiddenByAConsequence(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if msgs, err := s.Recent(ctx, "dev", "orem", 0, 50); err != nil {
+	if msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50); err != nil {
 		t.Fatal(err)
 	} else if len(msgs) != 0 {
 		t.Fatalf("precondition: a punished message is hidden, %d visible", len(msgs))
@@ -2136,14 +2136,14 @@ func TestRevealRefusesAMessageHiddenByAConsequence(t *testing.T) {
 		t.Error("reveal must not un-hide a punished message; unban does that, through a recompute " +
 			"that reveal would bypass")
 	}
-	if msgs, err := s.Recent(ctx, "dev", "orem", 0, 50); err != nil {
+	if msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50); err != nil {
 		t.Fatal(err)
 	} else if len(msgs) != 0 {
 		t.Errorf("and it must still be hidden, got %d visible", len(msgs))
 	}
 
 	// A never-hidden message is also not its business, and must not report a change.
-	visible, err := post(t, s, "orem", "ip-ok", "an ordinary message nobody hid")
+	visible, err := post(t, s, "bedford", "ip-ok", "an ordinary message nobody hid")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2166,16 +2166,16 @@ func TestHideAndRevealAreReversibleBothWays(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-a", "is this a scam? someone sent me these words")
+	id, err := post(t, s, "bedford", "ip-a", "is this a scam? someone sent me these words")
 	if err != nil {
 		t.Fatal(err)
 	}
-	other, err := post(t, s, "orem", "ip-b", "an ordinary message from somebody else")
+	other, err := post(t, s, "bedford", "ip-b", "an ordinary message from somebody else")
 	if err != nil {
 		t.Fatal(err)
 	}
 	visible := func() int {
-		msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+		msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2217,7 +2217,7 @@ func TestHideAndRevealAreReversibleBothWays(t *testing.T) {
 		t.Errorf("and it goes back out of sight, got %d", visible())
 	}
 	// The bystander was never involved in any of it.
-	msgs, err := s.Recent(ctx, "dev", "orem", 0, 50)
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2232,7 +2232,7 @@ func TestHideRefusesWhatIsAlreadyOutOfSight(t *testing.T) {
 	s, _ := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-crook", "send me your seed phrase and I will restore it")
+	id, err := post(t, s, "bedford", "ip-crook", "send me your seed phrase and I will restore it")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2247,7 +2247,7 @@ func TestHideRefusesWhatIsAlreadyOutOfSight(t *testing.T) {
 			"that would turn a reversible hide into one only reveal could undo")
 	}
 	// A second hide of a secret-hidden message is also refused.
-	fresh, err := post(t, s, "orem", "ip-c", "a message to hide twice")
+	fresh, err := post(t, s, "bedford", "ip-c", "a message to hide twice")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2299,7 +2299,7 @@ func TestRevokeTellsYouWhenItChangedNothing(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 
-	id, err := post(t, s, "orem", "ip-a", "a message to act on")
+	id, err := post(t, s, "bedford", "ip-a", "a message to act on")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2434,7 +2434,7 @@ func TestTheThrottleBlamesTheAddressRatherThanTheReader(t *testing.T) {
 	ctx := context.Background()
 	post := func(who string) error {
 		_, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: who,
+			Chain: "dev", Court: "bedford", Moniker: who,
 			Body:   "a perfectly ordinary sentence from " + who,
 			IPHash: "ip-office", NetHash: "net-office",
 		})
@@ -2503,7 +2503,7 @@ func TestHideDistinguishesNothingToHideFromARealFailure(t *testing.T) {
 	s, clock := newStore(t)
 	ctx := context.Background()
 	id, err := s.Post(ctx, PostInput{
-		Chain: "dev", Court: "orem", Moniker: "alice", Body: "a message worth hiding once",
+		Chain: "dev", Court: "bedford", Moniker: "alice", Body: "a message worth hiding once",
 		IPHash: "ip-a", NetHash: "net-a",
 	})
 	if err != nil {
@@ -2624,7 +2624,7 @@ func TestOpeningARoomShowsTheNewestMessages(t *testing.T) {
 	const total, limit = 60, 20
 	for i := 1; i <= total; i++ {
 		if _, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: "anon",
+			Chain: "dev", Court: "bedford", Moniker: "anon",
 			Body:   fmt.Sprintf("message number %d in the room", i),
 			IPHash: fmt.Sprintf("ip-%d", i), NetHash: "net",
 		}); err != nil {
@@ -2632,7 +2632,7 @@ func TestOpeningARoomShowsTheNewestMessages(t *testing.T) {
 		}
 	}
 
-	got, err := s.Recent(ctx, "dev", "orem", 0, limit)
+	got, err := s.Recent(ctx, "dev", "bedford", 0, limit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2672,20 +2672,20 @@ func TestACursorStillReceivesTheOldestItIsMissing(t *testing.T) {
 	const total, limit = 60, 20
 	for i := 1; i <= total; i++ {
 		if _, err := s.Post(ctx, PostInput{
-			Chain: "dev", Court: "orem", Moniker: "anon",
+			Chain: "dev", Court: "bedford", Moniker: "anon",
 			Body:   fmt.Sprintf("message number %d in the room", i),
 			IPHash: fmt.Sprintf("ip-%d", i), NetHash: "net",
 		}); err != nil {
 			t.Fatal(err)
 		}
 	}
-	all, err := s.Recent(ctx, "dev", "orem", 0, total)
+	all, err := s.Recent(ctx, "dev", "bedford", 0, total)
 	if err != nil || len(all) != total {
 		t.Fatalf("setup: %d rows, %v", len(all), err)
 	}
 	// A cursor a long way back: everything after the tenth row is missing.
 	from := all[9].ID
-	got, err := s.Recent(ctx, "dev", "orem", from, limit)
+	got, err := s.Recent(ctx, "dev", "bedford", from, limit)
 	if err != nil {
 		t.Fatal(err)
 	}
