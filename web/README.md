@@ -19,8 +19,11 @@ Open `index.html` in any browser — no build, no dependencies, no server needed
   build the transaction links (default `https://gno.land`). The page then reads the real
   realm.
 
-Your choices persist in `localStorage`; nothing leaves the page except the ABCI queries
-to the node you name and the transaction links you click.
+Your choices persist in `localStorage` — including the address you last asked **Your
+positions** or **What needs you** to read, so a reload comes back to it instead of to an
+empty box. Clearing the field and pressing the button again forgets it. Nothing leaves
+the page except the ABCI queries to the node you name and the transaction links you
+click.
 
 ## Court chat (optional)
 
@@ -58,7 +61,9 @@ The design, the moderation rules and how to run it are in [CHAT.md](../CHAT.md).
 
 With the [Adena](https://adena.app) extension installed, **Connect Adena** in the
 left rail links your address: "Your positions" and "What needs you" read it
-automatically, and — in **live mode** — every action gains a **✍ Sign** button
+automatically (and outrank an address typed into their own box — a connected wallet is
+a fact about now, a remembered address is a note about last time), and — in **live
+mode** — every action gains a **✍ Sign** button
 that signs and broadcasts through the wallet — demo mode never signs, since its
 entities don't exist on any chain. Each argument is confirmed before signing, and
 `Buy` asks for the ugnot amount (which is burned). The page still works fully
