@@ -14370,7 +14370,17 @@ on(/^\/c\/([a-z0-9-]+)\/holders$/, async (slug)=>{
   const name = s.name || slug;
   const h = await chainHolders(slug, 50).catch(()=>({total:null, rows:[]}));
   const supply = Number(s.supply)||0;
-  const mine = (CFG.addr||"").toString();
+  /* youAddr, NOT CFG.addr, so the mark the note above describes reaches the
+     reader it was written for. A wallet-less reader now HAS an address this page
+     knows — the one they typed into "Your positions" — and this table went on
+     showing them the list of strangers that note exists to prevent.
+     A DISPLAY MARK IS THE RIGHT PLACE FOR IT AND A SIGNING FIGURE IS NOT, which
+     is why fillVoteCommitment still reads CFG.addr: that panel prints what a
+     vote WOULD commit, immediately before somebody signs, and a remembered
+     address cannot sign. It is the same split readaddr was created to keep — the
+     field that can sign, and the field that is only ever read. This row is
+     highlighted or it is not; nothing here is signed. */
+  const mine = (youAddr()||"").toString();
   const pct = b => supply>0? (100*b/supply) : 0;
   const rows = h.rows.map((r,i)=>{
     const you = r.who===mine;

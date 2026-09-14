@@ -171,6 +171,23 @@ ok("demo mode still takes precedence on both routes",
 ok("both address boxes remember before they read",
    (src.match(/rememberAddr\(a\); show\(a\)/g) || []).length === 2);
 
+// --------------------------------------------- and the one mark that says "you"
+// THE HOLDERS TABLE IS THE OTHER PLACE THE PAGE NAMES THE READER, and it was
+// left on CFG.addr when the two routes moved to youAddr(). Its own note says
+// what that costs — "without it the page is a list of strangers and a reader has
+// to compare a truncated address against their wallet by eye" — and the reader
+// who cannot do that comparison is precisely the one with no wallet, who now has
+// a remembered address and was still being shown strangers.
+ok("the holders table marks the row for whichever address is being read",
+   /const mine = \(youAddr\(\)\|\|""\)\.toString\(\);/.test(src));
+
+// AND THE SIGNING FIGURE STAYS ON CFG.addr, which is the same distinction the
+// readaddr field exists for: fillVoteCommitment prints what a vote WOULD commit,
+// immediately before somebody signs, and a remembered address cannot sign. This
+// arm is what stops a later sweep from "finishing the job" by changing it too.
+ok("the vote-commitment panel still asks the account that can sign",
+   /if\(!qv \|\| !CFG\.addr \|\| !isLive\(\)\) return;/.test(src));
+
 // youAddr reads the live global CFG; this asks it about a reloaded one.
 function youAddrOn(cfg){ const prev = global.CFG; global.CFG = cfg;
   try { return youAddr(); } finally { global.CFG = prev; } }
