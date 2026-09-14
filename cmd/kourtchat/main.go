@@ -20,6 +20,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -198,13 +199,32 @@ func modeWarning(db, secretFile string) string {
 
 func main() {
 	var (
-		addr         = flag.String("addr", "127.0.0.1:8788", "listen address")
-		db           = flag.String("db", "chat.db", "path to the SQLite database")
-		chains       = flag.String("chain", "dev", "comma-separated chain names to serve")
-		behindProxy  = flag.Bool("behind-proxy", false, "trust X-Forwarded-For from --trusted-proxy")
-		trusted      = flag.String("trusted-proxy", "", "comma-separated CIDRs allowed to set X-Forwarded-For")
-		countryHdr   = flag.String("country-header", "", "trusted header carrying an ISO country code, e.g. CF-IPCountry")
-		secretFile   = flag.String("secret-file", "", "path to the IP hashing key; defaults to a row in the database")
+		addr        = flag.String("addr", "127.0.0.1:8788", "listen address")
+		db          = flag.String("db", "chat.db", "path to the SQLite database")
+		chains      = flag.String("chain", "dev", "comma-separated chain names to serve")
+		behindProxy = flag.Bool("behind-proxy", false, "trust X-Forwarded-For from --trusted-proxy")
+		trusted     = flag.String("trusted-proxy", "", "comma-separated CIDRs allowed to set X-Forwarded-For")
+		countryHdr  = flag.String("country-header", "", "trusted header carrying an ISO country code, e.g. CF-IPCountry")
+		secretFile  = flag.String("secret-file", "", "path to the IP hashing key; defaults to a row in the database")
+		/* THE OPERATOR'S NAME, and the hold on everyone else's.
+
+		   A FILE, NOT A FLAG VALUE. A --owner-token on the command line is in every
+		   `ps` on the box and in the history of whatever shell started it. The file
+		   holds the SHA-256 of the token, so it never contains the secret either:
+
+		       tok=$(openssl rand -hex 32); echo "$tok"       # this goes to the browser
+		       printf %s "$tok" | shasum -a 256 | cut -d' ' -f1 > owner.sha256
+
+		   Unset means the owner names are refused to EVERYONE, including the
+		   operator, which is the right default for a server nobody configured. */
+		ownerTokenFile = flag.String("owner-token-file", "",
+			"file holding the SHA-256 (hex) of the token that releases the operator's display names")
+		/* HOW LONG A NAME STAYS YOURS after you last used it in a court. Zero turns
+		   the check off. A day keeps a conversation's cast intact without losing a
+		   name for ever to an address that has moved on: an ip_hash is not a
+		   person. */
+		nameHold = flag.Duration("name-hold", 24*time.Hour,
+			"how long one author's use of a display name keeps others off it in the same court (0 disables)")
 		healthDetail = flag.Bool("health-detail", false,
 			"serve backlog and scanner timing on the public health endpoint (helps an attacker time one)")
 		archiveRPC = flag.String("archive-rpc", "",
@@ -348,7 +368,33 @@ func main() {
 		AppealTo:     *appealTo,
 		Chains:       names, CountryHeader: *countryHdr, Log: lg,
 		BotKeyBootstrap: *botKeyForm,
+		NameHold:        *nameHold,
 		// BotEnabled is set below, from the one thing that decides it.
+	}
+	/* THE OWNER TOKEN, AND A REFUSAL TO START WITHOUT IT when it was asked for.
+	   An unreadable or malformed file must not degrade quietly into "the owner
+	   names are held by nobody": that is indistinguishable, from the outside,
+	   from a server that is working — right up until the operator tries to use
+	   their own name and is told it is taken. A flag that was passed is a
+	   statement of intent, so failing it is a startup error. */
+	if *ownerTokenFile != "" {
+		raw, err := os.ReadFile(*ownerTokenFile)
+		if err != nil {
+			lg.Fatalf("owner-token-file: %v", err)
+		}
+		sum := strings.ToLower(strings.TrimSpace(string(raw)))
+		// A HEX SHA-256 AND NOTHING ELSE. The likeliest mistake is writing the
+		// TOKEN into this file instead of its digest, and that would otherwise
+		// be accepted silently and match nothing for ever.
+		if len(sum) != 64 {
+			lg.Fatalf("owner-token-file: want a 64-character hex sha256, got %d characters — "+
+				"write the DIGEST of the token, not the token", len(sum))
+		}
+		if _, err := hex.DecodeString(sum); err != nil {
+			lg.Fatalf("owner-token-file: not hex: %v", err)
+		}
+		srv.OwnerTokenSHA256 = sum
+		lg.Printf("owner names %v released against the token in %s", chat.OwnerNames, *ownerTokenFile)
 	}
 	// Flags are decoration, so a missing or broken geo database must never stop the
 	// server: it logs and carries on with no flags at all.

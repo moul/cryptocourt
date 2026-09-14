@@ -473,8 +473,106 @@ const ClerkCountry = "GNO"
 // botImpersonation. A refusal is not a punishment and nothing here depends on
 // the table being exhaustive; the belt is this function and the braces are the
 // callout.
+// reservedNames are the display names nobody may wear, beyond the clerk's.
+//
+// WHAT THESE HAVE IN COMMON is not that they are important words — it is that a
+// reader scanning a room would take them for the ROOM speaking rather than for
+// somebody in it. "admin" saying the court is closed, "system" saying a claim
+// was withdrawn, "support" asking for a seed phrase: each borrows an authority
+// the chat does not grant anyone, and the damage is done in the half-second
+// before a reader checks. The clerk was the first of these and is kept separate
+// only because the bot posts under it.
+//
+// SINGULAR AND PLURAL BOTH, and the near-misses too, because the skeleton fold
+// catches homoglyphs and not synonyms: "аdmin" with a Cyrillic а is already
+// refused by nameSkeleton, but "admins" is a different word and has to be
+// listed. This is a table of judgement calls; it is meant to be edited.
+//
+// NOT A NAMESPACE CLAIM. Anything not on this list is first-come — see
+// Store.NameHolder, which is a different mechanism with a different rule.
+var reservedNames = []string{
+	ClerkName,
+	"admin", "admins", "administrator",
+	"mod", "mods", "moderator", "moderators",
+	"system", "root", "owner", "official", "staff",
+	"support", "help", "helpdesk",
+	"kourt", "kourtbot", "court", "clerkbot",
+}
+
+// NOT ON THAT LIST, and the reason is worth keeping: "anon".
+//
+// It reads like the most obviously reserved word here — a role, not a person —
+// and reserving it breaks the entire chat. DefaultMoniker IS "anon": it is who
+// you are when you have not said who you are, so every post from anyone who
+// never typed a name arrives under it. Adding it refused eight existing tests
+// and would have refused every default poster on the site.
+//
+// The general rule it stands for: this list may only contain names nobody is
+// ALREADY using. A word that sounds authoritative is not automatically free.
+
+// OwnerNames are held for the operator and released only against a token.
+//
+// These are not reserved in the sense above — they name a PERSON, not a role,
+// and the person exists. A stranger wearing "jae" in a court he runs is a
+// different kind of lie from one wearing "admin": it is not borrowed authority,
+// it is identity theft with a real victim who can be asked whether he said it.
+//
+// SEPARATE FROM reservedNames because the remedy differs. Nobody can ever be
+// "admin"; exactly one person can be "jae", and the server has to be able to
+// tell him apart from everyone else. See Server.OwnerTokenSHA256.
+var OwnerNames = []string{"jae", "jaekwon"}
+
+// letterCore is a name with everything that is not a letter removed.
+//
+// THE SECOND COMPARISON, and it exists because the first one cannot do this.
+// nameSkeleton FOLDS digits into the letters they imitate — 7 to t, 1 to l, 4 to
+// a — which is exactly right for "j4e" and exactly wrong for "jae777": that
+// becomes "jaettt", a different word, and sails through. Stripping instead of
+// folding catches the other half: "jae777", "jae_777", "jae-777", "JAE 777" all
+// reduce to "jae".
+//
+// NEITHER ALONE IS ENOUGH, which is why both run. Fold-only misses the digit
+// suffix; strip-only misses "j4e", because stripping its 4 leaves "je".
+//
+// AND IT ONLY MATCHES WHOLE NAMES. "jaeger" reduces to "jaeger", not "jae", so a
+// person whose name merely begins with those letters is untouched — the rule is
+// "this reads AS Jae", not "this contains jae".
+func letterCore(s string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(s) {
+		if unicode.IsLetter(r) {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// nameMatches is whether a display name reads as one of `names`, by either
+// route: the homoglyph/leet fold, or the strip of everything but letters.
+func nameMatches(s string, names []string) bool {
+	skel, core := nameSkeleton(s), letterCore(s)
+	for _, n := range names {
+		if skel == nameSkeleton(n) || (core != "" && core == letterCore(n)) {
+			return true
+		}
+	}
+	return false
+}
+
+// IsOwnerName is whether a display name is one the operator holds.
+//
+// THE ASK, VERBATIM: "i just want 'jae' to be me" — so jae777, jaekwon777 and
+// jae<anything numeric> are held too. A stranger posting as "jae777" beside a
+// "jae" is not picking their own name, they are standing next to one.
+func IsOwnerName(s string) bool {
+	return nameMatches(s, OwnerNames)
+}
+
+// IsReservedName also matches the decorated forms, for the reason IsOwnerName
+// does: "admin1" and "clerk99" borrow the same authority the bare word does, and
+// a rule that stops only the exact spelling stops nobody who tried twice.
 func IsReservedName(s string) bool {
-	return nameSkeleton(s) == nameSkeleton(ClerkName)
+	return nameMatches(s, reservedNames)
 }
 
 // nameSkeleton is Skeleton plus the one fold a short NAME needs and a general

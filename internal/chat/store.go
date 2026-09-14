@@ -414,6 +414,20 @@ func diagnosePath(path string) string {
 // first anyone would learn of it is a restore that came back missing something.
 func (s *Store) Writer() *sql.DB { return s.w }
 
+// Reader exposes the read handle, and a sibling package that reads on a hot path
+// should take it rather than reading through Writer().
+//
+// THE TWO HANDLES ARE NOT INTERCHANGEABLE and the difference is a pool of one
+// against a pool of four. The writer is deliberately serialised — SetMaxOpenConns(1)
+// above, with _txlock=immediate — because that is what makes a write wait for the
+// lock instead of failing. Reads sent through it queue behind every chat post.
+//
+// internal/archive was given only Writer() and does all its reads through it,
+// which is survivable there: promotion checks run on upload, not on page load.
+// The next caller reads on every court page, which is a different order of
+// traffic, and "it worked for archive" would have been the reason nobody noticed.
+func (s *Store) Reader() *sql.DB { return s.r }
+
 func (s *Store) Close() error {
 	err := s.w.Close()
 	if err2 := s.r.Close(); err == nil {
@@ -2247,4 +2261,90 @@ func (s *Store) CountInfractions(ctx context.Context, all bool) (int, error) {
 	var n int
 	err := s.r.QueryRowContext(ctx, q, args...).Scan(&n)
 	return n, err
+}
+
+// NameHolder returns the ip_hash that currently holds a display name in a court,
+// or "" if the name is free. Compares SKELETONS, not text.
+//
+// WHY A NAME CAN BE HELD AT ALL, in a chat with no accounts. Identity here is an
+// ip_hash and nothing else, so "your name" cannot be a row in a users table —
+// there are no users. What there is: a name somebody has been posting under in
+// this room, which other readers have learned to read as that person. Taking it
+// is not a database conflict, it is a lie told to everyone who recognises it.
+// So the rule is first-come, scoped to one court, and it expires.
+//
+// SCOPED TO THE COURT because that is the room the recognition lives in. The
+// same word in two courts is two strangers, and a global claim would let one
+// early poster fence off a name across a chain they have never visited.
+//
+// AND IT EXPIRES, because an IP is not a person and a permanent claim on a
+// rotating address is a name lost for ever — a phone that changed networks
+// cannot prove it was the same author, and neither can anyone else. A window
+// keeps a name held while its author is actually around and releases it when
+// they are not.
+//
+// SKELETON, NOT EQUALITY, for the reason IsReservedName gives: "jae" and "jае"
+// with Cyrillic е are the same name to every reader and different strings to
+// SQLite. The fold happens in Go rather than SQL because there is no skeleton
+// column on messages, and adding one would be a migration for a comparison that
+// runs once per post over a bounded window.
+//
+// BOUNDED ON BOTH AXES — time and rows — so this cannot become a table scan on a
+// busy court. A name used by nobody in the last `within` is free, and the LIMIT
+// only decides how far back inside that window we bother to look.
+func (s *Store) NameHolder(ctx context.Context, chain, court, moniker string,
+	within time.Duration, now time.Time) (string, error) {
+	skel := nameSkeleton(moniker)
+	if skel == "" {
+		return "", nil
+	}
+	// THE DEFAULT NAME IS HELD BY NOBODY, and this is the second place that rule
+	// has to be written. "anon" is who you are when you have not said who you
+	// are, so the first anonymous poster in a court would otherwise hold it
+	// against every anonymous poster after them — two strangers both reading as
+	// "anon" is the NORMAL case here, not an impersonation. Caught by a test
+	// written for the reserved list, which fails the same way one rule over.
+	if skel == nameSkeleton(DefaultMoniker) {
+		return "", nil
+	}
+	cutoff := now.Add(-within).Unix()
+	/* AN EMPTY COURT MEANS ANY COURT ON THIS CHAIN, and that is not a
+	   convenience — it is what makes a claim a claim. The operator's name is
+	   held with a token ONCE; after that the hold is what keeps it, and a hold
+	   scoped to one room would mean re-presenting the token on first post in
+	   every other room. "jae" is the same person in every court, so the lookup
+	   that backs it has to be able to ask across all of them. Ordinary names
+	   still pass a court and stay per-room; see the note above on why. */
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	if court == "" {
+		rows, err = s.r.QueryContext(ctx, `
+SELECT moniker, ip_hash FROM messages
+ WHERE chain=? AND created_at>=?
+ ORDER BY id DESC LIMIT 2000`, chain, cutoff)
+	} else {
+		rows, err = s.r.QueryContext(ctx, `
+SELECT moniker, ip_hash FROM messages
+ WHERE chain=? AND court=? AND created_at>=?
+ ORDER BY id DESC LIMIT 2000`, chain, court, cutoff)
+	}
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var m, ip string
+		if err := rows.Scan(&m, &ip); err != nil {
+			return "", err
+		}
+		// NEWEST FIRST, so the first match is the current holder. An author who
+		// abandoned a name and a later one who adopted it are ordered the way a
+		// reader would order them: whoever spoke last under it owns it now.
+		if nameSkeleton(m) == skel {
+			return ip, nil
+		}
+	}
+	return "", rows.Err()
 }

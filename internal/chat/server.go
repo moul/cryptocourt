@@ -1,6 +1,9 @@
 package chat
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,6 +29,27 @@ type Server struct {
 	// allowlist. A client-chosen path segment with no allowlist would be a fresh
 	// table partition and a fresh per-court budget per made-up name.
 	Chains map[string]bool
+
+	// OwnerTokenSHA256 releases the OwnerNames ("jae", "jaekwon") to whoever
+	// presents the matching token in the X-Kourt-Owner header. Empty means those
+	// names are held by NOBODY — refused to everyone, including the operator,
+	// which is the safe default for a server that was never configured.
+	//
+	// A HASH, NOT THE TOKEN. The server never needs the secret itself, only the
+	// ability to recognise it, and a config file or a process listing that leaks
+	// this field leaks nothing usable. Compared with subtle.ConstantTimeCompare
+	// so a wrong guess costs the same time as a right one.
+	//
+	// IT CANNOT RELEASE A RESERVED NAME. The reserved check runs first and takes
+	// no token, so this grants "jae" and never "clerk" or "admin" — the operator
+	// is a person with a name, not an exemption from the rules about roles. The
+	// clerk in particular has to stay unclaimable by everyone: the bot posts
+	// under it, so a human wearing it is indistinguishable from the room itself.
+	OwnerTokenSHA256 string
+
+	// NameHold is how long one author's use of a display name keeps others off
+	// it in the same court. Zero disables the check entirely.
+	NameHold time.Duration
 
 	// CountryHeader, when set, is a trusted proxy header carrying an ISO country
 	// code (Cloudflare's CF-IPCountry, say). Empty means no flags, which is the
@@ -861,9 +885,72 @@ func (s *Server) post(w http.ResponseWriter, r *http.Request, chain, court strin
 	   comparison sees the name the room would show. 409 rather than 400: the name
 	   is well formed, it is taken. */
 	if IsReservedName(moniker) {
+		/* NAME THE HOLDER, not just the rule. "that name is reserved" tells a
+		   reader they were refused and nothing about why, and for the clerk in
+		   particular the answer is the whole point: the room has a clerk, that
+		   is its name, you are not it. Pinned by a test that predates the wider
+		   reserved list and is right to keep asking. */
+		if nameSkeleton(moniker) == nameSkeleton(ClerkName) {
+			writeErr(w, http.StatusConflict,
+				"that name belongs to the court's clerk — please pick another")
+			return
+		}
 		writeErr(w, http.StatusConflict,
-			"that name belongs to the court's clerk — please pick another")
+			"that name is reserved for the court itself — please pick another")
 		return
+	}
+	/* THE OPERATOR'S OWN NAMES, released only against a token.
+	   AFTER the reserved check and never merged with it: a token grants "jae",
+	   and there is deliberately no token on earth that grants "clerk". The two
+	   lists answer different questions — reservedNames is "nobody is this role",
+	   OwnerNames is "one person is this person" — and folding them together
+	   would make the operator an exemption from the first, which is the opposite
+	   of what it is for.
+	   CONSTANT TIME, and an unset OwnerTokenSHA256 refuses everyone rather than
+	   admitting everyone: a server nobody configured holds the names shut. */
+	/* CLAIM ONCE, THEN JUST TYPE. The token is not a per-post signature — asked
+	   for directly: "i don't want to do it every post". So it does two different
+	   jobs depending on what is already true:
+
+	     no holder    the token CLAIMS the name for this address
+	     you hold it  no token needed; the hold is the claim
+	     someone else the token TAKES it back
+
+	   The hold is what carries the claim between posts, which is why the lookup
+	   is chain-wide for owner names (court "") rather than per-room: "jae" is the
+	   same person in every court, and re-presenting a token on first post in each
+	   one is the thing being removed.
+
+	   IT STILL EXPIRES, and that is a feature rather than a gap. An ip_hash is
+	   not a person; when the address changes the hold lapses and the name is
+	   re-claimed with the token — which is also the only way to recover it from
+	   an address that has taken it in the meantime. */
+	if IsOwnerName(moniker) {
+		holder := ""
+		if s.NameHold > 0 {
+			holder, _ = s.Store.NameHolder(r.Context(), chain, "", moniker, s.NameHold, s.Store.Now())
+		}
+		if holder != ipHash && !s.ownerTokenOK(r) {
+			writeErr(w, http.StatusConflict,
+				"that name is held by the court's operator — please pick another")
+			return
+		}
+	}
+	/* AND A NAME SOMEBODY IN THE ROOM IS ALREADY USING.
+	   Asked for: "not allow anyone to take a name already taken by someone in
+	   chat". Held per COURT and only while its author is still around; see
+	   Store.NameHolder for why both of those are load-bearing.
+	   A FAILED LOOKUP DOES NOT REFUSE. If the store cannot answer, the honest
+	   move is to let the post through — this is a courtesy rule about display
+	   names, and a database hiccup should not silence a room. Every rule above
+	   it is a real protection and fails closed; this one fails open on purpose. */
+	if s.NameHold > 0 {
+		if holder, err := s.Store.NameHolder(r.Context(), chain, court, moniker,
+			s.NameHold, s.Store.Now()); err == nil && holder != "" && holder != ipHash {
+			writeErr(w, http.StatusConflict,
+				"somebody in this court is already using that name — please pick another")
+			return
+		}
 	}
 	body, err := SanitizeBody(in.Body)
 	if err != nil {
@@ -962,4 +1049,32 @@ func (s *Server) post(w http.ResponseWriter, r *http.Request, chain, court strin
 		}
 		writeErr(w, http.StatusServiceUnavailable, "cannot accept messages right now")
 	}
+}
+
+// ownerTokenOK is whether this request carries the operator's claim token.
+//
+// HEADER, NOT A COOKIE OR A QUERY STRING. A query string lands in access logs
+// and in any Referer the browser sends onward; a cookie rides on every request
+// whether or not it is posting. A header is sent deliberately, by the one client
+// that has been told the secret.
+//
+// COMPARED AS A HASH, IN CONSTANT TIME. The server stores only SHA-256 of the
+// token, so it can recognise the secret without holding it, and the comparison
+// does not leak how much of a guess was right through timing.
+//
+// UNCONFIGURED MEANS NOBODY. An empty OwnerTokenSHA256 returns false for every
+// request including one with no header at all, so the owner names stay refused
+// rather than falling open on a server that was never given a token.
+func (s *Server) ownerTokenOK(r *http.Request) bool {
+	if s.OwnerTokenSHA256 == "" {
+		return false
+	}
+	tok := strings.TrimSpace(r.Header.Get("X-Kourt-Owner"))
+	if tok == "" {
+		return false
+	}
+	sum := sha256.Sum256([]byte(tok))
+	got := hex.EncodeToString(sum[:])
+	want := strings.ToLower(strings.TrimSpace(s.OwnerTokenSHA256))
+	return subtle.ConstantTimeCompare([]byte(got), []byte(want)) == 1
 }

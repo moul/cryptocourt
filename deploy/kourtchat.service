@@ -100,7 +100,8 @@ ExecStart=/opt/kourt/kourtchat \
     --trusted-proxy 127.0.0.1/32,::1/128 \
     --geo-ranges /var/lib/kourt/geo/dbip.csv.gz \
     --bot \
-    --bot-gap 10s
+    --bot-gap 10s \
+    --owner-token-file /var/lib/kourt/secret/owner.sha256
 
 Restart=on-failure
 RestartSec=2
