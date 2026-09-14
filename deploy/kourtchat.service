@@ -26,9 +26,23 @@ Group=kourt
 # "unknown chain \"kourt-1\"". The service was healthy the whole time and
 # answering the only chain it had been told about.
 #
-# BOTH NAMES, because one binary serves whatever is pointed at it: "dev" keeps a
-# local gnodev working against this same service, and kourt-1 is the chain this
-# host actually runs. Adding a chain here is the only thing needed to serve it.
+# ALL THREE NAMES, because one binary serves whatever is pointed at it: "dev"
+# keeps a local gnodev working against this same service, kourt-1 is the devnet
+# this host runs, and gnoland-1 is gno.land mainnet. Adding a chain here is the
+# only thing needed to serve it.
+#
+# AND THE PARAGRAPH ABOVE CAME TRUE A SECOND TIME, with a new chain id. The
+# overlay was repointed at mainnet — chainid "gnoland-1", rpc.gno.land — and
+# every chat request came back `unknown chain "gnoland-1"` while the service sat
+# there healthy, answering for dev and kourt-1 exactly as told. The page reports
+# that as "Chat is unreachable right now", which reads like the service is down
+# and is the one thing it is not.
+#
+# THE FIX BELONGS HERE RATHER THAN ON THE HOST, which is the part that cost a
+# round trip: editing /etc/systemd/system/kourtchat.service directly worked for
+# twenty-three seconds, until the next deploy reinstalled this file over it and
+# restarted. deploy.sh ships this unit, so a chain added on the host and not here
+# survives exactly until somebody deploys.
 #
 # --archive-rpc IS WHAT KEEPS FILED PICTURES, and it was missing. Its own help
 # says the consequence plainly — "empty disables promotion, so every upload
@@ -80,7 +94,7 @@ ExecStart=/opt/kourt/kourtchat \
     --addr 127.0.0.1:8788 \
     --db /var/lib/kourt/chat.db \
     --secret-file /var/lib/kourt/secret/iphash.key \
-    --chain dev,kourt-1 \
+    --chain dev,kourt-1,gnoland-1 \
     --archive-rpc https://rpc.kourt.xyz \
     --behind-proxy \
     --trusted-proxy 127.0.0.1/32,::1/128 \

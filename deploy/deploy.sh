@@ -66,6 +66,7 @@ cleanup() {
 			>/dev/null 2>&1 || true
 	fi
 	[ -n "${STAMPED:-}" ] && rm -f "$STAMPED"
+	[ -n "${UNITSTAMPED:-}" ] && rm -f "$UNITSTAMPED"
 	rm -f /tmp/kourtchat-linux
 	ssh -o ControlPath="$CTL" -O exit "$HOST" >/dev/null 2>&1 || true
 	return $rc
@@ -270,20 +271,35 @@ say "stamping the overlay's chain config"
 # Stamped on a COPY. Editing web/index.html in place would leave the working tree
 # dirty with deployment values and put them in the next commit.
 STAMPED="$(mktemp -t kourt-index).html"   # removed by cleanup(), which sees it now
+# THE DEFAULTS ARE WHAT PRODUCTION RUNS, and they were not. They named the
+# kourt-1 devnet long after kourt.xyz had been moved to gno.land mainnet, so the
+# site every reader sees existed only as a set of environment variables in
+# somebody's shell — `SITE_RPC=… SITE_CHAINID=… ./deploy/deploy.sh` — and a bare
+# deploy would have quietly moved the public site back to a devnet at height 84.
+# Reproducing prod should be the thing that takes no arguments.
 SITE_MODE="${SITE_MODE:-live}"
-SITE_RPC="${SITE_RPC:-https://rpc.kourt.xyz}"
-SITE_CHAINID="${SITE_CHAINID:-kourt-1}"
+SITE_RPC="${SITE_RPC:-https://rpc.gno.land}"
+SITE_CHAINID="${SITE_CHAINID:-gnoland-1}"
 # gnoweb is where every action button sends a reader to sign: tx() builds
 # CFG.gnoweb + "/r/kourt/kourtv2$help&func=…". There is no gnoweb on this host,
 # so the honest default is the repo's — and that points at gno.land, which does
 # NOT carry this realm. Say so rather than stamping a link that 404s quietly.
-SITE_GNOWEB="${SITE_GNOWEB:-https://gnoweb.kourt.xyz}"
+#
+# THAT CEASED TO BE TRUE when the realm went to mainnet: gno.land carries it now,
+# at the path below, and gnoweb.kourt.xyz serves the devnet. The default follows
+# the chain the two lines above name.
+SITE_GNOWEB="${SITE_GNOWEB:-https://gno.land}"
 # THE REALM PATH IS CHAIN CONFIG, not source. The same overlay serves whichever
 # chain it is pointed at, and the realm sits at a different path on each --
 # gno.land/r/kourt/kourtv2 locally, gno.land/r/<namespace>/kourt elsewhere.
 # Stamping rpc and chainid but NOT this pointed the page at one chain while
 # every action button signed against another.
-SITE_PKG="${SITE_PKG:-gno.land/r/kourt/kourtv2}"
+#
+# AN ADDRESS NAMESPACE, NOT `kourt`, because mainnet has no registered `kourt`
+# namespace and a package deploys exactly once. r/g1ecsuj…/kourt is where it
+# actually went, and every action button has to sign against that path or it
+# signs against nothing.
+SITE_PKG="${SITE_PKG:-gno.land/r/g1ecsuj0q572jr0dhu29q9njtnmw03hyu7tyyvv6/kourt}"
 python3 - "$STAMPED" <<PYEOF
 import re, sys
 src = open("web/index.html", encoding="utf-8").read()
@@ -542,7 +558,32 @@ fi
 if [ -n "${OGFILE:-}" ]; then
 	"${SCP[@]}" "$OGFILE" "$HOST:$WEBROOT/$(basename "$OGFILE")$NEW"
 fi
-"${SCP[@]}" deploy/kourtchat.service "$HOST:/tmp/kourtchat.service.$DEPLOYID"
+# THE SERVICE MUST SERVE THE CHAIN THE PAGE ASKS FOR, and keeping that in two
+# places is what broke the chat on mainnet. The overlay's chain id is stamped
+# above from $SITE_CHAINID; the unit's --chain list was a static string in the
+# file. Point the site at a new chain and every chat request comes back
+# `unknown chain "…"` from a service that is healthy and answering for exactly
+# the chains it was told about — which the page renders as "Chat is unreachable
+# right now", the one thing it is not.
+#
+# So the unit is stamped too, on a COPY, for the same reason index.html is: the
+# working tree must not end up holding one deployment's values.
+#
+# APPENDED, NOT REPLACED. The file's own list is the local baseline — "dev" keeps
+# a laptop gnodev working against this same service — and the deploy adds
+# whichever chain this site is being pointed at. Idempotent: re-stamping a unit
+# that already names the chain leaves it byte-identical, which matters because
+# the install below only restarts when the file actually changed.
+UNITSTAMPED="$(mktemp -t kourt-unit)"   # removed by cleanup(), beside STAMPED
+if grep -qE -- "--chain[[:space:]]+[^ ]*\\b${SITE_CHAINID}\\b" deploy/kourtchat.service; then
+	cp deploy/kourtchat.service "$UNITSTAMPED"
+else
+	sed -E "s|(--chain[[:space:]]+)([^ ]*)|\\1\\2,${SITE_CHAINID}|" \
+		deploy/kourtchat.service > "$UNITSTAMPED"
+fi
+grep -qE -- "--chain[[:space:]]+[^ ]*\\b${SITE_CHAINID}\\b" "$UNITSTAMPED" || {
+	echo "deploy: the unit's --chain does not name $SITE_CHAINID" >&2; exit 1; }
+"${SCP[@]}" "$UNITSTAMPED" "$HOST:/tmp/kourtchat.service.$DEPLOYID"
 
 say "installing and restarting kourtchat"
 # ONE CRITICAL SECTION, UNDER ONE LOCK. Installing and restarting used to be two
