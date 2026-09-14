@@ -1471,7 +1471,12 @@ html.embed .main{grid-column:1; grid-row:1; max-width:none; padding:0;
 /* The claim's own events, dated. Wraps rather than truncating: a claim that has
    been answered AND disputed AND reopened has more history than one line, and
    the history is the point. */
-.emb .enopath{font-size:11px; color:var(--muted); font-style:italic}
+/* The caption INSIDE an empty chart, where the line would be. It replaced
+   .enopath, which was an italic sentence standing in place of the drawing — and
+   a sentence where a chart belongs reads as a fault rather than as an empty
+   chart. In SVG units: the box is 300 wide rendered into ~370px, so 9 units is
+   about 11px, matching the row of labels below it. */
+.emb .enotext{color:var(--muted); font-style:italic}
 .emb .etrail{display:flex; flex-wrap:wrap; gap:2px 10px; font-size:11px; color:var(--ink-2)}
 .emb .etrail span{white-space:nowrap}
 .emb .etrail b{font-weight:600; color:var(--muted); font-weight:500}
@@ -19831,8 +19836,17 @@ function drawClip(slug, id, d, courtName, theme, note, url, ser, tl){
     // Not every claim has one: an older deployment has no ClaimSeries at all,
     // and a claim nobody has staked twice has nothing to plot. Saying so beats
     // a silent gap where a chart obviously belongs.
+    //
+    // IN THE READER'S WORDS, NOT THE FILE'S. This said "no recorded path for this
+    // claim yet"; "recorded path" is what this file calls the series internally
+    // and nothing on any page ever tells a reader that. The card is the surface
+    // that travels furthest from here — it is pasted into places with none of
+    // this page's context — so it is the last place to use an in-house noun.
+    // The two cases are different facts and the bar below distinguishes them:
+    // nothing staked at all, or stake that has not moved.
     x.font = "400 21px ui-sans-serif,system-ui,sans-serif"; x.fillStyle = mut;
-    x.fillText("no recorded path for this claim yet", 56, titleBottom + 44);
+    x.fillText((d.yesStake || d.noStake) ? "no movement recorded yet"
+                                         : "nothing staked yet", 56, titleBottom + 44);
   }
   if(d && (d.yesStake || d.noStake)){
     const tot = Math.max(1, (d.yesStake || 0) + (d.noStake || 0));
@@ -20002,17 +20016,63 @@ function embedTrail(tl){
    and the event labels. The dates are in the HTML row below at real pixel size,
    which is better than shrinking them into the drawing. */
 function embedSpark(ser, tl, d){
-  // Say so, the way the clip does. An older deployment has no ClaimSeries at
-  // all and a claim staked once has nothing to plot; silently dropping the
-  // chart left the two cases looking like a rendering fault.
-  const none = `<div class="enopath">no recorded path for this claim yet</div>`;
-  if(!ser || !ser.pts) return none;
-  const pts = ser.pts.filter(q => q[1] != null);
-  if(pts.length < 2) return none;
   // Same anatomy as signalChart, a quarter of the size: plot box, right margin
   // for the scale, and the same 100/50/0 rows.
+  //
+  // DECLARED BEFORE THE EMPTY CASE because the empty case draws the same box.
+  // Two sets of these numbers is two boxes that drift.
   const W = 300, H = 76, PL = 5, PR = 272, Y100 = 7, Y0 = 66;
   const y = p => +(Y0 - (p / 100) * (Y0 - Y100)).toFixed(1);
+  /* AN EMPTY CHART, NOT A SENTENCE WHERE A CHART GOES.
+     Reported as: the page "just says 'no recorded path for this claim yet'. that
+     makes no sense. show an empty graph at least, and i have no idea what
+     'recorded path' means". Both halves were fair.
+     THE WORDS FIRST. "Recorded path" is this file's internal name for the series,
+     not anything a reader has been told. What the chart shows is the share of
+     stake sitting on YES, which is what its own aria-label says in plain words
+     and what the caption should have said. It also said it TWICE — the line below
+     the chart already reads "no stake yet — the first stake sets the line" — so
+     the jargon was not even carrying the information.
+     AND THE FRAME. An italic sentence where a drawing belongs reads as a fault:
+     nothing tells you the chart is empty rather than broken, or what it will show
+     once it fills. The scale is the explanation — 100 / 50 / 0 with a midline is
+     the whole idea of the chart — so the empty state draws exactly the frame the
+     populated one does, minus the data. Same viewBox, same rows, same margins,
+     because they are the same constants six lines up.
+     TWO EMPTY CASES, AND THEY ARE NOT THE SAME FACT. No stake at all is a claim
+     nobody has taken a side on; stake with fewer than two recorded points is a
+     claim whose line has not moved yet. Saying "no stake yet" on the second would
+     be false, and it is reachable — a claim staked once, or an older deployment
+     with no ClaimSeries. */
+  const staked = d && ((d.yesStake || 0) + (d.noStake || 0)) > 0;
+  /* SAME WIDTH, SAME MARGINS, SAME SCALE — SHORTER BOX. An empty chart has no
+     data to give room to, and the height is the only part of the anatomy that
+     can shrink without changing what the drawing means. It has to: the SVG
+     scales with the card, so at 500px wide the full-height box renders 136px
+     tall and pushed a 400px-tall embed 62px past its own frame. MEASURED at both
+     shapes the card advertises.
+     THE CAPTION SITS IN THE ROW BELOW, not inside the plot, because at this
+     height the middle of the box IS the 50% line and text there would cross it.
+     That row is where the populated chart puts its dates, so the empty one is
+     using the slot it already has rather than adding one. */
+  const EH = 36, EY100 = 6, EY0 = 31;
+  const ey = p => +(EY0 - (p / 100) * (EY0 - EY100)).toFixed(1);
+  const emptyWhy = staked ? "no movement recorded yet" : "nothing staked yet";
+  const emptyChart = () => `<div class="esparkwrap"><figure class="bigchart espark">
+      <svg viewBox="0 0 ${W} ${EH}" role="img"
+        aria-label="share of stake on YES — ${esc(emptyWhy)}">
+        <line class="grid" x1="${PL}" y1="${ey(100)}" x2="${PR}" y2="${ey(100)}"></line>
+        <line class="mid" x1="${PL}" y1="${ey(50)}" x2="${PR}" y2="${ey(50)}"></line>
+        <line class="axis" x1="${PL}" y1="${EY0}" x2="${PR}" y2="${EY0}"></line>
+        <text class="tickL" x="${PR + 4}" y="${ey(100) + 3}">100</text>
+        <text class="tickL" x="${PR + 4}" y="${ey(50) + 3}">50</text>
+        <text class="tickL" x="${PR + 4}" y="${EY0 + 3}">0</text>
+      </svg></figure>
+      <div class="espan"><span class="enotext">share of stake on YES — ${esc(emptyWhy)}</span></div>
+    </div>`;
+  if(!ser || !ser.pts) return emptyChart();
+  const pts = ser.pts.filter(q => q[1] != null);
+  if(pts.length < 2) return emptyChart();
   // The same domain as the clip, and now literally the same code.
   const {x0, x1, at} = seriesDomain(pts, tl);
   // The same 4% breathing room signalChart gives its domain. Without it the

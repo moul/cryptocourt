@@ -1415,9 +1415,16 @@ print("\ncheck-web-selectors")
 # querySelector for a class that does not exist returns null — the assertion goes
 # on reporting on nothing. web-visual needs puppeteer and is deliberately not in
 # `check`, so nothing said a word.
+# THE ANCHOR CARRIES ITS WHOLE STATEMENT, not just the call. `sv.querySelector
+# ('.ln')` alone stopped being unique the moment a second arm in that file asked
+# the same question — the empty-chart case checks that NO line is drawn — and a
+# plant matching twice is a plant that applies nowhere, so selftest would run the
+# guard against an untouched tree and report the pass as proof. That is the
+# BROKEN CONTROL this gate is for, and check-control-anchors caught it.
 control("a browser check queries a class the overlay no longer has",
         "web/tests/browser/embed_layout.js",
-        "sv.querySelector('.ln')", "sv.querySelector('.eline')",
+        "const line = sv.querySelector('.ln');",
+        "const line = sv.querySelector('.eline');",
         "appears in neither shipped file", argv=["python3", WEBSEL])
 # And the tripwire. A scan that matches nothing must fail rather than report a
 # clean tree — the same discipline check-web-dupes takes about its own corpus.

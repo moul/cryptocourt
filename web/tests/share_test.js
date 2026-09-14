@@ -306,10 +306,24 @@ ok("with no timeline it labels blocks rather than inventing dates",
    TEXT.some(t=>/^block /.test(t.t)) && !TEXT.some(t=>/20\d\d$/.test(t.t)),
    JSON.stringify(TEXT.map(t=>t.t).filter(t=>/block|20\d\d/.test(t))));
 // A claim with no series must say so rather than leaving a hole where a chart
-// obviously belongs.
+// obviously belongs — and say it in words a reader has been given. "Recorded
+// path" was this file's internal name for the series and appeared on no page;
+// the card is the surface that travels furthest from here, pasted where none of
+// this page's context comes with it, so it is the last place for an in-house
+// noun. Reported as "i have no idea what 'recorded path' means".
 RECT = []; TEXT = []; STROKES = []; DOTS = []; FILLS = [];
 drawClip("bedford", 1, {title:"T", yesStake:10, noStake:3, statusText:"open"}, "C", "light");
-ok("no series says so", TEXT.some(t=>/no recorded path/.test(t.t)));
+ok("no series says so, in plain words",
+   TEXT.some(t=>/no movement recorded yet/.test(t.t)) && !TEXT.some(t=>/recorded path/.test(t.t)),
+   JSON.stringify(TEXT.map(t=>t.t).filter(t=>/movement|path|stak/.test(t))));
+// AND THE TWO EMPTY CASES ARE DIFFERENT FACTS. Stake that has not moved is not
+// the same as nothing staked, and saying "nothing staked yet" on the first would
+// be false — the bar beside it is showing 10 against 3.
+RECT = []; TEXT = []; STROKES = []; DOTS = []; FILLS = [];
+drawClip("bedford", 1, {title:"T", yesStake:0, noStake:0, statusText:"open"}, "C", "light");
+ok("...and an unstaked claim says that instead",
+   TEXT.some(t=>/nothing staked yet/.test(t.t)),
+   JSON.stringify(TEXT.map(t=>t.t).filter(t=>/movement|stak/.test(t))));
 ok("and draws no axis for a chart that is not there",
    !TEXT.some(t=>/^(25|50|75)%$/.test(t.t)));
 

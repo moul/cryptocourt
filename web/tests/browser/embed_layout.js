@@ -312,19 +312,43 @@ const CASES = [
             fill: !!sv.querySelector('.ar'), ref: !!sv.querySelector('.mid')};
   });
   ok("the card draws the recorded path", spark.has);
-  // ...and when there is none, says so rather than dropping the chart silently,
-  // which made a missing series look like a rendering fault. Same words as the clip.
+  /* AND WHEN THERE IS NONE, AN EMPTY CHART — which is the opposite of what this
+     block used to require. It asserted NO .espark and the words "no recorded
+     path", and both were the reported defect: "that makes no sense. show an empty
+     graph at least, and i have no idea what 'recorded path' means".
+     A sentence standing where a drawing belongs reads as a fault: nothing tells a
+     reader whether the chart is empty or broken, or what it will show once it
+     fills. The frame is the explanation, so the empty state draws the same box,
+     the same 100/50/0 rows and the same margins as the populated one — from the
+     same constants, six lines above the early return. */
   const nopath = await (async () => {
     await page.goto(PAGE + "#/embed/bedford/7", {waitUntil: 'domcontentloaded'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await new Promise(r => setTimeout(r, 450));
-    return page.evaluate(() => ({
-      spark: !!document.querySelector('.espark'),
-      said: (document.querySelector('.enopath') || {textContent:""}).textContent.trim(),
-      over: document.documentElement.scrollHeight - innerHeight}));
+    return page.evaluate(() => {
+      const sv = document.querySelector('.espark svg');
+      return {
+        spark: !!document.querySelector('.espark'),
+        said: (document.querySelector('.enotext') || {textContent:""}).textContent.trim(),
+        rows: sv ? sv.querySelectorAll('.grid, .mid, .axis').length : 0,
+        ticks: sv ? [...sv.querySelectorAll('.tickL')].map(t => t.textContent) : [],
+        line: sv ? !!sv.querySelector('.ln') : null,
+        jargon: /recorded path/i.test(document.body.innerText),
+        over: document.documentElement.scrollHeight - innerHeight};
+    });
   })();
-  ok("a claim with no series says so", !nopath.spark && /no recorded path/.test(nopath.said),
-     JSON.stringify(nopath));
+  ok("a claim with no series still draws the chart's frame",
+     nopath.spark && nopath.rows === 3, JSON.stringify(nopath));
+  ok("...with the scale that says what it will show",
+     nopath.ticks.join(",") === "100,50,0", JSON.stringify(nopath.ticks));
+  ok("...and no line, because nothing has been plotted", nopath.line === false);
+  /* IN WORDS A READER HAS BEEN GIVEN. "Recorded path" is this file's internal name
+     for the series and appears on no page. The two empty cases are also different
+     facts — nothing staked at all, or stake that has not moved — so the caption
+     names which, and saying "no stake yet" on the second would be false. */
+  ok(`...saying which empty it is (${JSON.stringify(nopath.said)})`,
+     /nothing staked yet|no movement recorded yet/.test(nopath.said), JSON.stringify(nopath));
+  ok("...and the in-house noun is gone from the card", nopath.jargon === false);
   ok("and that card still fits", nopath.over <= 0, `over=${nopath.over}px`);
   ok("it spans the card", spark.w >= 300, `w=${Math.round(spark.w||0)}`);
   // NO LONGER A FIXED HEIGHT, and the fixed one was the bug. `height:56px` with
