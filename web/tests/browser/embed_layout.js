@@ -350,6 +350,26 @@ const CASES = [
      /nothing staked yet|no movement recorded yet/.test(nopath.said), JSON.stringify(nopath));
   ok("...and the in-house noun is gone from the card", nopath.jargon === false);
   ok("and that card still fits", nopath.over <= 0, `over=${nopath.over}px`);
+
+  /* THE WAY BACK NAMES THE SITE. An embed is the one surface that travels — it is
+     read by people who never chose to come here — and its only exit said "Open on
+     Kourt →", a word rather than an address. Asked for as: show "kourt.xyz"
+     somewhere as some link in the share.
+     THIS HARNESS RUNS FROM file://, WHICH IS THE HALF THAT MATTERS MOST. There is
+     no host to name there, and siteHost() returns "" off http(s) for the same
+     reason shareIsPublic() exists: a card drawn from a local copy must never
+     publish somebody's home directory. So the assertion is that the link falls
+     back to the word AND that no path fragment reaches it. */
+  const back = await page.evaluate(() => {
+    const a = document.querySelector('.efoot a');
+    return {text: (a ? a.textContent : "").trim(), href: a ? a.getAttribute('href') : null};
+  });
+  ok(`the way back names the site (${JSON.stringify(back.text)})`,
+     /Kourt|\./.test(back.text) && back.text.length > 0, JSON.stringify(back));
+  ok("...and leaks no local path when there is no host to name",
+     !/\/(Users|home|private|var)\//.test(back.text), JSON.stringify(back));
+  ok("...still going back into the page, from the embed",
+     (back.href || "").startsWith("#") && /from=embed/.test(back.href || ""), JSON.stringify(back));
   ok("it spans the card", spark.w >= 300, `w=${Math.round(spark.w||0)}`);
   // NO LONGER A FIXED HEIGHT, and the fixed one was the bug. `height:56px` with
   // preserveAspectRatio="none" stretched a 300x56 viewBox to the card's width:

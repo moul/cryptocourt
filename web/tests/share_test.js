@@ -324,8 +324,25 @@ drawClip("bedford", 1, {title:"T", yesStake:0, noStake:0, statusText:"open"}, "C
 ok("...and an unstaked claim says that instead",
    TEXT.some(t=>/nothing staked yet/.test(t.t)),
    JSON.stringify(TEXT.map(t=>t.t).filter(t=>/movement|stak/.test(t))));
-ok("and draws no axis for a chart that is not there",
-   !TEXT.some(t=>/^(25|50|75)%$/.test(t.t)));
+/* AND IT DRAWS THE EMPTY CHART, which is the opposite of what this arm required.
+   It asserted no 25/50/75 axis at all — correct while the empty card was a line
+   of prose, and the reported defect once it was: "without a graph and just text
+   'nothing staked...' it looks weird". A sentence floating in the space a chart
+   occupies reads as something that failed to load; the scale is what says it is
+   an empty chart instead. */
+ok("...on an axis, so it reads as an empty chart rather than a failure",
+   ["25%","50%","75%"].every(t => TEXT.some(x => x.t === t)),
+   JSON.stringify(TEXT.map(t=>t.t).filter(t=>/%$/.test(t))));
+/* AND ONLY WHEN THE CARD WOULD OTHERWISE BE BLANK. A claim with stake but no
+   movement already has the bar and its YES/NO labels in that space, so a frame
+   adds nothing and lands on top of them — MEASURED: the 25% row ran through the
+   bar and the caption sat under the labels. The first drawClip above is that
+   case, and TEXT from it is still in scope here only because this arm re-runs it. */
+RECT = []; TEXT = []; STROKES = []; DOTS = []; FILLS = [];
+drawClip("bedford", 1, {title:"T", yesStake:10, noStake:3, statusText:"open"}, "C", "light");
+ok("...and not over a bar that is already showing the split",
+   !TEXT.some(t=>/^(25|50|75)%$/.test(t.t)),
+   JSON.stringify(TEXT.map(t=>t.t).filter(t=>/%$/.test(t))));
 
 // A COURT NAME IS AS UNBOUNDED AS A CLAIM TITLE — whoever creates the court
 // types it. The first version of drawClip clamped the title and left the name

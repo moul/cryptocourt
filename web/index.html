@@ -19844,9 +19844,58 @@ function drawClip(slug, id, d, courtName, theme, note, url, ser, tl){
     // this page's context — so it is the last place to use an in-house noun.
     // The two cases are different facts and the bar below distinguishes them:
     // nothing staked at all, or stake that has not moved.
-    x.font = "400 21px ui-sans-serif,system-ui,sans-serif"; x.fillStyle = mut;
-    x.fillText((d.yesStake || d.noStake) ? "no movement recorded yet"
-                                         : "nothing staked yet", 56, titleBottom + 44);
+    //
+    // AND IT DRAWS THE EMPTY CHART RATHER THAN A SENTENCE IN THE GAP. Reported as
+    // "without a graph and just text 'nothing staked...' it looks weird", and it
+    // is: a line of prose floating in the space a chart occupies reads as
+    // something that failed to load, not as a chart with nothing in it. The scale
+    // is what says which — 25/50/75 between the two sides is the whole idea of the
+    // drawing — so the empty case draws the same rows, over the same span, from
+    // the same L/PR as the populated branch above.
+    //
+    // THE ROWS ONLY. No domain, no dates, no end dot: there is nothing to place on
+    // an axis, and an axis labelled with heights nobody staked at would be an
+    // invented fact rather than an empty chart.
+    // THE FRAME IS FOR THE CARD THAT WOULD OTHERWISE BE EMPTY, and only that one.
+    //
+    // The two no-series cases look nothing alike. With NOTHING STAKED the block
+    // below is skipped entirely — no bar, no percentages — and two thirds of the
+    // card is blank; that is the one the report is about, and a chart with nothing
+    // in it is exactly what belongs there. With STAKE BUT NO MOVEMENT the bar and
+    // its YES/NO labels already fill that space and say the only thing there is to
+    // say, so a frame adds no information and collides with them: MEASURED, the
+    // 25% row ran straight through the bar and the caption sat under the labels.
+    //
+    // So the frame is drawn when the card would otherwise have nothing in it, and
+    // the staked case keeps the single line it has always had.
+    const L = 56, PR = W - 56 - 62;
+    const eTop = titleBottom + 52, eBot = 470;
+    if(!(d.yesStake || d.noStake) && eBot - eTop >= 44){
+      const ey = p => eBot - (eBot - eTop) * (p / 100);
+      x.lineWidth = 2; x.font = "500 19px ui-sans-serif,system-ui,sans-serif";
+      for(const g of [25, 50, 75]){
+        x.strokeStyle = dark ? "#242a34" : "#eceef2";
+        if(g === 50) x.strokeStyle = dark ? "#2f3641" : "#e0e3e9";
+        x.setLineDash(g === 50 ? [6, 6] : [3, 7]);
+        x.beginPath(); x.moveTo(L, ey(g)); x.lineTo(PR, ey(g)); x.stroke();
+        x.setLineDash([]);
+        x.fillStyle = mut; x.fillText(g + "%", PR + 12, ey(g) + 6);
+      }
+      // BELOW THE FRAME, NOT INSIDE IT. Centred in the plot it landed on a
+      // gridline — measured, sitting across the 75% row — and a caption crossing
+      // the scale reads as a label for it. Under the box it is plainly a note
+      // about the chart, which is the same place the embed puts its own.
+      x.font = "400 21px ui-sans-serif,system-ui,sans-serif"; x.fillStyle = mut;
+      const cap = (d.yesStake || d.noStake) ? "no movement recorded yet"
+                                            : "nothing staked yet";
+      x.fillText(cap, (L + PR) / 2 - x.measureText(cap).width / 2, eBot + 34);
+    } else {
+      // No room for a frame on a three-line title: the sentence alone, where it
+      // has always been.
+      x.font = "400 21px ui-sans-serif,system-ui,sans-serif"; x.fillStyle = mut;
+      x.fillText((d.yesStake || d.noStake) ? "no movement recorded yet"
+                                           : "nothing staked yet", 56, titleBottom + 44);
+    }
   }
   if(d && (d.yesStake || d.noStake)){
     const tot = Math.max(1, (d.yesStake || 0) + (d.noStake || 0));
@@ -19943,6 +19992,21 @@ function embedOpen(){ /* the views call this; the mark is set by the router */ }
    reader who wanted the claim had to find the small print. The court, the title
    and the footer now all lead somewhere, each to the thing it names. */
 function embedBackHref(path){ return "#" + path + "?from=embed"; }
+/* THE CARD SAYS WHERE IT CAME FROM, by name. An embed is the one surface that
+   travels: it is pasted into somebody else's article, read by people who never
+   chose to come here, and its only way back was a link reading "Open on Kourt →"
+   — a word, not an address. Asked for as "should show 'kourt.xyz' somewhere as
+   some link in the share".
+   FROM location, NOT A CONSTANT. web/README.md promises this file is
+   self-contained and runnable from anywhere; a hardcoded kourt.xyz would be a
+   lie on every other host that serves it, and the overlay already derives its
+   own address everywhere else it needs one.
+   AND "Kourt" WHEN THERE IS NO HOST TO NAME, which is the file:// case.
+   siteHost() returns "" off http(s) for the same reason shareIsPublic() exists:
+   a card drawn from a local copy must not publish somebody's home directory.
+   A word is the honest fallback — the alternative is an address nobody else can
+   open. */
+function embedSiteName(){ return siteHost() || "Kourt"; }
 function embedLink(path, inner, cls){
   return `<a class="${cls || "elink"}" href="${embedBackHref(path)}" target="_blank" rel="noopener">${inner}</a>`;
 }
@@ -20157,7 +20221,7 @@ async function embedClaimView(slug, idS){
   if(!d){
     main.innerHTML = `<div class="emb"><p class="estat">No claim ${esc(slug)}/${esc(idS)} on this source.</p>
       ${esrc(note)}
-      <div class="efoot"><span></span><a href="${embedBackHref("/")}" target="_blank" rel="noopener">Kourt →</a></div></div>`;
+      <div class="efoot"><span></span><a href="${embedBackHref("/")}" target="_blank" rel="noopener">${esc(embedSiteName())} →</a></div></div>`;
     return;
   }
   const when = tl && tl.opened ? stampDate(tl.opened.t) : null;
@@ -20173,7 +20237,7 @@ async function embedClaimView(slug, idS){
       ${embedActions(d, slug, id)}
       <div class="efoot">
         <span class="ewhen">${when && !eventTrail(tl).length ? "filed " + esc(when) : ""}</span>
-        <a href="${embedBackHref("/c/" + slug + "/" + id)}" target="_blank" rel="noopener">Open on Kourt →</a>
+        <a href="${embedBackHref("/c/" + slug + "/" + id)}" target="_blank" rel="noopener">Open on ${esc(embedSiteName())} →</a>
       </div>
     </div>`;
 }
@@ -20184,7 +20248,7 @@ async function embedCourtView(slug){
   if(!cs){
     main.innerHTML = `<div class="emb"><p class="estat">No court /${esc(slug)} on this source.</p>
       ${esrc(note)}
-      <div class="efoot"><span></span><a href="${embedBackHref("/")}" target="_blank" rel="noopener">Kourt →</a></div></div>`;
+      <div class="efoot"><span></span><a href="${embedBackHref("/")}" target="_blank" rel="noopener">${esc(embedSiteName())} →</a></div></div>`;
     return;
   }
   main.innerHTML = `<div class="emb">
@@ -20196,7 +20260,7 @@ async function embedCourtView(slug){
       ${esrc(note)}
       <div class="efoot">
         <span class="ewhen">stake on claims of fact</span>
-        <a href="${embedBackHref("/c/" + slug)}" target="_blank" rel="noopener">Open on Kourt →</a>
+        <a href="${embedBackHref("/c/" + slug)}" target="_blank" rel="noopener">Open on ${esc(embedSiteName())} →</a>
       </div>
     </div>`;
 }
