@@ -1,11 +1,16 @@
 package main
 
 import (
+	"encoding/base64"
 	"os"
 	"regexp"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/gnolang/gno/tm2/pkg/crypto/keys"
+	"github.com/jaekwon/kourt/internal/binding"
+	"github.com/jaekwon/kourt/internal/guild"
 )
 
 func source(t *testing.T) string {
@@ -187,4 +192,83 @@ func sorted(m map[string]bool) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// THE TWO SPELLINGS PROBLEM, SETTLED BY A TEST.
+//
+// The CLI signs a challenge and the service verifies one. If they built that text
+// differently by a single character, every honest claim would come back "that
+// signature does not check out" and the cause would be invisible from either
+// side — which is exactly why both call guild.ChallengeText rather than each
+// composing the sentence.
+//
+// This runs the whole join: a real keybase, a real secp256k1 signature over the
+// real challenge, checked by the real verifier the service uses.
+func TestASignatureThisToolMakesIsOneTheServiceAccepts(t *testing.T) {
+	dir := t.TempDir()
+	kb, err := keys.NewKeyBaseFromDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const name, pass = "mod", "hunter2"
+	// The BIP39 test vector, which is a real mnemonic with a valid checksum. A
+	// made-up phrase is refused by the keybase, which is the right behaviour and
+	// an unhelpful first failure to debug.
+	const mnemonic = "abandon abandon abandon abandon abandon abandon abandon " +
+		"abandon abandon abandon abandon about"
+	info, err := kb.CreateAccount(name, mnemonic, "", pass, 0, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := info.GetAddress().String()
+
+	st := guild.State{Chain: "kourt-1", Court: "meta", Nonce: strings.Repeat("ab", 24)}
+	challenge, err := guild.ChallengeText(st, "1478455953715236886")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sig, pub, err := kb.Sign(name, pass, []byte(challenge))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := binding.VerifyProof(challenge, binding.Proof{
+		Address:   addr,
+		PubKey:    base64.StdEncoding.EncodeToString(pub.Bytes()),
+		Signature: base64.StdEncoding.EncodeToString(sig),
+	})
+	if err != nil {
+		t.Fatalf("the service rejected a signature this tool would send: %v", err)
+	}
+	if got != addr {
+		t.Errorf("it established %s, want %s", got, addr)
+	}
+
+	// And a challenge differing by one field does NOT verify, so the check above
+	// is not passing because VerifyProof is lax.
+	other, _ := guild.ChallengeText(
+		guild.State{Chain: "kourt-1", Court: "covid", Nonce: st.Nonce}, "1478455953715236886")
+	if _, err := binding.VerifyProof(other, binding.Proof{
+		Address:   addr,
+		PubKey:    base64.StdEncoding.EncodeToString(pub.Bytes()),
+		Signature: base64.StdEncoding.EncodeToString(sig),
+	}); err == nil {
+		t.Error("a signature for one court verified against another")
+	}
+}
+
+// The passphrase must never become a flag: a key that can publish a court's
+// server deserves the care this tool already gives the bot token.
+func TestThePassphraseIsNotAFlag(t *testing.T) {
+	src := source(t)
+	decl := regexp.MustCompile(`\b(?:flag|fs)\.[A-Za-z]+(?:Var)?\((?:&[^,]+,\s*)?"([a-z0-9-]+)"`)
+	for _, m := range decl.FindAllStringSubmatch(src, -1) {
+		if strings.Contains(m[1], "pass") || strings.Contains(m[1], "phrase") {
+			t.Errorf("--%s is a flag; a passphrase in argv is in the process table", m[1])
+		}
+	}
+	if !strings.Contains(src, "readPassphrase(") {
+		t.Error("the passphrase is no longer read interactively; if that moved, this " +
+			"test needs to know where to")
+	}
 }

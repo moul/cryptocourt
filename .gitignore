@@ -19,3 +19,9 @@ build/
 
 # editor swap files
 *.swp
+
+# built binaries, not sources
+/kourtchat
+
+# built binaries, not sources
+/kourtguildctl

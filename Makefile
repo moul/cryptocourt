@@ -216,6 +216,10 @@ web-guards:
 	python3 scripts/check-web-tests-reachable.py
 	python3 scripts/check-curation-reachable.py
 	python3 scripts/check-chat-limits.py
+	@# The Discord listing's disclosure is said by the service and again by the
+	@# overlay, and the failure is the overlay keeping the button and losing the
+	@# sentence — which nothing else in this tree notices.
+	python3 scripts/check-guild-copy.py
 	python3 scripts/check-bell-version.py
 	python3 scripts/check-bell-strike.py
 	python3 scripts/check-mark-font.py

@@ -50,6 +50,24 @@ func TestBotWorthAskingTakesSiteQuestionsAndNothingElse(t *testing.T) {
 		"what is 2 + 2?",
 		"how much is 17 * 3",
 		"what is 10/2",
+		/* WHO GETS TO SAY WHAT IS TRUE. Reported from the live covid room: "Who
+		   can judge what is true?" was refused by every predicate there is and
+		   dropped silently — the vocabulary carried "verdict", "vote" and "court"
+		   and nothing for judging, so the question this site exists to answer
+		   named nothing about it. The clerk only spoke once the reader had replied
+		   to their own message, which made it a follow-up. */
+		"Who can judge what is true?",
+		"who judges here?",
+		"is there a jury?",
+		"who are the jurors?",
+		// ...AND THE SAME QUESTION WITH THE OTHER VERB, which no word list can
+		// hold: "decide" is ordinary English and belongs nowhere near the site
+		// vocabulary. It is the pairing with "who" that makes it this room's
+		// question — see botAsksWhoDecides.
+		"who decides what is true?",
+		"who can decide what is true here?",
+		"who gets to decide?",
+		"so who actually decides these?",
 	}
 	for _, s := range yes {
 		if !botWorthAsking(s) {
@@ -92,6 +110,17 @@ func TestBotWorthAskingTakesSiteQuestionsAndNothingElse(t *testing.T) {
 		"staking is a scam",                    // site words, no question
 		"",                                     // nothing
 		strings.Repeat("how do i stake? ", 60), // a wall of text
+		/* AND THE JUDGING VOCABULARY MUST NOT SWALLOW THE ARGUMENT EITHER. These
+		   are what "who decides" would have cost if it had been added as the bare
+		   word "decide", or if "true" had gone into the list beside "judge": every
+		   one of them is the subject matter of a claim in this very court, and an
+		   answer to any of them from the site's own clerk is the site taking a
+		   side. The present tense and the "who" are what separate the question
+		   about this room from the question about the world. */
+		"who decided to close the schools?",
+		"who decided the lab was safe?",
+		"is it true that the lab leaked?",
+		"was the report judged reliable?",
 		/* AND THE ARITHMETIC PATH MUST NOT SWALLOW AN ARGUMENT. A year range
 		   reads as digit-hyphen-digit to any such matcher, so the length bound is
 		   what keeps a sentence about the subject matter out — this is the case
@@ -1323,6 +1352,110 @@ func TestBotPassesWithoutSpeakingAndTheSpendIsStillCounted(t *testing.T) {
 	}
 	if st.LastAt != 0 {
 		t.Errorf("the bot never spoke, so there is no last-spoke time: %d", st.LastAt)
+	}
+}
+
+/*
+SOMEBODY WHO USED THE CLERK'S NAME IS NEVER LEFT WITH SILENCE.
+
+	REPORTED: "clerk do you know what the sound of the bell is recorded from? for
+	this chat i mean" — and nothing came back. Traced: the message names the site
+	("bell", "chat"), so botWorthAsking took it and the addressed flag was never
+	set; the model was handed "Answer it, or reply PASS", had nothing that answers
+	it, and did the right thing — which is PASS, which is silence. The reader
+	could not tell that from being ignored.
+	TWO HALVES, AND THIS TESTS THE SECOND. The prompt now asks the model to say it
+	does not know; that is a request. The backstop is the rule: a pass on a site
+	question from somebody who named the clerk posts the short line instead.
+*/
+func TestTheClerkAnswersByNameEvenWhenItHasNothing(t *testing.T) {
+	s, _ := newStore(t)
+	ctx := context.Background()
+	m := &fakeModel{reply: "PASS", in: 700, out: 3}
+	b := newBot(t, s, m)
+
+	if _, err := post(t, s, "bedford", "ip-reader",
+		"clerk do you know what the sound of the bell is recorded from? for this chat i mean"); err != nil {
+		t.Fatal(err)
+	}
+	if err := b.once(ctx); err != nil {
+		t.Fatal(err)
+	}
+	// IT REACHED THE MODEL, AND AS AN ADDRESSED MESSAGE. The instruction is what
+	// gives the model the chance to answer this itself, without the backstop.
+	if m.calls != 1 {
+		t.Fatalf("expected one call, got %d", m.calls)
+	}
+	if !strings.Contains(m.system, "addressed you by name") {
+		t.Errorf("a site question that names the clerk is still addressed: %q", m.system)
+	}
+	if !strings.Contains(m.system, "I don't know") {
+		t.Errorf("the model must be told not knowing is an answer: %q", m.system)
+	}
+
+	msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(msgs) != 2 {
+		t.Fatalf("the reader was left in silence: %d messages", len(msgs))
+	}
+	if got := msgs[1].Body; got != botDontKnowLine {
+		t.Errorf("wrong line: %q", got)
+	}
+	if msgs[1].Moniker != ClerkName {
+		t.Errorf("the line must come from the clerk, got %q", msgs[1].Moniker)
+	}
+	/* AND THE MONEY IS STILL HONEST. The call passed and was billed for its
+	   input; the line that went out cost nothing. Both are recorded, so the
+	   diagnostics page shows a room that got an answer AND the tokens it took. */
+	st, _ := s.BotStats(ctx)
+	if st.InTokens != 700 {
+		t.Errorf("the input spend was not recorded: %+v", st)
+	}
+	if st.Passes != 1 {
+		t.Errorf("the model passed and that is what happened, got Passes=%d", st.Passes)
+	}
+	if st.Replies != 1 {
+		t.Errorf("a line went out, so there is one reply, got Replies=%d", st.Replies)
+	}
+}
+
+/*
+AND THE BACKSTOP DOES NOT ANSWER WHAT A PASS IS FOR.
+
+	The line above is what a reader gets for a question. These are the two things
+	the pass exists to refuse, and both name the clerk: abuse, and an invitation
+	to take a side on the court's own subject matter. Silence is the correct
+	answer to each, and a backstop that replied "I don't know that one" to an
+	insult would be teaching the room that the clerk answers insults.
+	NEITHER CAN REACH IT, and by the same gate: the backstop wants a question
+	ABOUT THE SITE, and neither of these is one.
+*/
+func TestTheBackstopStaysOutOfWhatAPassIsFor(t *testing.T) {
+	for _, body := range []string{
+		"clerk you are a useless idiot",
+		"clerk, is the vaccine safe?",
+	} {
+		t.Run(body, func(t *testing.T) {
+			s, _ := newStore(t)
+			ctx := context.Background()
+			m := &fakeModel{reply: "PASS", in: 700, out: 3}
+			b := newBot(t, s, m)
+			if _, err := post(t, s, "bedford", "ip-reader", body); err != nil {
+				t.Fatal(err)
+			}
+			if err := b.once(ctx); err != nil {
+				t.Fatal(err)
+			}
+			msgs, err := s.Recent(ctx, "dev", "bedford", 0, 50)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(msgs) != 1 {
+				t.Fatalf("the clerk answered something a pass is for: %q", msgs[1].Body)
+			}
+		})
 	}
 }
 

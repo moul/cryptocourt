@@ -3,13 +3,14 @@ package archive
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/jaekwon/kourt/internal/gnorpc"
 )
 
 // The chain is the only thing that can say a blob is worth keeping.
@@ -21,8 +22,15 @@ import (
 //
 // So this file is deliberately the smallest chain client that can answer one
 // question — "does claim N of court C reference this hash?" — and nothing else.
-// A general node client would be a much larger surface for a job with exactly
-// one caller.
+//
+// THE ENVELOPE MOVED OUT, the questions stayed. The JSON-RPC framing that used to
+// live here is now internal/gnorpc, because the Discord bridge needed the same
+// envelope for an unrelated question and the envelope is the part that is easy to
+// get wrong: the payload nests under ResponseBase on some nodes, it is base64,
+// and a query error arrives in a different field from a transport error — each of
+// which yields an empty string rather than a failure when mishandled. The
+// argument above still holds for everything below it: these are archive's
+// questions and belong to archive.
 
 // Chain reads claim media from a gno node over JSON-RPC.
 type Chain struct {
@@ -34,84 +42,9 @@ type Chain struct {
 	HTTP *http.Client
 }
 
-type rpcResponse struct {
-	Error  *struct{ Message string } `json:"error"`
-	Result struct {
-		Response struct {
-			Data         string `json:"Data"`
-			Error        any    `json:"Error"`
-			Log          string `json:"Log"`
-			ResponseBase *struct {
-				Data  string `json:"Data"`
-				Error any    `json:"Error"`
-				Log   string `json:"Log"`
-			} `json:"ResponseBase"`
-		} `json:"response"`
-	} `json:"result"`
-}
-
-// qeval evaluates one expression against the realm and returns the raw typed
-// output, exactly as the overlay's own reader sees it.
 func (c *Chain) qeval(ctx context.Context, expr string) (string, error) {
-	payload, err := json.Marshal(map[string]any{
-		"jsonrpc": "2.0", "id": "archive", "method": "abci_query",
-		"params": map[string]any{
-			"path":   "vm/qeval",
-			"data":   base64.StdEncoding.EncodeToString([]byte(c.PkgPath + "." + expr)),
-			"height": "0", "prove": false,
-		},
-	})
-	if err != nil {
-		return "", err
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.RPC, bytes.NewReader(payload))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	hc := c.HTTP
-	if hc == nil {
-		hc = &http.Client{Timeout: 10 * time.Second}
-	}
-	res, err := hc.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("node HTTP %d", res.StatusCode)
-	}
-
-	var out rpcResponse
-	if err := json.NewDecoder(res.Body).Decode(&out); err != nil {
-		return "", err
-	}
-	if out.Error != nil {
-		return "", fmt.Errorf("rpc: %s", out.Error.Message)
-	}
-	r := out.Result.Response
-	data, logMsg, qErr := r.Data, r.Log, r.Error
-	if r.ResponseBase != nil {
-		// Older nodes nest the same three fields one level down.
-		if data == "" {
-			data = r.ResponseBase.Data
-		}
-		if qErr == nil {
-			qErr, logMsg = r.ResponseBase.Error, r.ResponseBase.Log
-		}
-	}
-	if qErr != nil {
-		return "", fmt.Errorf("query failed: %s", logMsg)
-	}
-	if data == "" {
-		return "", nil
-	}
-	raw, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return "", fmt.Errorf("decoding node reply: %w", err)
-	}
-	return string(raw), nil
+	n := &gnorpc.Node{RPC: c.RPC, HTTP: c.HTTP, ID: "archive"}
+	return n.QEval(ctx, c.PkgPath, expr)
 }
 
 // ClaimCount is how many claims a court has ever opened, so backfill knows
@@ -243,4 +176,82 @@ func mediaHashes(out, what string) ([]string, error) {
 		hashes = append(hashes, it.SHA256)
 	}
 	return hashes, nil
+}
+
+// ClaimCard is the handful of facts a share page needs about one claim.
+//
+// READ SERVER-SIDE, and that is the whole reason this exists. A social crawler
+// does not run JavaScript and never sees a URL fragment, so the app's own
+// `#/c/covid/1` route can tell it nothing: every claim shared from this site
+// rendered the HOME page's card. The card has to be in the HTML of a real path,
+// which means something on the server has to know the claim's title.
+type ClaimCard struct {
+	Title  string
+	Status string
+	Closed bool
+	// Yes and No are the two stake pools, in the court's smallest unit. Both
+	// zero means nothing is staked yet, which is a real state and not a failure:
+	// the card then shows no bar rather than a 50/50 one, because an even split
+	// implies a disagreement nobody has actually had.
+	Yes, No int64
+}
+
+// ClaimCardOf reads one claim's shareable facts.
+//
+// TITLE FIRST AND ALONE-SUFFICIENT: a missing status is a worse card, a missing
+// title is not a card at all, so the status is fetched but its failure is not
+// fatal. An empty title means no such claim, which the caller turns into a 404
+// rather than a page about nothing.
+func (c *Chain) ClaimCardOf(ctx context.Context, court string, claimID uint64) (ClaimCard, error) {
+	out, err := c.qeval(ctx, fmt.Sprintf("ClaimTitle(%q,%d)", court, claimID))
+	if err != nil {
+		return ClaimCard{}, err
+	}
+	card := ClaimCard{Title: unescapeMarkdown(unquoteQeval(out))}
+	if card.Title == "" {
+		return ClaimCard{}, fmt.Errorf("no claim %d in %q", claimID, court)
+	}
+	if out, err := c.qeval(ctx, fmt.Sprintf("ClaimStatus(%q,%d)", court, claimID)); err == nil {
+		card.Status = unescapeMarkdown(unquoteQeval(out))
+	}
+	// The split, for the bar. Failure is not fatal for the same reason the status
+	// is not: a card without a bar is worse, a card without a title is nothing.
+	// qeval answers a two-value return as `(123 int64)(456 int64)`.
+	if out, err := c.qeval(ctx, fmt.Sprintf("StakePools(%q,%d)", court, claimID)); err == nil {
+		nums := regexp.MustCompile(`\(\s*(-?\d+)\s+int64\s*\)`).FindAllStringSubmatch(out, -1)
+		if len(nums) == 2 {
+			card.Yes, _ = strconv.ParseInt(nums[0][1], 10, 64)
+			card.No, _ = strconv.ParseInt(nums[1][1], 10, 64)
+		}
+	}
+	return card, nil
+}
+
+// unescapeMarkdown undoes the render-side escaping the realm stores titles with.
+//
+// A claim filed as "…at the Wuhan Institute of Virology." is STORED as
+// "…Virology\." — the realm escapes punctuation so its own markdown Render does
+// not reinterpret it. The app's card calls unesc() before drawing; this path did
+// not, so the share image and the og:title both published a stray backslash.
+// Visible on covid/10 as "Virology\.".
+//
+// ONLY BEFORE PUNCTUATION, never a blanket backslash strip: a backslash is a
+// legitimate character in a claim, and "C:\Users" must survive. The escape the
+// realm writes is always a backslash immediately before an ASCII punctuation
+// mark, which is exactly what this undoes and nothing else.
+func unescapeMarkdown(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) && isASCIIPunct(s[i+1]) {
+			continue
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
+}
+
+func isASCIIPunct(c byte) bool {
+	return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') ||
+		(c >= '[' && c <= '`') || (c >= '{' && c <= '~')
 }

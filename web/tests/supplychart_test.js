@@ -146,7 +146,28 @@ ok("the caption is a date, not a lecture",
    && !src.includes('"since inception"'));
 ok("the anchor is the realm's own clock, not the browser's",
    src.includes("one(`ClaimTimeline(${s},1)`).catch(()=>null)"));
-ok("price and supply are figures only", (src.match(/tileSpark\(/g)||[]).length === 2);
+/* COUNTED THE DEFINITION. `tileSpark(` matches `function tileSpark(ser){` as
+   well as every call, so "=== 2" really asserted "exactly one call site" — and
+   it broke the moment the burn tile grew a second branch (meta's curve-derived
+   series vs an ordinary court's burn series). Both branches are the SAME tile
+   in one ternary, so only ever one spark renders; the count was measuring the
+   wrong thing and would have kept doing so.
+   The rule it exists for is that the spark belongs to the burn tile alone.
+   Assert THAT: the price and coin-supply tiles carry no sparkline. */
+{
+  const calls = (src.match(/tileSpark\(/g)||[]).length
+              - (src.match(/function tileSpark\(/g)||[]).length;
+  ok("every tileSpark occurrence beyond the definition is a call", calls >= 1);
+  const tileOf = name => {
+    const i = src.indexOf(`statTile("${name}"`);
+    if(i < 0) return "";
+    // up to the next statTile, which is where this tile's arguments end
+    const j = src.indexOf('statTile("', i + 10);
+    return j < 0 ? src.slice(i) : src.slice(i, j);
+  };
+  ok("the price tile is a figure only", !tileOf("price").includes("tileSpark("));
+  ok("the coin supply tile is a figure only", !tileOf("coin supply").includes("tileSpark("));
+}
 // Dust does not earn a cell. Both extra figures are unminted claims on future
 // supply, so they show only once they could move the supply figure above them.
 ok("the extra figures are gated on size, not on being non-zero",

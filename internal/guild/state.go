@@ -50,6 +50,20 @@ const stateVersion = "v1"
 // direction.
 var courtRe = regexp.MustCompile(`^[a-z0-9]{1,11}$`)
 
+// ValidCourt is that rule, exported, because a second package needs it.
+//
+// internal/binding interpolates a court slug into a qeval expression, where the
+// job is stopping the expression being reopened rather than keeping a signature
+// well-formed — a different reason for the same constraint. It kept its own copy
+// of this regex, which is the arrangement check-addr-shapes.py exists to police
+// elsewhere and nothing was policing here: a change to the chain's mustSlug would
+// have been made in whichever file the person was looking at.
+//
+// Exported rather than guarded because binding already imports this package, so
+// sharing costs no dependency at all — the duplication was self-inflicted by the
+// regex being unexported.
+func ValidCourt(s string) bool { return courtRe.MatchString(s) }
+
 // chainRe matches a gno chain id ("dev", "kourt-1"). Hyphens are ordinary here —
 // a chain id is not a coin symbol.
 //

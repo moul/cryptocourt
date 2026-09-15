@@ -1918,6 +1918,48 @@ control("an address pattern loose enough to eat good answers", CHATBOT,
         'botReplyEVMAddr = regexp.MustCompile(`0x[0-9a-fA-F]+`)',
         "which is not an address", argv=["python3", ADDRSHAPES])
 
+print("\ncheck-guild-copy")
+# What a Discord listing MEANS is said twice: the service sends it with every
+# listing, the overlay prints it under the button. The failure is not the two
+# disagreeing about wording — it is the overlay keeping the button and losing the
+# sentence, which nothing else in the tree notices.
+GUILDCOPY = "scripts/check-guild-copy.py"
+BINDSRV = "internal/binding/server.go"
+# THE DRIFT ARM. One word of the overlay's copy, changed — enough to break
+# containment while leaving both extractions perfectly healthy, so this arm
+# reaches the comparison rather than stopping at a vacuity rule the way
+# check-addr-shapes' first attempt did.
+control("the overlay softens the disclosure", WEBPAGE,
+        "It does not mean the court is legitimate, or that anything said",
+        "It probably means the court is legitimate, or that anything said",
+        "no longer says what the service says", argv=["python3", GUILDCOPY])
+# THE VACUITY ARM. An extraction that comes back trivial would satisfy the
+# containment test perfectly while checking nothing at all.
+#
+# BOTH LINES, NOT THE FIRST ONE. Replacing only the first fragment left the
+# second still concatenated onto it, so the extraction came back 80-odd
+# characters and sailed past the length rule this arm exists to exercise — it
+# fired, but about a missing word, several checks later. Measured, and it is the
+# same trap the addr-shapes arm above records: a plant has to REACH the rule it
+# claims to test.
+control("the service's disclosure shrinks to nothing", BINDSRV,
+        '''"disclosure": "Listed means this court\'s current moderators chose this server. " +
+				"It does not mean the court is legitimate, or that anything said there is true.",''',
+        '"disclosure": "n/a",',
+        "too short to be the sentence", argv=["python3", GUILDCOPY])
+# THE LOST-ANCHOR ARM. A renamed render function must make this guard refuse
+# rather than report agreement over a function it never found.
+control("the overlay's render function is renamed", WEBPAGE,
+        "function discordHtml(slug, server){",
+        "function discordHtmlV2(slug, server){",
+        "discordHtml() not found", argv=["python3", GUILDCOPY])
+# AND THE LINK'S OWN RULE, checked here because deploy.sh would otherwise be the
+# first thing to notice — at deploy time, which is later than it needs to be.
+control("the listing link loses rel=noopener", WEBPAGE,
+        'target="_blank" rel="noopener">Open the Discord</a>',
+        'target="_blank">Open the Discord</a>',
+        'without rel="noopener"', argv=["python3", GUILDCOPY])
+
 print("\ncheck-nginx-headers")
 # CONTENTS AND DELIVERY ARE TWO QUESTIONS. check-media-hosts above proves the
 # policy agrees with the realm and the composer; every arm here is about whether

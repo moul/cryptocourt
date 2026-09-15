@@ -117,6 +117,9 @@ const ALL = ["embed_layout.js", "tagrow_layout.js", "route_crawl.js",
              "set_page.js",
              // the meta franchise, as it actually reaches a reader
              "franchise_panel.js",
+             // a court's Discord slot: that the sample fills it, that a court
+             // without one stays empty, and that demo asks the service nothing
+             "discord_panel.js",
              "rail_sky.js",
              "rail_bubble.js",
              // folders as the court page's top knob: rows AND counts follow it

@@ -31,8 +31,11 @@ import (
 	"time"
 
 	"github.com/jaekwon/kourt/internal/archive"
+	"github.com/jaekwon/kourt/internal/binding"
 	"github.com/jaekwon/kourt/internal/chat"
+	"github.com/jaekwon/kourt/internal/discordapi"
 	"github.com/jaekwon/kourt/internal/geo"
+	"github.com/jaekwon/kourt/internal/gnorpc"
 	"path/filepath"
 )
 
@@ -217,6 +220,11 @@ func main() {
 
 		   Unset means the owner names are refused to EVERYONE, including the
 		   operator, which is the right default for a server nobody configured. */
+		/* THE ORIGIN THE SHARE CARD IS BUILT FROM. Open Graph drops a relative
+		   og:image instead of resolving it, so this has to be absolute and has to
+		   be the PUBLIC name — not the loopback this process listens on. */
+		shareOrigin = flag.String("share-origin", "https://kourt.xyz",
+			"public origin the /s/ share pages build absolute URLs from")
 		ownerTokenFile = flag.String("owner-token-file", "",
 			"file holding the SHA-256 (hex) of the token that releases the operator's display names")
 		/* HOW LONG A NAME STAYS YOURS after you last used it in a court. Zero turns
@@ -232,6 +240,21 @@ func main() {
 				"blob; empty disables promotion, so every upload expires")
 		archiveRealm = flag.String("archive-realm", "gno.land/r/kourt/kourtv2",
 			"realm the media archive reads claim media from")
+		guildClientID = flag.String("guild-client-id", "",
+			"Discord application id for the court-server bridge; empty disables it")
+		guildSecretFile = flag.String("guild-client-secret-file", "",
+			"file holding the Discord application's client secret; a PATH, never "+
+				"the secret, which would put it in the process table")
+		guildTokenFile = flag.String("guild-token-file", "",
+			"file holding the Discord bot token, which is what mints a court "+
+				"server's invite")
+		guildRedirect = flag.String("guild-redirect", "",
+			"the OAuth redirect URI registered with Discord, byte for byte")
+		guildSite = flag.String("guild-site", "",
+			"where a finished authorisation sends the reader back to")
+		guildBeat = flag.Duration("guild-heartbeat", 30*time.Minute,
+			"how often to re-check that published court servers are still what "+
+				"they were; 0 disables, which leaves listings unchecked forever")
 		archiveEye = flag.String("archive-vision", "",
 			"Ollama base URL for looking at filed images; empty means no model "+
 				"looks at them and nothing is ever blocked automatically")
@@ -297,6 +320,20 @@ func main() {
 	if err != nil {
 		lg.Fatal(err)
 	}
+	// THE GUILD FLAGS ARE CHECKED HERE, WITH THE OTHER REFUSALS, rather than at
+	// the mount two hundred lines down. Both places would refuse — nothing binds a
+	// socket in between — but the mount sits after "listening on …" is logged, so
+	// a misconfigured operator read a line claiming the service was up and then
+	// the reason it was not. A refusal that arrives after a success message is a
+	// refusal somebody scrolls past.
+	guildOn := *guildClientID != "" && *guildSecretFile != "" &&
+		*guildTokenFile != "" && *guildRedirect != ""
+	if guildOn && *archiveRPC == "" {
+		lg.Fatal("--guild-client-id is set but --archive-rpc is not: the bridge " +
+			"publishes a server only when the chain says the signer moderates that " +
+			"court, and with no node it cannot ask")
+	}
+
 	policy := chat.IPPolicy{BehindProxy: *behindProxy, Trusted: prefixes}
 	if err := policy.Validate(); err != nil {
 		// Refusing to start is the point. Starting would mean every visitor shares
@@ -369,6 +406,7 @@ func main() {
 		Chains:       names, CountryHeader: *countryHdr, Log: lg,
 		BotKeyBootstrap: *botKeyForm,
 		NameHold:        *nameHold,
+		ShareOrigin:     *shareOrigin,
 		// BotEnabled is set below, from the one thing that decides it.
 	}
 	/* THE OWNER TOKEN, AND A REFUSAL TO START WITHOUT IT when it was asked for.
@@ -479,6 +517,13 @@ func main() {
 	var facts chat.CourtFacts
 	if courtChain != nil {
 		facts = courtChain
+		/* THE SHARE CARD READS THE SAME CLIENT THE CLERK DOES. One chain client,
+		   one --archive-rpc, one realm — a second would be a second answer to
+		   "what does this claim say", and the two would disagree the first time
+		   one of them was pointed somewhere else. Without --archive-rpc the /s/
+		   route still works: it redirects to the app and the site-wide card is
+		   used, which is the old behaviour rather than a broken one. */
+		srv.Facts = courtChain
 	}
 	helper := chat.NewBot(store, srv, botKey, chat.BotOptions{
 		Facts:   facts,
@@ -536,6 +581,82 @@ func main() {
 			"because nothing can confirm a claim references them", archive.StageTTL)
 	}
 	asrv.Routes(mux)
+
+	/* THE DISCORD BRIDGE, on this mux for the reason the archive is: it rides
+	   this process's listener, so a second port would be a second thing to
+	   proxy, to firewall, and to forget when moving hosts. See GUILD.md.
+
+	   ALL OR NOTHING, AND SAID OUT LOUD EITHER WAY. Four values have to be
+	   present and three of them are useless alone, so a half-configured bridge
+	   is not a degraded mode worth having: it would mount routes that mint
+	   nonces nobody can redeem. The archive's own "empty disables promotion, and
+	   here is what that means" line is the shape being followed.
+
+	   THE SECRETS ARE FILES, NEVER FLAGS. A bot token that can ban people, and a
+	   client secret that can complete somebody else's authorisation, do not
+	   belong in the process table — the same reasoning that put the faucet's
+	   mnemonic behind systemd LoadCredential. Both are read once, here, and the
+	   strings never reach a log line. */
+	// guildOn was decided with the other refusals, above, along with the one
+	// fatal this feature has: the publish gate IS the chain read, so a bridge
+	// with no node must not run rather than fall back to trusting the request.
+	switch {
+	case !guildOn:
+		lg.Printf("no --guild-client-id/--guild-client-secret-file/--guild-token-file/" +
+			"--guild-redirect: the Discord bridge is OFF, so no court page shows a server")
+	default:
+		secret, err := readSecretFile(*guildSecretFile)
+		if err != nil {
+			lg.Fatalf("reading the Discord client secret: %v", err)
+		}
+		token, err := readSecretFile(*guildTokenFile)
+		if err != nil {
+			lg.Fatalf("reading the Discord bot token: %v", err)
+		}
+		dc := discordapi.New(token)
+		gstore, err := binding.NewStore(store.Reader(), store.Writer())
+		if err != nil {
+			lg.Fatal(err)
+		}
+		// ONE VERIFIER FOR BOTH. The server asks the chain whether a signer may
+		// publish; the heartbeat asks whether they still may. Two literals would
+		// be two answers to "which node, which realm" the day one of them moved.
+		gverify := &binding.Verifier{
+			Node:    &gnorpc.Node{RPC: *archiveRPC, ID: "kourtchat"},
+			PkgPath: *archiveRealm,
+		}
+		(&binding.Server{
+			Store:        gstore,
+			Verifier:     gverify,
+			Discord:      dc,
+			ClientID:     *guildClientID,
+			ClientSecret: secret,
+			RedirectURI:  *guildRedirect,
+			SiteURL:      *guildSite,
+			Log:          lg,
+		}).Routes(mux)
+		lg.Printf("the Discord bridge is on, redirecting to %s", *guildRedirect)
+
+		/* THE HEARTBEAT IS WHAT MAKES A LISTING REVOCABLE, and without it the
+		   whole delisting story is prose. It re-checks that the bot is still in
+		   each published server with the permissions it was granted, and that the
+		   address which published it still moderates the court — then hides the
+		   link when either stops being true.
+		   ON THE SAME CLIENT AND THE SAME NODE as everything else here, so there
+		   is one answer to "which Discord" and "which chain" rather than three.
+		   A ZERO INTERVAL IS ALLOWED AND SAID OUT LOUD. An operator may want it
+		   off while debugging; an operator who left it off by accident should not
+		   have to infer that from listings never changing. */
+		if *guildBeat <= 0 {
+			lg.Printf("--guild-heartbeat is 0: published servers are NEVER re-checked, " +
+				"so a listing stays up after the bot is kicked or its signer stops " +
+				"moderating")
+		} else {
+			hb := &binding.Heartbeat{Store: gstore, Verifier: gverify, Discord: dc, Log: lg}
+			go hb.Run(context.Background(), *guildBeat, dc)
+			lg.Printf("re-checking published court servers about every %s", *guildBeat)
+		}
+	}
 	// The classifier sorts a queue for a person; it is not a gate. With no
 	// --archive-vision nothing looks at filed images and nothing is ever blocked
 	// automatically, which is a defensible way to run this and a bad one to
@@ -606,4 +727,23 @@ func keys(m map[string]bool) []string {
 		out = append(out, k)
 	}
 	return out
+}
+
+// readSecretFile reads a credential from a file and refuses an empty one.
+//
+// TRAILING WHITESPACE IS STRIPPED because a secret written with `echo` carries a
+// newline, and a bot token with a newline on the end authenticates as nothing
+// while looking exactly right in the file. An EMPTY file is refused outright: it
+// is what a half-finished deploy leaves behind, and starting with an empty token
+// would mount the bridge and fail every Discord call at the moment somebody used it.
+func readSecretFile(path string) (string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	v := strings.TrimSpace(string(b))
+	if v == "" {
+		return "", fmt.Errorf("%s is empty", path)
+	}
+	return v, nil
 }

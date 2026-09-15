@@ -2,6 +2,7 @@ package discordapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -325,4 +326,285 @@ func indexOf(xs []string, want string) int {
 		}
 	}
 	return -1
+}
+
+// REUSE BEFORE CREATE. Re-running a publish must not leave a guild carrying a
+// dozen equivalent invites, and a link already published somewhere should keep
+// working rather than being superseded by a fresh one.
+func TestAnExistingPermanentInviteIsReused(t *testing.T) {
+	var posted int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			posted++
+		}
+		if strings.HasSuffix(r.URL.Path, "/guilds/1/invites") {
+			fmt.Fprint(w, `[{"code":"old","max_age":0,"max_uses":0}]`)
+			return
+		}
+		fmt.Fprint(w, `{"code":"new"}`)
+	}))
+	defer srv.Close()
+	c := &Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}
+
+	got, err := c.EnsureInvite("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "https://discord.gg/old" {
+		t.Errorf("got %q, want the existing invite", got)
+	}
+	if posted != 0 {
+		t.Errorf("%d invite(s) created despite a usable one existing", posted)
+	}
+}
+
+// An invite that expires or is capped is NOT usable for this: the page would keep
+// claiming a server after the link died, and a use cap lets a rival exhaust it.
+func TestAnExpiringOrCappedInviteIsNotReused(t *testing.T) {
+	for name, existing := range map[string]string{
+		"expiring":  `[{"code":"old","max_age":86400,"max_uses":0}]`,
+		"capped":    `[{"code":"old","max_age":0,"max_uses":25}]`,
+		"temporary": `[{"code":"old","max_age":0,"max_uses":0,"temporary":true}]`,
+		"revoked":   `[{"code":"old","max_age":0,"max_uses":0,"revoked":true}]`,
+	} {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch {
+			case strings.HasSuffix(r.URL.Path, "/guilds/1/invites"):
+				fmt.Fprint(w, existing)
+			case strings.HasSuffix(r.URL.Path, "/channels"):
+				fmt.Fprint(w, `[{"id":"5","type":0,"position":0}]`)
+			default:
+				fmt.Fprint(w, `{"code":"fresh"}`)
+			}
+		}))
+		got, err := (&Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}).EnsureInvite("1")
+		srv.Close()
+		if err != nil {
+			t.Errorf("%s: %v", name, err)
+			continue
+		}
+		if got != "https://discord.gg/fresh" {
+			t.Errorf("%s: reused %q, which does not last", name, got)
+		}
+	}
+}
+
+// A guild the bot cannot list invites for is not a guild it cannot invite to:
+// MANAGE_GUILD reads that list and may be withheld while CREATE_INSTANT_INVITE is
+// granted. The read failing must fall through to creating one.
+func TestAnUnreadableInviteListStillMintsOne(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/guilds/1/invites"):
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(w, `{"code":50013,"message":"Missing Permissions"}`)
+		case strings.HasSuffix(r.URL.Path, "/channels"):
+			fmt.Fprint(w, `[{"id":"5","type":0,"position":0}]`)
+		default:
+			fmt.Fprint(w, `{"code":"fresh"}`)
+		}
+	}))
+	defer srv.Close()
+	got, err := (&Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}).EnsureInvite("1")
+	if err != nil {
+		t.Fatalf("an unreadable invite list stopped the mint: %v", err)
+	}
+	if got != "https://discord.gg/fresh" {
+		t.Errorf("got %q", got)
+	}
+}
+
+func TestAGuildWithNoTextChannelSaysSo(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/guilds/1/invites"):
+			fmt.Fprint(w, `[]`)
+		case strings.HasSuffix(r.URL.Path, "/channels"):
+			// a category and a forum: neither is somewhere to land
+			fmt.Fprint(w, `[{"id":"4","type":4,"position":0},{"id":"7","type":15,"position":1}]`)
+		default:
+			t.Errorf("it tried to create an invite on %s", r.URL.Path)
+		}
+	}))
+	defer srv.Close()
+	_, err := (&Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}).EnsureInvite("1")
+	if !errors.Is(err, ErrNoInvitableChannel) {
+		t.Errorf("got %v, want ErrNoInvitableChannel", err)
+	}
+}
+
+// THE NOTICE HAS TO SAY THE SAME THING THE COURT PAGE SAYS. A reader who checks
+// both and finds two accounts of what a listing means has been given a reason to
+// trust neither. check-guild-copy.py holds the site's two copies together; this
+// is the third.
+func TestTheDisclosureQuotesTheSameClauseAsTheSite(t *testing.T) {
+	got := disclosureText("kourt-1", "meta", "https://kourt.xyz", "999")
+	for _, must := range []string{
+		"current moderators chose this server",
+		"does not mean the court is legitimate",
+		"anything said here is true",
+	} {
+		if !strings.Contains(got, must) {
+			t.Errorf("the notice does not say %q:\n%s", must, got)
+		}
+	}
+}
+
+// A reader can only tell the clerk apart by its id: an owner controls every
+// nickname, avatar and webhook in their own guild.
+func TestTheDisclosureNamesTheBotById(t *testing.T) {
+	got := disclosureText("kourt-1", "meta", "https://kourt.xyz", "424242")
+	if !strings.Contains(got, "<@424242>") {
+		t.Errorf("the notice does not cite the bot's id:\n%s", got)
+	}
+	if !strings.Contains(got, "choose a name and a picture") {
+		t.Errorf("the notice does not say why the id is what matters:\n%s", got)
+	}
+}
+
+func TestTheDisclosureLinksBackToTheCourt(t *testing.T) {
+	got := disclosureText("kourt-1", "meta", "https://kourt.xyz", "1")
+	if !strings.Contains(got, "https://kourt.xyz/#/c/meta") {
+		t.Errorf("bad court link:\n%s", got)
+	}
+	// A trailing slash on the configured site must not double up.
+	if s := disclosureText("kourt-1", "meta", "https://kourt.xyz/", "1"); strings.Contains(s, "xyz//") {
+		t.Errorf("a trailing slash doubled: %s", s)
+	}
+	// And the marker the bot recognises its own post by is really in the text.
+	if !strings.Contains(got, disclosureMark) {
+		t.Errorf("the notice does not carry the marker that identifies it later")
+	}
+}
+
+// IDEMPOTENT BY REWRITING ITS OWN PIN. A bot that posts a second notice every
+// sweep is a bot spamming the room it is trying to be trustworthy in.
+func TestTheDisclosureIsNotPostedTwice(t *testing.T) {
+	var posts, patches int
+	body := disclosureText("kourt-1", "meta", "https://kourt.xyz", "77")
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/users/@me"):
+			fmt.Fprint(w, `{"id":"77"}`)
+		case strings.HasSuffix(r.URL.Path, "/channels"):
+			fmt.Fprint(w, `[{"id":"5","type":0,"position":0,"name":"how-this-works"}]`)
+		case strings.HasSuffix(r.URL.Path, "/pins") && r.Method == "GET":
+			fmt.Fprintf(w, `[{"id":"9","author":{"id":"77"},"content":%q}]`, body)
+		case r.Method == "POST":
+			posts++
+			fmt.Fprint(w, `{"id":"10"}`)
+		case r.Method == "PATCH":
+			patches++
+			fmt.Fprint(w, `{}`)
+		default:
+			fmt.Fprint(w, `{}`)
+		}
+	}))
+	defer srv.Close()
+	c := &Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}
+
+	for i := 0; i < 3; i++ {
+		if err := c.EnsureDisclosure("1", "kourt-1", "meta", "https://kourt.xyz"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if posts != 0 {
+		t.Errorf("it posted %d new notice(s) over an identical existing pin", posts)
+	}
+	if patches != 0 {
+		t.Errorf("it rewrote an already-correct notice %d time(s)", patches)
+	}
+}
+
+// A STALE NOTICE IS REWRITTEN RATHER THAN DUPLICATED — the court's name or the
+// site can change, and the room should end up with one correct notice either way.
+func TestAStaleDisclosureIsRewrittenInPlace(t *testing.T) {
+	var posts, patches int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/users/@me"):
+			fmt.Fprint(w, `{"id":"77"}`)
+		case strings.HasSuffix(r.URL.Path, "/channels"):
+			fmt.Fprint(w, `[{"id":"5","type":0,"position":0,"name":"how-this-works"}]`)
+		case strings.HasSuffix(r.URL.Path, "/pins") && r.Method == "GET":
+			fmt.Fprint(w, `[{"id":"9","author":{"id":"77"},"content":"old text /#/c/meta stale"}]`)
+		case r.Method == "POST":
+			posts++
+			fmt.Fprint(w, `{"id":"10"}`)
+		case r.Method == "PATCH":
+			patches++
+			fmt.Fprint(w, `{}`)
+		default:
+			fmt.Fprint(w, `{}`)
+		}
+	}))
+	defer srv.Close()
+	c := &Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}
+	if err := c.EnsureDisclosure("1", "kourt-1", "meta", "https://kourt.xyz"); err != nil {
+		t.Fatal(err)
+	}
+	if patches != 1 || posts != 0 {
+		t.Errorf("stale notice: %d patch(es), %d post(s); want 1 and 0", patches, posts)
+	}
+}
+
+// SOMEBODY ELSE'S PINNED MESSAGE IS NOT THE CLERK'S, however much it looks like
+// it. The author id is the only thing that distinguishes them.
+func TestAnImitationPinIsNotMistakenForOurs(t *testing.T) {
+	var posts int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/users/@me"):
+			fmt.Fprint(w, `{"id":"77"}`)
+		case strings.HasSuffix(r.URL.Path, "/channels"):
+			fmt.Fprint(w, `[{"id":"5","type":0,"position":0,"name":"how-this-works"}]`)
+		case strings.HasSuffix(r.URL.Path, "/pins") && r.Method == "GET":
+			// A perfect copy of our text, posted by somebody else.
+			fmt.Fprintf(w, `[{"id":"9","author":{"id":"66"},"content":%q}]`,
+				disclosureText("kourt-1", "meta", "https://kourt.xyz", "77"))
+		case r.Method == "POST":
+			posts++
+			fmt.Fprint(w, `{"id":"10"}`)
+		default:
+			fmt.Fprint(w, `{}`)
+		}
+	}))
+	defer srv.Close()
+	c := &Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}
+	if err := c.EnsureDisclosure("1", "kourt-1", "meta", "https://kourt.xyz"); err != nil {
+		t.Fatal(err)
+	}
+	if posts != 1 {
+		t.Errorf("it treated a stranger's copy as its own and posted %d notice(s)", posts)
+	}
+}
+
+// Unreadable pins must not skip the notice: MANAGE_MESSAGES reads that list and
+// may be withheld while sending is allowed.
+func TestUnreadablePinsStillGetANotice(t *testing.T) {
+	var posts int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/users/@me"):
+			fmt.Fprint(w, `{"id":"77"}`)
+		case strings.HasSuffix(r.URL.Path, "/channels"):
+			fmt.Fprint(w, `[{"id":"5","type":0,"position":0,"name":"lobby"}]`)
+		case strings.HasSuffix(r.URL.Path, "/pins") && r.Method == "GET":
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(w, `{"code":50013,"message":"Missing Permissions"}`)
+		case r.Method == "POST":
+			posts++
+			fmt.Fprint(w, `{"id":"10"}`)
+		default:
+			fmt.Fprint(w, `{}`)
+		}
+	}))
+	defer srv.Close()
+	c := &Client{Token: "t", BaseURL: srv.URL, HTTP: srv.Client()}
+	if err := c.EnsureDisclosure("1", "kourt-1", "meta", "https://kourt.xyz"); err != nil {
+		t.Fatal(err)
+	}
+	if posts != 1 {
+		t.Errorf("unreadable pins skipped the notice (%d posts)", posts)
+	}
 }

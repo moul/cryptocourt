@@ -249,10 +249,24 @@ if (mediaDark && themeLight && themeDark) {
   ok("the favicon carries no gilt — it is 16px and the caps are sub-pixel there",
      !icon.includes("gilt") && !/#9a6f12|#e2b552/.test(icon));
 
-  // and the drawing is a solid silhouette: no knocked-out holes, which is what
-  // lets one copy serve a light page, a dark page and a browser tab.
-  ok("nothing in the mark is stroked or knocked out",
-     !/stroke=|fill-rule/.test(between('<span class="seat" aria-hidden="true">', "</svg>")));
+  /* The THRONE is a solid silhouette: no knocked-out holes, which is what lets
+     one copy serve a light page, a dark page and a browser tab. That rule used
+     to forbid `stroke=` outright, and it was right to until the wedjat arrived.
+     THE EYE IS THE ONE EXCEPTION, and a narrow one. It is an outline glyph, so
+     at the sizes this mark is used its hairlines vanish; a stroke in its OWN
+     fill colour thickens the strokes without changing the shape or introducing a
+     second colour. That is a weight adjustment, not a knockout, and the property
+     the original rule protects — one drawing, any background — is untouched.
+     So: no fill-rule anywhere, and no stroke on anything that is not the eye. */
+  {
+    const mark = between('<span class="seat" aria-hidden="true">', "</svg>");
+    ok("nothing in the mark is knocked out", !/fill-rule/.test(mark));
+    const strokes = [...mark.matchAll(/stroke="([^"]*)"/g)].map(m => m[1]);
+    ok(`the only stroke is the eye's own colour — ${strokes.length} found`,
+       strokes.every(v => v === "var(--seateye)"), strokes.join(","));
+    ok("...and it is on the eye, which is the only path in the drawing",
+       (mark.match(/<path /g) || []).length === 1);
+  }
   ok("gold is a token, never a literal, so it can differ by theme",
      !/fill="#[0-9a-f]{6}"/i.test(between('<span class="seat" aria-hidden="true">', "</svg>")));
   ok("the favicon's markup is percent-encoded, so the page has ONE <style>",

@@ -102,7 +102,20 @@ QP = {};
 
 // --- the dialog -----------------------------------------------------------
 const dlg = shareDialog("bedford", 1, {title:"The county certified 12,412 mail ballots."}, "Bedford Truth Court");
-ok("dialog offers the link", dlg.includes("https://kourt.example/app/index.html#/c/bedford/1"));
+// A CLAIM'S LINK IS THE /s/ PAGE, not the app route. The app route is a
+// fragment, so a crawler fetching it reads the HOME page's tags and the post
+// previews as the site rather than the claim — which is what "it doesn't show
+// the graph, just the default kourt hero" was. /s/ carries the claim's own tags
+// and redirects a human into the app, so what a reader sees is unchanged.
+ok("a claim's link is the card-bearing /s/ page",
+   dlg.includes("https://kourt.example/app/s/bedford/1"));
+ok("...and not the fragment route, which previews as the site",
+   !dlg.includes("https://kourt.example/app/index.html#/c/bedford/1"));
+// A COURT KEEPS THE APP ROUTE: there is no /s/ page for one, and a link to the
+// site that previews as the site is correct.
+ok("a court's link is still the app route",
+   shareDialog("bedford", null, {}, "Bedford Truth Court")
+     .includes("https://kourt.example/app/index.html#/c/bedford"));
 ok("dialog offers the snippet", dlg.includes('id="emb-snip"'));
 ok("dialog offers all three themes",
    ['data-embtheme=""','data-embtheme="light"','data-embtheme="dark"'].every(a=>dlg.includes(a)));
@@ -114,12 +127,27 @@ ok("clip status is announced", dlg.includes('id="clip-say"') && dlg.includes('ar
 // by the very page rendering the dialog.
 ok("the snippet is escaped, not live markup", dlg.includes("&lt;iframe") && !/<iframe/.test(dlg));
 ok("dialog says why the theme buttons exist", /an iframe cannot see it/.test(dlg));
-// The old wording — "drawn here in your browser — this page has no server to
-// generate one" — read as self-contradictory, because the page plainly DOES
-// generate one. What it cannot do is have a server hand one to a crawler.
-ok("dialog says the browser draws it", /Your browser draws it/.test(dlg));
-ok("dialog separates that from the automatic preview it cannot make",
-   /<em>automatic<\/em> preview would have to be\s+built by a server/.test(dlg));
+// THE REASON CHANGED, SO THE SENTENCE DID. Two earlier wordings are recorded
+// here because each was true when written and stopped being true later:
+//
+//   "this page has no server to generate one"  — self-contradictory; the page
+//                                                plainly generates one
+//   "Your browser draws it, so you attach it   — true until /s/ existed, and
+//    yourself … this page has no server"         then false: a server DOES hand
+//                                                a card to a crawler now
+//
+// What is true today: the post's picture comes from the link's own card, served
+// by /s/<court>/<id>, and the PNG here is for anywhere that wants a file. Pin
+// THAT, because a dialog explaining a limitation the site no longer has is how
+// a reader concludes the share button is broken.
+ok("dialog says where a post's picture actually comes from",
+   /the link's own card/.test(dlg) && /\/s\//.test(dlg));
+ok("dialog no longer claims the page has no server", !/no server/.test(dlg));
+// THE PREVIOUS ASSERTION IS GONE RATHER THAN REWRITTEN: it pinned the sentence
+// that said an automatic preview "would have to be built by a server", and one
+// now is. Keeping it would have required the dialog to go on claiming a
+// limitation that was lifted. What replaces it is the claim above — that the
+// dialog names /s/ as where a post's picture comes from.
 ok("dialog no longer claims it cannot generate one", !/no server to generate one/.test(dlg));
 // And you can SEE it before you send it: it used to download unseen.
 ok("the dialog shows a preview", dlg.includes('id="clip-prev"'));
@@ -316,6 +344,38 @@ drawClip("bedford", 1, {title:"T", yesStake:10, noStake:3, statusText:"open"}, "
 ok("no series says so, in plain words",
    TEXT.some(t=>/no movement recorded yet/.test(t.t)) && !TEXT.some(t=>/recorded path/.test(t.t)),
    JSON.stringify(TEXT.map(t=>t.t).filter(t=>/movement|path|stak/.test(t))));
+// ONE RECORDED POINT IS STILL A RECORD, and the card and the page have to agree
+// about that. The page draws on ser.pts.length — one or more — while the card
+// asked for two, so a claim whose whole history is a single stake got a chart on
+// kourt.xyz and "no movement recorded yet" on the card shared from it: two
+// accounts of one claim, from one series. Reported against covid/28, whose
+// hourly and daily rows merge to exactly one point.
+RECT = []; TEXT = []; STROKES = []; DOTS = []; FILLS = [];
+drawClip("covid", 28, {title:"T", yesStake:5000000, noStake:0, statusText:"open"}, "C", "light",
+         null, null, {pts:[[50400, 100, 5000000, 0]], firstH:50400}, {now:{h:51120}});
+ok("a single recorded point still draws the chart",
+   TEXT.some(t=>/share of stake on YES/.test(t.t)),
+   JSON.stringify(TEXT.map(t=>t.t).filter(t=>/movement|stake on YES/.test(t))));
+ok("...and does not also claim nothing moved",
+   !TEXT.some(t=>/no movement recorded yet/.test(t.t)));
+
+// THE LABELS CLEAR THE BAR. A baseline is not a top edge: at 30px the ascent is
+// about 22, so the old `BAR_Y + 46` put the glyph tops two pixels inside a bar
+// that ends at BAR_Y + 26. Reported as the labels touching it.
+RECT = []; TEXT = []; STROKES = []; DOTS = []; FILLS = [];
+drawClip("bedford", 1, {title:"T", yesStake:10, noStake:3, statusText:"open"}, "C", "light");
+{
+  const bar = RECT.filter(r => r.h === 26 && r.x === 56)[0];
+  const lab = TEXT.filter(t => /^YES /.test(t.t))[0];
+  ok("the bar and its label were both drawn", !!bar && !!lab);
+  if (bar && lab) {
+    // The label's top edge, not its baseline — a 30px face carries ~22 of ascent.
+    const top = lab.y - 22, barBottom = bar.y + bar.h;
+    ok(`the label clears the bar by ${Math.round(top - barBottom)}px`, top - barBottom >= 6,
+       `bar ends ${barBottom}, label top ${top}`);
+  }
+}
+
 // AND THE TWO EMPTY CASES ARE DIFFERENT FACTS. Stake that has not moved is not
 // the same as nothing staked, and saying "nothing staked yet" on the first would
 // be false — the bar beside it is showing 10 against 3.

@@ -74,6 +74,18 @@ img,svg{display:block;max-width:100%}
   --paper:#eaeef1; --surface:#f7f9fa; --surface-2:#e2e8ec; --inset:#e2e8ec;
   --ink:#16202a; --ink-2:#4a5b68; --muted:#56646f;
   --line:#dbe3e8; --line-2:#c8d2d9;
+  /* THE THRONE'S SEAT BACK AND THE EYE ON IT DO NOT FOLLOW THE PAGE, and that is
+     the whole reason they are their own tokens rather than --ink and --paper.
+     The throne body is currentColor, so it is near-black on the light page and
+     near-white on the dark one. An eye painted in --ink would therefore be black
+     on a black throne in light mode — invisible — and knocking it out instead
+     would make it white there, which is not what a black eye is.
+     A fixed pale face with fixed dark ink on it is the only arrangement where the
+     mark reads the same way in both themes and matches the app icon: a black
+     wedjat on a white seat back, whatever the page behind it is doing.
+     They are declared ONCE, in the base :root, precisely because no theme block
+     should override them — if one ever does, that is the bug. */
+  --seatface:#e6edf2; --seateye:#16202a;
   --accent:#2e3a7d; --accent-2:#24306b; --accent-wash:#dfe3f2; --accent-ink:#fff;
   --yes:#1c6551; --yes-wash:#d8e7e1; --no:#93362b; --no-wash:#f0dcd8; --flag:#a5670a; --contra:#d92d20; --contra-wash:#fbe0dd;
   --escrow:#7d5c0f; --escrow-wash:#f0e6cd; --void:#74848f; --void-wash:#e2e8ec;
@@ -3013,8 +3025,9 @@ table.data td.num{text-align:right; font-variant-numeric:tabular-nums; font-fami
    value a balance can put in it. 13 rather than 11 because the flash shares the
    box: at 11 the selected value and "ya got none!" met in the middle. */
 .ticket .argrow .sendin{width:27ch; min-width:0; font-family:var(--mono)}
-/* The balance, inside the box at the right: "1.5 / 201.7". Clickable to stake
-   all of it, which is why this one is not pointer-events:none like the flash. */
+/* The max button, inside the box at the right. It stakes the whole balance —
+   which is why this one is not pointer-events:none like the flash — and the
+   balance itself is on its tooltip rather than printed beside the amount. */
 .amthave{position:absolute; right:7px; top:50%; transform:translateY(-50%);
   font:11.5px var(--mono); color:var(--muted); cursor:pointer; white-space:nowrap}
 .amthave.none{cursor:default}
@@ -3088,6 +3101,21 @@ table.data td.num{text-align:right; font-variant-numeric:tabular-nums; font-fami
 .copybtn{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted);
   border:1px solid var(--line-2); border-radius:var(--r); padding:3px 7px; align-self:center}
 .copybtn:hover{color:var(--accent-2); border-color:var(--accent-2)}
+    /* THE X BUTTON IS NOT A .copybtn, and the difference is the point. Every
+       other control in this dialog is a small outlined monospace pill that says
+       what it does; this one is the destination, and a reader scanning for "how
+       do I post this" should find it without reading. So: solid fill, the mark
+       people already recognise, and the page's own ink rather than a brand blue
+       that would be the only saturated thing on a flat page.
+       INVERTS WITH THE THEME by using the ink/paper pair rather than black and
+       white — on a dark card a black button is a hole. */
+    .xbtn{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+      font-family:var(--sans); font-size:13px; font-weight:600; letter-spacing:.01em;
+      color:var(--paper); background:var(--ink); border:1px solid var(--ink);
+      border-radius:var(--r); padding:8px 14px; line-height:1}
+    .xbtn:hover{background:var(--accent-2); border-color:var(--accent-2); color:var(--paper)}
+    .xbtn:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+    .xbtn svg{flex:0 0 auto}
 /* Three theme buttons with no pressed state left the reader guessing which one
    built the snippet on screen. aria-pressed carries it to a screen reader. */
 .copybtn[aria-pressed=true]{color:var(--accent-2); border-color:var(--accent-2);
@@ -3167,6 +3195,8 @@ table.data td.num{text-align:right; font-variant-numeric:tabular-nums; font-fami
           <rect x="12" y="66" width="76" height="2.6"/>
           <rect x="8" y="87" width="84" height="2"/><rect x="3" y="93" width="94" height="2.2"/>
         </g>
+      
+        <rect x="38.0" y="13.0" width="24.0" height="51.0" fill="var(--seatface)"/><g transform="translate(37.520,43.720) scale(0.020000,-0.020000)"><path d="M64 429 49 440Q65 461 101.0 498.0Q137 535 189.0 576.5Q241 618 306.0 655.5Q371 693 446.0 717.0Q521 741 603 741Q662 741 720.0 726.5Q778 712 831.5 690.5Q885 669 929.0 646.0Q973 623 1003.0 604.5Q1033 586 1043 579Q1054 572 1075.0 558.5Q1096 545 1120.5 530.0Q1145 515 1166.5 502.0Q1188 489 1199 483L1189 466Q1178 472 1157.0 485.0Q1136 498 1111.0 513.0Q1086 528 1064.0 542.0Q1042 556 1030 564Q1020 571 991.5 589.0Q963 607 920.5 629.0Q878 651 826.0 672.0Q774 693 717.0 707.0Q660 721 603 721Q524 721 450.5 697.5Q377 674 314.0 638.0Q251 602 200.5 561.0Q150 520 115.0 484.5Q80 449 64 429ZM581 -219Q577 -173 565.5 -119.0Q554 -65 537.5 -13.0Q521 39 501.5 80.0Q482 121 460 141V170Q523 183 547 210Q562 227 567.0 252.0Q572 277 574 311Q533 315 479.0 324.0Q425 333 367.5 344.5Q310 356 258.5 367.0Q207 378 171.0 386.5Q135 395 125 398Q109 385 97.0 373.5Q85 362 80 357L66 371Q109 414 170.5 460.5Q232 507 304.0 547.5Q376 588 452.5 613.0Q529 638 603 638Q697 638 774.5 611.5Q852 585 916.5 546.0Q981 507 1035 470Q1079 440 1118.0 416.5Q1157 393 1191 386L1187 366Q1163 371 1138.5 383.5Q1114 396 1086 413Q1080 411 1046.5 401.5Q1013 392 963.5 379.0Q914 366 857.0 352.0Q800 338 745.5 327.5Q691 317 649 312L997 -151Q1010 -169 1029.5 -184.5Q1049 -200 1078 -200Q1112 -200 1138.0 -178.5Q1164 -157 1164 -120Q1164 -90 1144.5 -65.0Q1125 -40 1092 -40Q1061 -40 1044.0 -61.0Q1027 -82 1023 -102L1004 -99Q1007 -82 1017.5 -63.5Q1028 -45 1046.5 -32.5Q1065 -20 1092 -20Q1133 -20 1158.5 -51.0Q1184 -82 1184 -120Q1184 -166 1152.0 -192.5Q1120 -219 1078 -219Q1041 -219 1018.5 -201.0Q996 -183 980 -163L626 310H625V-219ZM602 331Q642 331 674.0 350.5Q706 370 725.5 402.0Q745 434 745 473Q745 513 725.5 545.0Q706 577 674.0 596.5Q642 616 602 616Q563 616 530.5 596.5Q498 577 478.5 545.0Q459 513 459 473Q459 434 478.5 402.0Q498 370 530.5 350.5Q563 331 602 331ZM690 337Q740 345 798.5 358.0Q857 371 912.0 385.5Q967 400 1008.0 411.5Q1049 423 1065 427L1024 454Q980 485 928.5 517.0Q877 549 817.0 574.5Q757 600 686 611Q721 590 742.5 553.5Q764 517 764 473Q764 430 743.5 394.5Q723 359 690 337ZM512 338Q480 360 460.0 395.5Q440 431 440 473Q440 516 460.0 551.5Q480 587 513 608Q438 593 368.0 559.0Q298 525 240.5 485.5Q183 446 144 414Q158 410 197.5 401.0Q237 392 291.0 380.0Q345 368 403.0 357.0Q461 346 512 338ZM599 -200H605V310H594Q592 271 587.0 244.5Q582 218 566 199Q554 186 533.5 175.0Q513 164 481 157V150Q502 130 521.0 90.0Q540 50 556.0 0.0Q572 -50 583.5 -102.5Q595 -155 599 -200Z" fill="var(--seateye)" stroke="var(--seateye)" stroke-width="34" stroke-linejoin="round"/></g>
       </svg></span>
       <span><h1>Kourt</h1></span>
     </a>
@@ -3439,6 +3469,30 @@ function defaultChatBase(){
 }
 function chatBase(){
   return (CFG.chat === undefined) ? defaultChatBase() : CFG.chat;
+}
+/* WHERE THE DISCORD BRIDGE IS, and it is NOT a setting — same rule as the
+   archive's siteHost() below, and for the same two reasons.
+
+   /api/guild is served by the same server that served this file, so a second
+   place to say so is a second place to get it wrong. And a settable endpoint
+   could not work on the deployed page anyway: LOCKED drops every stored field
+   that names a chain or a host, keeping only theme and addr, so a `guild` in CFG
+   would be a knob that silently does nothing in production and something in
+   development — the worst of the two.
+
+   EMPTY IN DEMO, and every fetch goes through this rather than testing the mode
+   at the call site. chat.js:810 does exactly this after the alternative was
+   tried: chatBase() defaulted to the origin, so the demo page issued a request
+   to /api/chat/... and stripped_boot caught it as a 404 in the console on every
+   court route. One function that returns "" is a promise the call sites cannot
+   individually forget to keep. */
+function guildEndpoint(){
+  /* The protocol test is siteHost()'s, not a third copy of it. defaultChatBase()
+     and siteHost() already ask "is this a real origin" the same way, and
+     archiveBase() reuses siteHost() rather than retyping the regex — this had
+     retyped it anyway, making three spellings of one rule in one file with
+     nothing tying them together. */
+  return isLive() && siteHost() ? location.origin : "";
 }
 /* WHERE THE ARCHIVE IS, and it is not a setting.
 
@@ -4407,14 +4461,14 @@ async function courtStats(slug){
     // has no CC burns. Live never derives it this way — burns shrink supply,
     // which would overstate a buy quote; live reads CurvePosition instead.
     return {name:c.name, tier:c.tier, price:c.price, supply:c.supply, emitted:c.emitted, reservoir:c.reservoir, seniorOwed:c.seniorOwed, claims:c.claims.length,
-      minted: c.supply - c.emitted, desc:c.desc, burned:c.burned}; }
+      minted: c.supply - c.emitted, desc:c.desc, burned:c.burned, holders:null}; }
   const s=gstr(slug);
   // Name comes from the court page's own "# heading" — courtNameFor is
   // purge-gated and tombstones removed courts; the raw CourtName qeval is not.
   /* THE CHAT PANEL LEARNS THE CEILING HERE, from the read the court page was
      already making — see rememberClaims. The rail's chat is mounted beside this
      page, so this is where "#19" becomes clickable. */
-  const [md,tier,price,supply,emitted,reservoir,seniorOwed,claims,minted,burnHist,burned,tlAnchor] = await Promise.all([
+  const [md,tier,price,supply,emitted,reservoir,seniorOwed,claims,minted,burnHist,burned,tlAnchor,holders] = await Promise.all([
     qrender(slug), one(`CourtTier(${s})`), one(`CoinPrice(${s})`), one(`CoinSupply(${s})`),
     one(`EmittedTotal(${s})`), one(`Reservoir(${s})`), one(`SeniorOwed(${s})`), one(`ClaimCount(${s})`),
     one(`CurvePosition(${s})`).catch(()=>null),
@@ -4429,10 +4483,22 @@ async function courtStats(slug){
     // entry is "now:<unix>:<height>" — the only place the realm hands out a
     // wall-clock reading. Claim 1 because a court's ids start there; a court
     // with no claims simply gets no date, which is the right answer anyway.
-    one(`ClaimTimeline(${s},1)`).catch(()=>null)]);
+    one(`ClaimTimeline(${s},1)`).catch(()=>null),
+    /* HOW MANY ADDRESSES HOLD THIS COIN, beside the figure that says how
+       much of it there is. A supply on its own cannot tell a court one
+       person bought into from one a hundred did.
+       HOLDERS, NOT BURNERS, and the label has to say so. Buying burns
+       GNOT, so it is tempting to read this as "how many people bought" —
+       but the realm keeps no set of buyers, and the two differ in BOTH
+       directions: somebody who bought and transferred away is not here,
+       and somebody who only ever received coin is. HolderCount already
+       excludes zero balances and the escrow account (holders.gno).
+       .catch because an older realm has no HolderCount: the line then
+       simply does not appear, rather than the tile failing. */
+    one(`HolderCount(${s})`).catch(()=>null)]);
   const nm = (md.match(/^#\s+(.+)$/m)||[])[1];
   rememberClaims(slug, claims);
-  return {name: nm? unesc(nm.trim()) : slug, tier,price,supply,emitted,reservoir,seniorOwed,claims,minted,burnHist,burned,nowUnix:anchorNow(tlAnchor)};
+  return {name: nm? unesc(nm.trim()) : slug, tier,price,supply,emitted,reservoir,seniorOwed,claims,minted,burnHist,burned,holders,nowUnix:anchorNow(tlAnchor)};
 }
 /* The chain's per-court policing lists, derived from the sample exactly as
    strips.gno defines membership: the review strip enters at PostAnswer and
@@ -4841,19 +4907,29 @@ async function fillStakeBalance(slug){
   try{ bal = await balanceOf(slug, CFG.addr); }catch(_){ return; }
   if(bal==null || !isFinite(+bal)) return;
   const micro = +bal;
-  /* BOTH NUMBERS IN THE BOX: what you are staking, and out of how much. It read
-     "KOURT:COVID of 201.7" beside the field — the coin's name once as a unit and
-     again inside a figure, six words to assemble — and then wrapped onto a second
-     line the moment the balance was long. In the box it is one glance:
-     1.5 / 201.7, with the unit once after it. Clicking the balance stakes all
-     of it. */
-  /* THE WHOLE ROW IS THE BOX NOW. A label to its left and the coin's name to its
-     right made three elements for one question, and the two of them wrapped the
-     moment the balance grew. Inside: what you are staking, then out of how much,
-     then of what. "0 / 201.7 KOURT:COVID" — one glance, and the unit governs
-     both numbers because it sits after both. */
+  /* IT SAYS "max", AND THE NUMBER MOVES TO THE TOOLTIP.
+     The box read "1.5 / 201.7 KOURT:COVID" — what you are staking, out of how
+     much, of what — which was itself a fix for a label that wrapped whenever the
+     balance grew. Reported: the second figure reads as part of the amount rather
+     than as a balance, so a row whose only control is "stake everything" asks to
+     be parsed before it can be used.
+     THE CHIP HAS ALWAYS BEEN A BUTTON AND NOW IT SAYS WHAT IT DOES. Clicking it
+     has staked the whole balance since it was built — the title said so and
+     nothing else did. "max" is what that button is called everywhere a reader has
+     met one, and it is three characters whatever the holding is, so the row
+     cannot grow a second line when the number does.
+     THE BALANCE IS NOT LOST. It is on the tooltip, and on the label a screen
+     reader gets through the field's aria-describedby, which is where a number
+     belongs when it is context for a control rather than the control itself. The
+     figure the refusal path needs is still in dataset.held below.
+     AND NOTHING WHEN THERE IS NOTHING. "max" against a zero balance is an offer
+     the click cannot honour; the "get some" link beside the field is revealed for
+     exactly that case, so the chip stands down rather than printing a 0. */
   const fig = ccText(micro, slug).replace(" " + ccSym(slug), "");
-  out.innerHTML = "/ " + (micro>0? fig : "0") + " " + ccSymHtml(slug);
+  const have = "Stake all of it — you hold " + fig + " " + ccSym(slug);
+  out.textContent = micro>0? "max" : "";
+  if(micro>0){ out.title = have; out.setAttribute("aria-label", have); }
+  else { out.title = ""; out.removeAttribute("aria-label"); }
   // Left where the click handler can read it: whether the reader holds any coin
   // decides what a refused amount should SAY, and that is decided at the press.
   const w = document.getElementById("stakeamtwrap");
@@ -5037,8 +5113,12 @@ const META_SLUG = "meta";
    is no exception. What is different is only WHERE the burn was recorded: Buy
    calls reindexBurn beside the mint, and ClaimMetaFranchise does not, because
    the GNOT was already burned into whichever court the claimant bought.
-   SO CourtBurnedGNOT("meta") IS ZERO FOREVER, by construction, and the honest
-   figure is the curve's own: read live on kourt.xyz at a position of
+   SO CourtBurnedGNOT("meta") UNDERSTATES IT, and the honest figure is the
+   curve's own. This said "IS ZERO FOREVER, by construction" and that has been
+   measured false: kourt.xyz reads 100,000,000µ there. reindexBurn is called from
+   Buy, nothing stops a Buy on meta, and somebody made one — so the recorded
+   figure is a FLOOR covering the coin bought here directly, while the position
+   covers that AND every franchise claim. Read live on kourt.xyz at a position of
    2,007,984,062, this gives 2,015,999,997 µGNOT against 2,016.0 GNOT of
    entitlement actually consumed by the three claims that reached it — the same
    number, to a rounding remainder of one micro-unit.
@@ -5051,6 +5131,20 @@ const metaBurnFromCurve = minted =>
   Number.isFinite(minted) && minted > 0
     ? Math.ceil((minted * minted) / 2_000_000_000)
     : (minted === 0 ? 0 : null);
+/* THE SAME DERIVATION, APPLIED TO A HISTORY. The stat tile's figure is one
+   curve position through metaBurnFromCurve; this is every position the court
+   has stood at, through the same function, so the line under the number ends on
+   the number. Anything else — BurnSeries, which records only what was bought
+   here directly — would draw a shape that contradicts the figure it sits under.
+   THE SERIES IS REBUILT, NOT MUTATED. parseSeries' points are read again by
+   sinceLabel and the map's own drawing on other paths; handing back a new object
+   is what keeps this a view of that data rather than an edit to it.
+   NULL IN, NULL OUT, so a court whose series did not answer draws nothing, which
+   is what tileSpark already does with an empty one. */
+const metaBurnSeries = ser => (ser && ser.pts && ser.pts.length)
+  ? {width: ser.width, now: ser.now, more: ser.more,
+     pts: ser.pts.map(p => ({e: p.e, v: metaBurnFromCurve(p.v) || 0}))}
+  : null;
 async function franchiseOf(addr){
   if(!addr) return 0;
   if(!isLive()) return Object.hasOwn(DEMO_FRANCHISE, addr)? DEMO_FRANCHISE[addr] : 0;
@@ -9352,6 +9446,10 @@ on(/^\/c\/([a-z0-9-]+)$/, async (slug)=>{
   /* NOT GATED ON isLive(), unlike its neighbours: the rule this states is true of
      the sample too, and the sample is what most readers see. */
   fillFranchise(slug, chainDesc);
+  /* ALSO NOT GATED, and for a different reason than its neighbour above: this one
+     has something to say in demo too, and guildEndpoint() is what decides whether
+     that comes from the service or from the sample. */
+  fillDiscord(slug);
   if(isLive() && s.claims!=null) fillCourtRecord(slug, s.claims, s.minted);
   if(isLive()) fillJoinHeld(slug);
   if(isLive() && claims.length){
@@ -13848,6 +13946,124 @@ function statTile(k, v, sub, spark){
 function franchiseSlotHtml(slug){
   return `<section id="franchise" class="franchise" data-slug="${esc(slug)}"></section>`;
 }
+/* A COURT'S DISCORD, IF ITS MODERATORS CHOSE ONE.
+   An empty section that the fill may or may not ever populate, the same shape
+   franchiseSlotHtml uses — the page must not reflow when the answer arrives, and
+   most courts will have no answer at all.
+   The slot carries no heading. A heading with nothing under it is a promise the
+   page might not keep, and the court route already refuses to open a chat room
+   it cannot serve rather than drawing an empty box under one. */
+function discordSlotHtml(slug){
+  return `<section id="discord" class="discord" data-slug="${esc(slug)}"></section>`;
+}
+/* THE SAMPLE, AND IT IS NOT EVERY COURT.
+   Demo mode paints a real example rather than nothing, because an empty slot
+   would misrepresent a feature most readers only ever see here — the reasoning
+   chatDemoThread already records. But it paints it for ONE court, because "some
+   courts have a server and most do not" is the true shape and a sample where
+   every court has one teaches the wrong thing.
+   DETERMINISTIC, with no clock in it, so two loads of the demo are identical. */
+const DISCORD_DEMO_COURT = "bedford";
+function discordDemoServer(slug){
+  return slug === DISCORD_DEMO_COURT
+    ? {invite:"", guild_id:"000000000000000000", demo:true}
+    : null;
+}
+/* THE DISCLOSURE IS PART OF THE LINK, not a footnote under it.
+   The service sends this sentence alongside every listing for the same reason it
+   is repeated here: a listing certifies that a court's CURRENT MODERATORS chose
+   this server, and nothing whatever about the court or what is said in it. A
+   reader who takes "listed on kourt.xyz" for a warrant has been misled by us, not
+   by the server owner, so the sentence travels with the anchor and is not
+   something a future edit can drop while keeping the button. */
+/* WHAT THE PAGE SAYS WHEN A FLOW COMES BACK.
+   /api/guild/bound redirects here with ?discord=<outcome>, and until this existed
+   the reader landed on an unchanged court page with no acknowledgement of the
+   thing they had just done — a silent dead end at the exact moment they most
+   needed to be told what happened and what is left. */
+const DISCORD_OUTCOMES = {
+  added: "The bot is in your server. It is not published here yet — a moderator of " +
+         "this court still has to sign for it with their own key, which is what " +
+         "proves the choice was the court's. Until then nothing on this page " +
+         "changes, and the server is not listed anywhere.",
+  taken: "That server is already published for a different court. A server belongs " +
+         "to one court at a time — unpublish it there first, or pick another.",
+  expired: "That took too long and the link expired. Nothing was changed; start again.",
+  "already-used": "That link had already been used. Nothing was changed; start again.",
+  cancelled: "Cancelled on Discord's screen. Nothing was changed.",
+};
+function discordOutcomeHtml(outcome){
+  const said = DISCORD_OUTCOMES[outcome];
+  if(!said) return "";              // an unknown value is somebody's edited URL
+  return `<p class="small muted">${esc(said)}</p>`;
+}
+/* AND WHAT IT SAYS WHEN THERE IS NO SERVER, which is most courts, most of the
+   time. Saying nothing was the first version and it left the feature
+   undiscoverable: a moderator had no way to learn from the court's own page that
+   a server was possible. The line is quiet, states who may do it, and does not
+   pretend the whole thing can be finished in the browser — the signing step
+   cannot, and starting somebody down a path that dead-ends is worse than not
+   mentioning it. */
+function discordAbsentHtml(slug){
+  return `<section class="panel" style="margin-top:22px"><h2>Discord</h2>
+      <p class="small muted">This court has no Discord server. Only its moderators
+         can publish one, and they do it with the same key they moderate with — so
+         nobody can claim this court's server by getting there first.</p>
+    </section>`;
+}
+function discordHtml(slug, server){
+  if(!server) return "";
+  const sample = server.demo;
+  const href = server.invite || "";
+  const cta = href && !sample
+    ? `<a class="btn" href="${esc(href)}" target="_blank" rel="noopener">Open the Discord</a>`
+    : `<span class="btn" aria-disabled="true">Open the Discord</span>`;
+  /* A LISTING WITH NO DOOR IS A REAL STATE AND HAS TO SAY SO. The moderators
+     chose the server and the chain agreed, but the bot could not mint an invite
+     — CREATE_INSTANT_INVITE withheld, or no channel it may invite to. The
+     alternative is what this used to do: a greyed button and no reason, which
+     reads as the page being broken rather than the server being shut. */
+  const noDoor = !sample && !href
+    ? `<p class="small muted">The moderators published this server, but the clerk
+         cannot open a door to it — it has not been given permission to create an
+         invite. That is the server's setting to change, not the court's.</p>`
+    : "";
+  return `<section class="panel" style="margin-top:22px"><h2>Discord</h2>
+      <p>${cta}</p>
+      ${noDoor}
+      <p class="small muted">Listed means this court's current moderators chose this
+         server. It does not mean the court is legitimate, or that anything said
+         there is true. The server is theirs — Kourt does not run it, moderate it,
+         or stand behind what is said in it.</p>
+      ${sample? `<p class="small muted">sample data — there is no such server, and the button above goes nowhere</p>` : ""}
+    </section>`;
+}
+/* NOT GATED ON isLive() AT THE CALL SITE — guildEndpoint() is the gate, and in
+   demo it returns "" so no request is made and the sample is drawn instead. The
+   neighbouring fills test isLive() themselves; this one cannot, because it has
+   something to say in both modes and the difference is where the answer comes
+   from rather than whether there is one. */
+async function fillDiscord(slug){
+  const slot = document.getElementById("discord");
+  if(!slot) return;
+  const base = guildEndpoint();
+  if(!base){
+    slot.innerHTML = discordHtml(slug, discordDemoServer(slug));
+    return;
+  }
+  try{
+    const r = await fetch(base + "/api/guild/servers/" + encodeURIComponent(CFG.chainid || "dev")
+      + "/" + encodeURIComponent(slug), {cache:"no-store"});
+    if(!r.ok) return;                       // a court with no server answers 200 and null
+    const j = await r.json();
+    const server = j && j.server;
+    /* THE OUTCOME GOES INSIDE THE PANEL, not above it: it is about this court's
+       server, and a floating notice with no heading reads as a site-wide banner. */
+    const body = server? discordHtml(slug, server) : discordAbsentHtml(slug);
+    const said = discordOutcomeHtml(QP.discord);
+    slot.innerHTML = said? body.replace("</section>", said + "</section>") : body;
+  }catch(_){ /* an unread listing leaves the rest of the court page intact */ }
+}
 /* THE NAME IS A LINK ONLY WHERE THERE IS SOMETHING TO OPEN — the same rule the
    page applies to a claim reference, and for the same reason. The offline sample
    has no meta court, so a link there dead-ends on "No court by that slug";
@@ -14152,7 +14368,17 @@ function courtStatsHtml(slug, s){
          forward: the pool that is waiting, then the part of it that has been
          paid out. The reverse put the smaller, later figure above the larger one
          it comes out of. */
-      [ material(s.reservoir)? `${ccFig(s.reservoir)} in the reward reservoir` : "",
+      [ /* HOLDERS FIRST, because it is the line that says whether anyone is
+           here. The two below it qualify the supply figure; this one qualifies
+           the court. A number with no people behind it reads very differently
+           once you can see there are none.
+           "holder"/"holders", not "burned": buying burns GNOT, but the realm
+           keeps no set of buyers and the two differ in both directions — see
+           the HolderCount fetch in courtStats. Naming it wrong here would be a
+           number that quietly means something else. */
+        (s.holders != null && s.holders > 0)
+          ? `${fmtN(s.holders)} ${s.holders === 1 ? "holder" : "holders"}` : "",
+        material(s.reservoir)? `${ccFig(s.reservoir)} in the reward reservoir` : "",
         s.emitted>0? `${ccFig(s.emitted)} earned as rewards` : "",
       ].filter(Boolean).map(t=>`<span style="display:block">${t}</span>`).join("")),
     // THE THIRD COLUMN, and the only graph on the strip. Price and supply are
@@ -14170,11 +14396,35 @@ function courtStatsHtml(slug, s){
        implies the GNOT that reached it — and the only difference is that
        ClaimMetaFranchise does not call reindexBurn, because the GNOT was already
        burned into whichever court the claimant bought. The label says where. */
+    /* AND META GETS A GRAPH TOO, from the series its own figure is derived
+       from. REPORTED: "doesn't show a graph on the top 3-bar" — and it was the
+       one court that never could, because this branch passed no spark at all.
+       The tile beside it carries the strip's only shape, so meta's third column
+       was a bare number where every other court has a history.
+       THE SERIES HAS TO BE DERIVED THE SAME WAY THE FIGURE IS, or the shape ends
+       somewhere other than the number above it. BurnSeries is what the realm
+       RECORDED, and for meta that is only the part bought here directly — 100
+       GNOT of the 215 this court has actually taken in. So the supply history
+       goes through metaBurnFromCurve point by point, exactly as the figure does,
+       and the line ends on the figure by construction.
+       SUPPLY IS THE POSITION HERE, which is the one thing that makes this exact:
+       the two differ only after a coin burn, and meta's EmittedTotal is 0 with
+       CoinSupply and CurvePosition both reading 655,743,851 on kourt.xyz. If
+       that ever parts, the figure stays right — it reads the position — and only
+       the earlier points of the line drift. */
     slug === META_SLUG
       ? statTile("GNOT burned for this coin",
           (b => b == null ? "—" : gnotAmt(b))(metaBurnFromCurve(s.minted)),
-          "burned on other courts, and earned here — this court's own burn is "
-          + "always zero, because nothing is ever burned directly for it")
+          /* WHAT THIS SENTENCE USED TO SAY WAS FALSE, and the chain says so:
+             "this court's own burn is always zero, because nothing is ever
+             burned directly for it". CourtBurnedGNOT("meta") reads 100,000,000
+             on kourt.xyz — reindexBurn is called from Buy, and somebody bought
+             meta's coin the ordinary way. Both routes move the same curve, which
+             is why the figure above was right the whole time and only its
+             explanation was wrong. */
+          "from this court's position on the curve, which counts the GNOT burned "
+          + "here directly and the entitlement claimed from other courts alike",
+          tileSpark(metaBurnSeries(parseSeries(s.supplyHist))))
       : statTile("GNOT burned", Number.isFinite(s.burned)? gnotAmt(s.burned) : "—",
       sinceLabel(burnSer, s.nowUnix),
       tileSpark(burnSer)),
@@ -14325,6 +14575,7 @@ function courtBody(slug, s, claims, pager, chainF, allRows, pagerBot, stripQ, pe
         : `<div class="empty"><div class="g">◌</div><p>No open claims.</p><p>${btn("Open the first claim","OpenClaimP",{courtSlug:slug,title:"Your claim of fact",body:"What would settle it — the evidence in view, and what this is NOT asking"},"","a body is optional",null,null,true)}</p></div>`)
     + `</section>`
     + (done.length? `<section data-qsec data-group="settled" style="margin-top:22px"><h2 class="sec-h">Recently settled <span class="count" data-count="settled">${doneWin}</span></h2><div class="docket" data-sortable data-sortkind="dk">${rows(done)}</div></section>` : "")
+    + discordSlotHtml(slug)
     + (()=>{ // the chain's own policing lists — page 1, chain order, never sorted or filtered
       if(pageOf()>1) return "";
       const byId = {}; (allRows||claims).forEach(c2=>{ byId[c2.id]=c2; });
@@ -14795,7 +15046,9 @@ on(/^\/c\/([a-z0-9-]+)\/map$/, async (slug)=>{
                <rect x="12" y="66" width="76" height="2.6"/>
                <rect x="8" y="87" width="84" height="2"/><rect x="3" y="93" width="94" height="2.2"/>
              </g>
-           </svg></span><b>Kourt</b>
+           
+        <rect x="38.0" y="13.0" width="24.0" height="51.0" fill="var(--seatface)"/><g transform="translate(37.520,43.720) scale(0.020000,-0.020000)"><path d="M64 429 49 440Q65 461 101.0 498.0Q137 535 189.0 576.5Q241 618 306.0 655.5Q371 693 446.0 717.0Q521 741 603 741Q662 741 720.0 726.5Q778 712 831.5 690.5Q885 669 929.0 646.0Q973 623 1003.0 604.5Q1033 586 1043 579Q1054 572 1075.0 558.5Q1096 545 1120.5 530.0Q1145 515 1166.5 502.0Q1188 489 1199 483L1189 466Q1178 472 1157.0 485.0Q1136 498 1111.0 513.0Q1086 528 1064.0 542.0Q1042 556 1030 564Q1020 571 991.5 589.0Q963 607 920.5 629.0Q878 651 826.0 672.0Q774 693 717.0 707.0Q660 721 603 721Q524 721 450.5 697.5Q377 674 314.0 638.0Q251 602 200.5 561.0Q150 520 115.0 484.5Q80 449 64 429ZM581 -219Q577 -173 565.5 -119.0Q554 -65 537.5 -13.0Q521 39 501.5 80.0Q482 121 460 141V170Q523 183 547 210Q562 227 567.0 252.0Q572 277 574 311Q533 315 479.0 324.0Q425 333 367.5 344.5Q310 356 258.5 367.0Q207 378 171.0 386.5Q135 395 125 398Q109 385 97.0 373.5Q85 362 80 357L66 371Q109 414 170.5 460.5Q232 507 304.0 547.5Q376 588 452.5 613.0Q529 638 603 638Q697 638 774.5 611.5Q852 585 916.5 546.0Q981 507 1035 470Q1079 440 1118.0 416.5Q1157 393 1191 386L1187 366Q1163 371 1138.5 383.5Q1114 396 1086 413Q1080 411 1046.5 401.5Q1013 392 963.5 379.0Q914 366 857.0 352.0Q800 338 745.5 327.5Q691 317 649 312L997 -151Q1010 -169 1029.5 -184.5Q1049 -200 1078 -200Q1112 -200 1138.0 -178.5Q1164 -157 1164 -120Q1164 -90 1144.5 -65.0Q1125 -40 1092 -40Q1061 -40 1044.0 -61.0Q1027 -82 1023 -102L1004 -99Q1007 -82 1017.5 -63.5Q1028 -45 1046.5 -32.5Q1065 -20 1092 -20Q1133 -20 1158.5 -51.0Q1184 -82 1184 -120Q1184 -166 1152.0 -192.5Q1120 -219 1078 -219Q1041 -219 1018.5 -201.0Q996 -183 980 -163L626 310H625V-219ZM602 331Q642 331 674.0 350.5Q706 370 725.5 402.0Q745 434 745 473Q745 513 725.5 545.0Q706 577 674.0 596.5Q642 616 602 616Q563 616 530.5 596.5Q498 577 478.5 545.0Q459 513 459 473Q459 434 478.5 402.0Q498 370 530.5 350.5Q563 331 602 331ZM690 337Q740 345 798.5 358.0Q857 371 912.0 385.5Q967 400 1008.0 411.5Q1049 423 1065 427L1024 454Q980 485 928.5 517.0Q877 549 817.0 574.5Q757 600 686 611Q721 590 742.5 553.5Q764 517 764 473Q764 430 743.5 394.5Q723 359 690 337ZM512 338Q480 360 460.0 395.5Q440 431 440 473Q440 516 460.0 551.5Q480 587 513 608Q438 593 368.0 559.0Q298 525 240.5 485.5Q183 446 144 414Q158 410 197.5 401.0Q237 392 291.0 380.0Q345 368 403.0 357.0Q461 346 512 338ZM599 -200H605V310H594Q592 271 587.0 244.5Q582 218 566 199Q554 186 533.5 175.0Q513 164 481 157V150Q502 130 521.0 90.0Q540 50 556.0 0.0Q572 -50 583.5 -102.5Q595 -155 599 -200Z" fill="var(--seateye)" stroke="var(--seateye)" stroke-width="34" stroke-linejoin="round"/></g>
+      </svg></span><b>Kourt</b>
          </a>
          <a class="btn ghost mapback" href="#/c/${esc(slug)}"><span aria-hidden="true">←</span> ${safeInline(cs.name)}</a>
          <span class="mapbar-t"><span class="seal">${esc(slug)}</span> map</span>
@@ -19552,7 +19805,24 @@ on(/^\/raw\/([a-z0-9-]+)(?:\/(\d+|mod))?$/, async (slug,id)=>{
    half-built, with what it would take written down in web/README.md. */
 
 function shareDialog(slug, id, d, courtName){
-  const link = shareURLBase() + "#/c/" + slug + (id == null ? "" : "/" + id);
+  /* THE LINK IS /s/ FOR A CLAIM, and the app route only for a court.
+
+     Copying the app route and pasting it into a post gets NO card: the route is
+     a URL FRAGMENT, never sent to a server, so a crawler receives index.html and
+     reads the home page's tags. Reported as "it doesn't show the graph, just the
+     default kourt hero" — and the hero was the honest answer to a link that says
+     nothing about which claim it points at.
+
+     /s/<court>/<id> serves that claim's own og: tags and redirects a human
+     straight into the app, so the link a reader follows is unchanged. The Post
+     on X button already used it; this makes copy-paste behave the same, which is
+     the path most people actually take.
+
+     A COURT HAS NO /s/ PAGE YET, so it keeps the app route — a link that
+     previews as the site is correct for a link TO the site. */
+  const link = id == null
+    ? shareURLBase() + "#/c/" + slug
+    : shareURLBase().replace(/\/[^/]*$/, "/") + "s/" + encodeURIComponent(slug) + "/" + encodeURIComponent(id);
   return `<dialog class="helper" id="share-dlg" aria-labelledby="share-h">
     <div class="hd"><h3 id="share-h">Share this ${id == null ? "court" : "claim"}</h3>
       <button type="button" class="pill void" data-close>close</button></div>
@@ -19560,6 +19830,23 @@ function shareDialog(slug, id, d, courtName){
       ${shareIsPublic() ? "" : `<p class="small" style="margin:0 0 8px; color:var(--escrow)">This page is
         open from a local file, so the link and the embed below only work on this machine, and the image
         leaves its address off. Host <code>index.html</code> somewhere first if you mean to share it.</p>`}
+      <h4>Image</h4>
+      <p class="small muted" style="margin:0 0 8px">A 1200×630 PNG — the size link previews are cropped to.
+        The picture in a post comes from the link's own card, which <code>/s/</code> now serves; this one is
+        for anywhere that wants a file.</p>
+      <div class="clipprev"><img id="clip-prev" alt="the image this claim will share as"></div>
+      <div class="actions">
+        <button type="button" class="copybtn" data-clip="download">Download PNG</button>
+        <button type="button" class="copybtn" data-clip="copy">Copy image</button>
+        <span class="small muted" id="clip-say" aria-live="polite"></span>
+      </div>
+      ${shareIsPublic() && id != null ? `<div class="actions" style="margin:12px 0 2px">
+        <a class="xbtn" target="_blank" rel="noopener noreferrer"
+           href="${esc(tweetHref(slug, id, d, courtName))}"
+           aria-label="Post this claim on X">${X_GLYPH}<span>Post on X</span></a>
+      </div>
+      <p class="small muted" style="margin:0 0 14px">Opens the composer with the claim and its link filled
+        in. X attaches the picture itself, from the link's card.</p>` : ""}
       <h4>Link</h4>
       <pre class="cliblock mono" data-copytext id="share-link">${esc(link)}</pre>
       <button type="button" class="copybtn" data-copyfor="share-link" aria-live="polite">Copy</button>
@@ -19573,19 +19860,42 @@ function shareDialog(slug, id, d, courtName){
       </div>
       <pre class="cliblock mono" id="emb-snip" data-copytext>${esc(embedSnippet(slug, id, {}))}</pre>
       <button type="button" class="copybtn" data-copyfor="emb-snip" aria-live="polite">Copy</button>
-      <h4>Image</h4>
-      <p class="small muted" style="margin:0 0 8px">A 1200×630 PNG — the size link previews are cropped to.
-        Your browser draws it, so you attach it yourself: an <em>automatic</em> preview would have to be
-        built by a server when a crawler asks, and this page has no server.</p>
-      <div class="clipprev"><img id="clip-prev" alt="the image this claim will share as"></div>
-      <div class="actions">
-        <button type="button" class="copybtn" data-clip="download">Download PNG</button>
-        <button type="button" class="copybtn" data-clip="copy">Copy image</button>
-        <span class="small muted" id="clip-say" aria-live="polite"></span>
-      </div>
     </div></dialog>`;
 }
 
+/* tweetHref — the composer, with the text and the LINK filled in.
+
+   THE PICTURE IS NOT A PARAMETER. X's intent takes `text` and `url` and nothing
+   else: there is no way to attach an image from a link, which is why the clip
+   above stays a download. The picture a reader sees in the post comes from the
+   card on the URL, and that is the whole reason /s/ exists — the app's own route
+   is a FRAGMENT, never sent to a server, so a crawler fetching it reads the home
+   page's tags and every claim previewed identically.
+
+   SO THE LINK IS /s/<court>/<id>, NOT the app route. It serves that claim's own
+   og: tags and then redirects a human straight into the app, which means the
+   reader lands exactly where the plain link would have taken them.
+
+   THE TITLE IS THE TEXT, unescaped of the render's markdown: a claim reads as a
+   sentence and a sentence is what belongs in a post. No hashtags and no "check
+   out" — the claim is the pitch. */
+/* The X mark, inline so the button needs no network and no font. Drawn as a
+   PATH rather than the letter "X": a capital X in the page's own face is a
+   letter beside a word, and the thing that makes a share button legible at a
+   glance is the mark people already recognise. currentColor so it inverts with
+   the button in both themes. */
+const X_GLYPH = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" '
+  + 'fill="currentColor"><path d="M18.9 1.6h3.5l-7.6 8.7 8.9 11.8h-6.9l-5.5-7.1-6.3 7.1H1.5l8.1-9.3L1.1 '
+  + '1.6h7.1l4.9 6.5zm-1.2 18.4h1.9L6.4 3.5H4.3z"/></svg>';
+
+function tweetHref(slug, id, d, courtName){
+  const base = shareURLBase().replace(/\/[^/]*$/, "/");
+  const url  = base + "s/" + encodeURIComponent(slug) + "/" + encodeURIComponent(id);
+  const title = unesc(String((d && d.title) || "")).trim();
+  const text = title || ("A claim of fact in " + (courtName || slug));
+  return "https://x.com/intent/tweet?text=" + encodeURIComponent(text)
+       + "&url=" + encodeURIComponent(url);
+}
 function shareURLBase(){
   // Absolute, and derived from where this page actually is.
   return location.href.replace(/#.*$/, "").replace(/\?.*$/, "");
@@ -19702,21 +20012,45 @@ function drawClip(slug, id, d, courtName, theme, note, url, ser, tl){
   // ", according to a preliminary count" and what is left reads as flat fact.
   // Three lines is what fits above the bar, so a longer title is MARKED as cut
   // and the reader is sent to the claim for the rest.
-  x.fillStyle = ink; x.font = "600 52px ui-serif,Georgia,serif";
+  x.fillStyle = ink;
+  /* FIT THE TYPE TO THE TITLE, rather than truncating every long one at a fixed
+     size. A claim is a sentence and the card is the whole pitch, so cutting it
+     is the worst available outcome — reported on covid/23, 118 characters, which
+     at a flat 52px cannot reach three lines and lost its ending.
+
+     TRIED LARGEST FIRST and the first size that fits wins, so a short title
+     keeps the display weight it had and only a long one shrinks. The floor is
+     34px: below that the card stops being readable at the size it is actually
+     seen — a timeline thumbnail — and a smaller-but-unreadable title is not an
+     improvement over a cut one. If even the floor will not hold it, the ellipsis
+     path below still runs, so nothing here removes that safety net. */
+  const TITLE_SIZES = [52, 46, 42, 38, 34];
+  const titleFont = px => "600 " + px + "px ui-serif,Georgia,serif";
   const fits = t => x.measureText(t).width <= W - 112;
+  const wrapAt = px => {
+    x.font = titleFont(px);
+    const out = []; let ln = "";
+    for(const w of String(d && d.title || courtName || slug).split(/\s+/)){
+      const t = ln ? ln + " " + w : w;
+      if(!fits(t) && ln){ out.push(ln); ln = w; } else ln = t;
+    }
+    if(ln) out.push(ln);
+    return out;
+  };
+  let titlePx = TITLE_SIZES[0];
+  for(const px of TITLE_SIZES){
+    titlePx = px;
+    if(wrapAt(px).length <= 3) break;
+  }
+  x.font = titleFont(titlePx);
   // Shorten by CHARACTERS. A word-boundary shave cannot help a line that has no
   // word boundary left, and a title may legitimately carry one: a docket number,
   // a hash, a URL.
   const shave = t => { let v = t; while(v.length > 1 && !fits(v + "…")) v = v.slice(0, -1); return v + "…"; };
-  const words = String(d && d.title || courtName || slug).split(/\s+/);
-  const lines = [];
-  let line = "";
-  for(const w of words){
-    const t = line ? line + " " + w : w;
-    if(!fits(t) && line){ lines.push(line); line = w; }
-    else line = t;
-  }
-  if(line) lines.push(line);
+  // Re-wrapped at the size actually chosen, by the same function that measured
+  // it — two wrap implementations is how the measurement and the drawing come to
+  // disagree about where a line breaks.
+  const lines = wrapAt(titlePx);
   const MAXL = 3;
   const cut = lines.length > MAXL;
   let shown = lines.slice(0, MAXL);
@@ -19736,13 +20070,32 @@ function drawClip(slug, id, d, courtName, theme, note, url, ser, tl){
      positioned from these rather than from H, because the chart moves the bar
      and the first version left the YES/NO labels sitting ON the bar and the
      caption on the title's descenders. */
-  const titleY = note ? 200 : 176, LINE = 62;
+  // LINE FOLLOWS THE SIZE. Left at a flat 62 a 34px title is drawn with the
+  // leading of a 52px one, which reads as three unrelated lines rather than a
+  // sentence. 1.19 is the ratio the original pair had (62/52).
+  const titleY = note ? 200 : 176, LINE = Math.round(titlePx * 1.19);
   shown.forEach((l, i)=> x.fillText(l, 56, titleY + i * LINE));
   const titleBottom = titleY + (shown.length - 1) * LINE + 16;
-  const hasSer = !!(ser && ser.pts && ser.pts.length > 1
-                    && ser.pts.filter(q => q[1] != null).length > 1);
-  const BAR_Y = hasSer ? 496 : 430;
-  const LABEL_Y = BAR_Y + 46;   // clear of the bar's 26px, and of the trail below
+  /* ONE RECORDED POINT IS STILL A RECORD, and the card used to throw it away.
+     The page draws on `ser.pts.length` — one point or more — and this asked for
+     two, so a claim whose whole history is a single stake rendered a chart on
+     kourt.xyz and "no movement recorded yet" on the card shared from it. Two
+     different accounts of the same claim, from one series. covid/28 is exactly
+     that shape: its hourly and daily rows merge to a single point, because the
+     daily row falls inside the hourly window and is dropped as a duplicate.
+     A lone point plots as a flat line to now, which is what the page shows and
+     what is true — seriesDomain already clamps x1 to x0+1, so the degenerate
+     domain a single point would otherwise give cannot divide by zero. */
+  const hasSer = !!(ser && ser.pts && ser.pts.some(q => q[1] != null));
+  const BAR_H = 26;
+  const BAR_Y = hasSer ? 476 : 430;
+  /* THE LABEL CLEARS THE BAR, which the old `BAR_Y + 46` did not: a baseline is
+     not a top edge. At 30px the ascent is about 22, so a baseline 46 below the
+     bar's TOP put the glyph tops at BAR_Y+24 — two pixels INSIDE a bar that ends
+     at BAR_Y+26. Reported as the labels touching it, and visible in any render.
+     Derived from the bar now, so changing BAR_H cannot silently reintroduce it. */
+  const LABEL_ASCENT = 22, LABEL_GAP = 10;
+  const LABEL_Y = BAR_Y + BAR_H + LABEL_GAP + LABEL_ASCENT;
   const TRAIL_Y = 556, STATUS_Y = 586, URL_Y = 616;
 
   /* THE RECORDED PATH. A bar says where the stake stands; the whole argument of
@@ -19757,7 +20110,12 @@ function drawClip(slug, id, d, courtName, theme, note, url, ser, tl){
     /* Room is taken from the top, not the bottom: the dates need a line of
        their own and a three-line title can leave only ~54px of plot, so every
        anchor below is derived rather than guessed at. */
-    const cap = titleBottom + 38, top = cap + 14;
+    /* TIGHTENED WHEN THE BAR MOVED UP. Making room below the bar for a label
+       that no longer overlaps it took 20px off the plot, and on a three-line
+       title that is the difference between three legible gridline labels and
+       three touching ones. This gives 14 of them back from the gap under the
+       title, which had more air than it needed. */
+    const cap = titleBottom + 26, top = cap + 12;
     const dateY = BAR_Y - 26, bot = dateY - 22;
     const pts = ser.pts.filter(q => q[1] != null);
     if(bot - top >= 44){
@@ -19899,7 +20257,7 @@ function drawClip(slug, id, d, courtName, theme, note, url, ser, tl){
   }
   if(d && (d.yesStake || d.noStake)){
     const tot = Math.max(1, (d.yesStake || 0) + (d.noStake || 0));
-    const py = (d.yesStake || 0) / tot, barH = 26;
+    const py = (d.yesStake || 0) / tot, barH = BAR_H;
     x.fillStyle = yes; x.fillRect(56, BAR_Y, (W - 112) * py, barH);
     x.fillStyle = no;  x.fillRect(56 + (W - 112) * py, BAR_Y, (W - 112) * (1 - py), barH);
     x.font = "600 30px ui-sans-serif,system-ui,sans-serif";

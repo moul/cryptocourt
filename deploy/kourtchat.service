@@ -95,13 +95,43 @@ ExecStart=/opt/kourt/kourtchat \
     --db /var/lib/kourt/chat.db \
     --secret-file /var/lib/kourt/secret/iphash.key \
     --chain dev,kourt-1,gnoland-1 \
-    --archive-rpc https://rpc.kourt.xyz \
+    --archive-rpc https://rpc.gno.land \
+    --archive-realm gno.land/r/g1ecsuj0q572jr0dhu29q9njtnmw03hyu7tyyvv6/kourt \
+    --share-origin https://kourt.xyz \
     --behind-proxy \
     --trusted-proxy 127.0.0.1/32,::1/128 \
     --geo-ranges /var/lib/kourt/geo/dbip.csv.gz \
     --bot \
     --bot-gap 10s \
-    --owner-token-file /var/lib/kourt/secret/owner.sha256
+    --owner-token-file /var/lib/kourt/secret/owner.sha256 \
+    --guild-client-id "" \
+    --guild-client-secret-file /var/lib/kourt/secret/discord_client_secret \
+    --guild-token-file /var/lib/kourt/secret/discord_token \
+    --guild-redirect https://kourt.xyz/api/guild/bound \
+    --guild-site https://kourt.xyz \
+    --guild-heartbeat 30m
+
+# THE DISCORD BRIDGE IS OFF until --guild-client-id names a real application.
+# kourtchat says so at startup, and no court page shows a server. Fill the id in
+# above, put the two files in place, restart.
+#
+# THE FLAGS CARRY PATHS, NEVER THE SECRETS. A bot token can ban people in every
+# court server it is in, and the client secret can complete somebody else's
+# authorisation; either one on this line would be in the process table for
+# anybody with a shell. The two files live beside the IP-hashing key in the same
+# mode-0700 directory, read by the same kind of --*-file flag this unit already
+# uses twice.
+#
+# LoadCredential WAS TRIED HERE AND BACKED OUT. It is the better primitive on its
+# merits — a unit-private tmpfs, mode 0400, gone when the service stops — and it
+# is what the faucet's mnemonic uses. But systemd REFUSES TO START A UNIT whose
+# LoadCredential source is missing, and these two files are absent by design
+# until the Discord application exists. That would have made an unconfigured
+# bridge take the chat service down with it, which is the one thing this
+# feature's whole topology is arranged to prevent. A path flag to a file that
+# may not exist yet simply leaves the bridge off, which is the intended state.
+#
+# NOT COPIED BY deploy.sh, like everything else under /var/lib/kourt/secret.
 
 Restart=on-failure
 RestartSec=2

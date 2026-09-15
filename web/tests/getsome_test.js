@@ -72,8 +72,12 @@ ok("the ticket row is the flex that places it",
 
 // ------------------------------------------------------- shown when held is 0
 // A tiny DOM, only as much as fillStakeBalance touches.
-function node(){ return {textContent:"", hidden:undefined, dataset:{}, classList:{
+function node(){ return {textContent:"", title:"", hidden:undefined, dataset:{}, classList:{
   s:new Set(), add(c){this.s.add(c)}, remove(c){this.s.delete(c)}, contains(c){return this.s.has(c)} },
+  // The chip carries the balance on a label now rather than in its text, so the
+  // stand-in has to hold attributes — a mock that silently lacked setAttribute
+  // would throw inside the function under test and report as a harness error.
+  attrs:{}, setAttribute(k,v){this.attrs[k]=v}, removeAttribute(k){delete this.attrs[k]},
   addEventListener(){}, }; }
 let DOM = {};
 global.document = { getElementById: id => DOM[id] || null };
@@ -97,11 +101,28 @@ eval(slice('async function fillStakeBalance(slug){', '\nasync function fillTicke
   let d = await run(0);
   ok("holding none shows the link", d.stakeget.hidden === false);
   ok("and the balance still reads as none", d.stakebal.classList.contains("none"));
+  /* AND THE CHIP SAYS NOTHING RATHER THAN "max". A max button against a zero
+     balance is an offer the click cannot honour, and the link above is already
+     the way out for exactly this case. It also must not print a bare "0": that
+     is the figure this row stopped showing. */
+  ok("the chip is silent when there is nothing to max", d.stakebal.textContent === "");
+  ok("...and carries no label either", !d.stakebal.attrs["aria-label"]);
 
   // HOLDING SOME: hidden, because it is not an offer anyone needs.
   d = await run(201_700_000);
   ok("holding coin hides the link", d.stakeget.hidden === true);
   ok("and the balance is not marked none", !d.stakebal.classList.contains("none"));
+  /* THE WORD, AND THE NUMBER BEHIND IT. The chip used to read "/ 201.7
+     KOURT:COVID" beside the amount, where the second figure was read as part of
+     the amount. The balance is still one hover away, and still on the label the
+     field points at with aria-describedby — losing it outright would be trading
+     one reported problem for a quieter one. */
+  ok("the chip reads max", d.stakebal.textContent === "max");
+  ok("the tooltip still names the balance",
+     /201\.7 KOURT:COVID/.test(d.stakebal.title));
+  ok("and a screen reader gets the same sentence",
+     d.stakebal.attrs["aria-label"] === d.stakebal.title);
+  ok("the number itself is off the row", !/201\.7/.test(d.stakebal.textContent));
 
   // The boundary: one unit is holding some.
   d = await run(1);

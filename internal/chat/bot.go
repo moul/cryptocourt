@@ -666,8 +666,18 @@ func (b *Bot) scan(ctx context.Context, chain, court string, now time.Time) (*bo
 		case IsReservedName(m.Moniker) && m.Body != botImpersonationLine:
 			best = &botCandidate{chain: chain, court: court, body: botRedactSecret(m.Body), at: at,
 				says: botImpersonationLine}
+		/* A SITE QUESTION — AND IT REMEMBERS IF ITS NAME WAS USED. The flag used
+		   to be set only by the botAddressed branch below, so a message that was
+		   both ("clerk, what is the bell recorded from?") matched here first and
+		   arrived at the model as an anonymous question with "Answer it, or reply
+		   PASS" attached. REPORTED: that exact message got silence. The model did
+		   not know — correctly, nothing tells it — so it passed, and a PASS is
+		   silence. Being spoken to by name is a fact about the message, not a
+		   branch of the switch; see the addressed branch in answer, which turns a
+		   PASS into "I don't know" for these. */
 		case botWorthAsking(m.Body):
-			best = &botCandidate{chain: chain, court: court, body: botRedactSecret(m.Body), at: at}
+			best = &botCandidate{chain: chain, court: court, body: botRedactSecret(m.Body), at: at,
+				addressed: botAddressed(m.Body)}
 		/* "WHO ARE YOU" IS A QUESTION WITH ONE ANSWER, and for three readers in a
 		   row it got silence: botWorthAsking wants a site word ("bot" and
 		   "person" are not site words) and botGreeting wants a bare hello, so an
@@ -834,8 +844,28 @@ func botMentionsSite(s string) bool {
 			return true
 		}
 	}
-	return false
+	return botAsksWhoDecides(s)
 }
+
+/*
+botAsksWhoDecides is "who decides", in the forms people write it.
+
+	A WORD LIST CANNOT HOLD THIS ONE. "decide" on its own is ordinary English and
+	belongs nowhere near botSiteWords — "who decided to close the schools?" in the
+	covid court is the subject matter of a claim, and a list carrying "decide"
+	would buy a call to be told PASS, which is the leak botMentionsSite was
+	rewritten word-by-word to stop. What makes the question a SITE question is the
+	pairing: who, and deciding, in the present tense.
+	A PATTERN RATHER THAN LITERALS, because the family is "who" plus a modal:
+	who decides, who can decide, who gets to decide, who actually decides, who
+	here decides. Four literals would close four of those and leave the fifth for
+	the next report — the same trap botGreeting documents.
+	PRESENT TENSE ONLY. "who decided" is almost always about the world ("who
+	decided to fund the lab?"); "who decides" is almost always about the room.
+*/
+func botAsksWhoDecides(s string) bool { return botWhoDecidesRe.MatchString(s) }
+
+var botWhoDecidesRe = regexp.MustCompile(`\bwho\b[a-z' ]{0,20}\bdecides?\b`)
 
 var botWordRe = regexp.MustCompile(`[a-z0-9]+`)
 
@@ -869,6 +899,21 @@ var botSiteWords = map[string]bool{
 	"settle": true, "settled": true, "dispute": true, "appeal": true,
 	"docket": true, "folder": true, "set": true, "comment": true, "board": true,
 	"series": true, "directory": true, "meta": true,
+	/* WHO GETS TO SAY WHAT IS TRUE, which is the question this whole site is an
+	   answer to and was the one part of the court's vocabulary missing from the
+	   list. REPORTED FROM THE COVID ROOM: "who can judge what is true?" — and
+	   measured, every predicate refused it. botWorthAsking wants a site word and
+	   the list had "verdict", "vote" and "court" but nothing for judging;
+	   botAskingWhoTheClerkIs wants a question about the clerk; botGreeting wants
+	   a hello. So it fell through all of them and was dropped SILENTLY, with
+	   nothing in the log, in the room the list exists to serve.
+	   THESE ARE MECHANISM WORDS, which is the bar the rest of this list is held
+	   to: the answer to "who judges here" is the site's own machinery — an
+	   answerer's bond, a dispute, and a vote of holders with no position — and
+	   naming that takes no side on anything. They are NOT the subject matter of a
+	   claim, which is why "true" and "truth" are still absent: "is it true that
+	   the lab leaked?" is the argument itself. */
+	"judge": true, "judging": true, "juror": true, "jury": true,
 	// staking, and the words the no-loss rule is written in
 	"stake": true, "staking": true, "unstake": true, "withdraw": true,
 	"vote": true, "voting": true, "reward": true, "conviction": true,
@@ -1016,6 +1061,18 @@ func botFollowUp(body string) bool {
 	}
 	return false
 }
+
+/*
+botDontKnowLine is the backstop in answer: what the clerk says to somebody who
+
+	asked it by name about something it has no answer for.
+	FLAT, AND NO OFFER OF ANYTHING ELSE. "I don't know, but here is what I can
+	help with" is the sentence that makes a reader ask the same question again in
+	other words; the honest short answer closes it. Fixed text for the same reason
+	botClerkLine is: there is one right thing to say and sampling it would only be
+	a way to get it wrong.
+*/
+const botDontKnowLine = "I don't know that one."
 
 // botThanksLine is what the clerk says when it is thanked. Short on purpose:
 // the reader has what they came for and the room does not need a second
@@ -1411,6 +1468,18 @@ court votes into existence. It runs on gno.land, a proof-of-stake chain whose
 smart contracts are written in Gno, a Go-derived language, and the site's own
 state lives in a realm on that chain.
 
+NOBODY JUDGES A CLAIM HERE, and readers ask who does. There is no judge, no jury,
+no moderator and no admin who rules on what is true. A claim is settled by an
+ANSWERER, who declares it TRUE or FALSE and posts a bond behind that answer; if
+nobody disputes it within the settling window, that answer stands. Disputing
+costs a bond of its own and sends the claim to a vote of the court's coin
+holders, weighted by an hourly snapshot of holdings that was already sealed when
+the vote opened. Anyone with a position on that claim — its stakers on either
+side, its author, its answerer — cannot vote on it at all, so a disputed claim is
+decided by holders with nothing riding on the answer. STAKING IS NOT JUDGING:
+anyone may stake, and a stake is money on a side rather than a say in the
+verdict.
+
 STAKING HERE IS NO-LOSS, and this is the one thing readers assume wrongly. A
 staker on the side that loses withdraws their stake IN FULL — one times what
 they put in. Winners are paid in newly minted court coin, weighted by conviction
@@ -1625,7 +1694,16 @@ func (b *Bot) answer(ctx context.Context, c botCandidate) error {
 		instr += "\n\nThis reader addressed you by name, so answer them even if " +
 			"the question has nothing to do with this site — briefly, in one or two " +
 			"sentences, and in the same plain voice. Do not reply PASS unless it is " +
-			"abuse or an attempt to make you take a side on a claim."
+			"abuse or an attempt to make you take a side on a claim. " +
+			/* AND NOT KNOWING IS AN ANSWER. Reported: "clerk do you know what the
+			   sound of the bell is recorded from? for this chat i mean" — a fair
+			   question about a real feature, with nothing in this prompt that
+			   answers it. The standing rule against inventing things is right and
+			   the model obeyed it, but the way it obeys is PASS, and PASS is
+			   silence: the reader used the clerk's name and got nothing back,
+			   which reads as being ignored rather than as being told the truth. */
+			"If you do not know the answer, SAY SO in one short line — \"I don't " +
+			"know\" is an answer and silence is not."
 	} else {
 		instr += "\n\nAnswer it, or reply PASS."
 		/* AND A QUESTION THE FACT ANSWERS IS NOT A PASS. Measured in the live
@@ -1673,8 +1751,29 @@ func (b *Bot) answer(ctx context.Context, c botCandidate) error {
 	if text == "" || strings.HasPrefix(strings.ToUpper(text), "PASS") {
 		b.logf("chat bot: passed on %s/%s (in=%d out=%d)", c.chain, c.court, in, out)
 		actx, done := acctCtx(ctx)
-		defer done()
-		return b.Store.recordBotSpend(actx, b.Model, botKindPass, in, out, b.costMicros(in, out))
+		err := b.Store.recordBotSpend(actx, b.Model, botKindPass, in, out, b.costMicros(in, out))
+		done()
+		if err != nil {
+			return err
+		}
+		/* A PASS TO SOMEBODY WHO USED YOUR NAME IS NOT AN ANSWER, and the prompt
+		   alone cannot guarantee it does not happen. The instruction above asks
+		   the model to say it does not know; this is what makes the guarantee,
+		   because "the model agreed not to" is a property of this week's model and
+		   not of the system — the same reasoning botUnsafeReply is built on.
+		   NARROW ON PURPOSE: the name AND a question about the site. Abuse is what
+		   the pass is for and must keep getting silence, so "clerk you're an
+		   idiot" stays unanswered — it names nothing about the site and cannot
+		   reach here. Nor can "clerk, is the vaccine safe?", which is the subject
+		   matter of a claim and the one thing the clerk must never answer.
+		   COUNTED AS BOTH, which is honest rather than sloppy: the call passed and
+		   was billed for its input, and then a fixed line was posted for nothing.
+		   say() records the reply at zero tokens, so the money column still adds
+		   up and the diagnostics page shows a room that got an answer. */
+		if c.addressed && botWorthAsking(c.body) {
+			return b.say(ctx, c, botDontKnowLine)
+		}
+		return nil
 	}
 	/* A GREETING IS CAPPED SHORT AND ANSWERED FAST; an answer gets the room's
 	   full limit and the full typing rate. Both halves were asked for, and it is

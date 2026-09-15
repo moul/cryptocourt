@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -17,6 +18,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/jaekwon/kourt/internal/archive"
 )
 
 // Server is the HTTP surface. It enforces; it never scans.
@@ -50,6 +53,19 @@ type Server struct {
 	// NameHold is how long one author's use of a display name keeps others off
 	// it in the same court. Zero disables the check entirely.
 	NameHold time.Duration
+
+	// Facts reads a claim's title and status for the share page's Open Graph
+	// tags. Nil means /s/ still works — it redirects to the app — but the card
+	// falls back to the site-wide one, which is the behaviour being fixed.
+	Facts interface {
+		ClaimCardOf(ctx context.Context, court string, claimID uint64) (archive.ClaimCard, error)
+	}
+
+	// ShareOrigin is the public origin the share page builds absolute URLs from,
+	// e.g. "https://kourt.xyz". Open Graph DROPS a relative og:image rather than
+	// resolving it, so getting this wrong loses the picture silently. Empty
+	// defaults to https://kourt.xyz.
+	ShareOrigin string
 
 	// CountryHeader, when set, is a trusted proxy header carrying an ISO country
 	// code (Cloudflare's CF-IPCountry, say). Empty means no flags, which is the
@@ -229,6 +245,10 @@ func (s *Server) Routes() *http.ServeMux {
 	mux.HandleFunc("/api/chat/here", s.herePresence)
 	mux.HandleFunc("/api/chat/botkey", s.botkey)
 	mux.HandleFunc("/api/chat/", s.messages)
+	/* THE SHARE PAGE, and it is NOT under /api: it is a page a crawler and a
+	   person both fetch, not an endpoint a script calls. Nginx proxies /s/
+	   here alongside /api/chat/ and /m/. */
+	mux.HandleFunc("/s/", s.share)
 	return mux
 }
 
